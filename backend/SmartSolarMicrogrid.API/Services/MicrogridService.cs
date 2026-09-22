@@ -9,10 +9,12 @@ namespace SmartSolarMicrogrid.API.Services
     public class MicrogridService
     {
         private readonly MicrogridRepository _repository;
+        private readonly ReservationRepository _reservationRepository;
 
-        public MicrogridService(MicrogridRepository repository)
+        public MicrogridService(MicrogridRepository repository, ReservationRepository reservationRepository)
         {
             _repository = repository;
+            _reservationRepository = reservationRepository;
         }
 
         public async Task<List<MicrogridNodeDto>> GetAllNodesAsync()
@@ -50,6 +52,8 @@ namespace SmartSolarMicrogrid.API.Services
                 Status = "Active",
                 Latitude = dto.Latitude,
                 Longitude = dto.Longitude,
+                BatteryStorageSlots = dto.BatteryStorageSlots,
+                Schedules = dto.Schedules ?? new List<NodeSchedule>(),
                 CreatedBy = dto.CreatedBy,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -71,6 +75,26 @@ namespace SmartSolarMicrogrid.API.Services
             existing.Status = dto.Status;
             existing.Latitude = dto.Latitude;
             existing.Longitude = dto.Longitude;
+            existing.BatteryStorageSlots = dto.BatteryStorageSlots;
+            existing.Schedules = dto.Schedules ?? new List<NodeSchedule>();
+            existing.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.UpdateAsync(id, existing);
+            return MapToDto(existing);
+        }
+
+        public async Task<MicrogridNodeDto?> DeactivateNodeAsync(string id)
+        {
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing == null) return null;
+
+            var activeReservations = await _reservationRepository.GetActiveReservationsByNodeIdAsync(id);
+            if (activeReservations.Any())
+            {
+                throw new InvalidOperationException("Cannot deactivate a node that has active energy reservations.");
+            }
+
+            existing.Status = "Inactive";
             existing.UpdatedAt = DateTime.UtcNow;
 
             await _repository.UpdateAsync(id, existing);
@@ -99,6 +123,8 @@ namespace SmartSolarMicrogrid.API.Services
             Status = node.Status,
             Latitude = node.Latitude,
             Longitude = node.Longitude,
+            BatteryStorageSlots = node.BatteryStorageSlots,
+            Schedules = node.Schedules,
             CreatedBy = node.CreatedBy,
             CreatedAt = node.CreatedAt,
             UpdatedAt = node.UpdatedAt
