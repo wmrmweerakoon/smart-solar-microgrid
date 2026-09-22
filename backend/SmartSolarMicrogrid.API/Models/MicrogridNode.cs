@@ -3,6 +3,13 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace SmartSolarMicrogrid.API.Models
 {
+    public class NodeSchedule
+    {
+        public string DayOfWeek { get; set; } = string.Empty;
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
+    }
+
     public class MicrogridNode
     {
         [BsonId]
@@ -30,6 +37,12 @@ namespace SmartSolarMicrogrid.API.Models
         [BsonElement("longitude")]
         public double Longitude { get; set; }
 
+        [BsonElement("batteryStorageSlots")]
+        public int BatteryStorageSlots { get; set; }
+
+        [BsonElement("schedules")]
+        public List<NodeSchedule> Schedules { get; set; } = new List<NodeSchedule>();
+
         [BsonElement("createdBy")]
         public string CreatedBy { get; set; } = string.Empty;
 
@@ -51,6 +64,8 @@ namespace SmartSolarMicrogrid.API.Models
         public string Status { get; set; } = "Active";
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public int BatteryStorageSlots { get; set; }
+        public List<NodeSchedule> Schedules { get; set; } = new List<NodeSchedule>();
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
