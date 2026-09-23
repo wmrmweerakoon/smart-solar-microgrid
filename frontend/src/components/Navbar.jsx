@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Sun, LogOut } from 'lucide-react';
 import { getUser, getRole, logout } from '../utils/auth';
 
 /**
@@ -20,7 +21,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <span className="brand-icon">☀️</span>
+        <span className="brand-icon"><Sun size={20} color="var(--primary-color)" /></span>
         Smart Solar Microgrid
       </div>
 
@@ -28,7 +29,7 @@ const Navbar = () => {
         <span className={`navbar-role ${roleClass}`}>{roleLabel}</span>
         <span className="navbar-username">{user?.fullName || user?.username || 'User'}</span>
         <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
-          🚪 Logout
+          <LogOut size={14} className="icon-mr" /> Logout
         </button>
       </div>
     </nav>

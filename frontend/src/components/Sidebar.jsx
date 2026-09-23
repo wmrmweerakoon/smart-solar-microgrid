@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, Zap, Battery, ClipboardList, Clock, History, Bookmark, CheckSquare, Sun } from 'lucide-react';
 import { getUser, getRole } from '../utils/auth';
 
 /**
@@ -15,35 +16,35 @@ const Sidebar = () => {
     {
       title: 'Overview',
       items: [
-        { path: '/dashboard', icon: '📊', label: 'Dashboard' },
+        { path: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
       ],
     },
     {
       title: 'Management',
       items: [
-        { path: '/prosumers', icon: '👥', label: 'Prosumers', roles: ['Backoffice', 'GridOperator'] },
-        { path: '/microgrid', icon: '⚡', label: 'Microgrid Nodes', roles: ['Backoffice', 'GridOperator'] },
-        { path: '/energy-slots', icon: '🔋', label: 'Energy Slots', roles: ['Backoffice', 'GridOperator'] },
+        { path: '/prosumers', icon: <Users size={18} />, label: 'Prosumers', roles: ['Backoffice', 'GridOperator'] },
+        { path: '/microgrid', icon: <Zap size={18} />, label: 'Microgrid Nodes', roles: ['Backoffice', 'GridOperator'] },
+        { path: '/energy-slots', icon: <Battery size={18} />, label: 'Energy Slots', roles: ['Backoffice', 'GridOperator'] },
       ],
     },
     {
       title: 'Bookings',
       items: [
-        { path: '/bookings/current', icon: '📋', label: 'Current Bookings', roles: ['Backoffice', 'GridOperator'] },
-        { path: '/bookings/pending', icon: '⏳', label: 'Pending Bookings', roles: ['Backoffice', 'GridOperator'] },
-        { path: '/bookings/history', icon: '📜', label: 'Booking History', roles: ['Backoffice', 'GridOperator'] },
+        { path: '/bookings/current', icon: <ClipboardList size={18} />, label: 'Current Bookings', roles: ['Backoffice', 'GridOperator'] },
+        { path: '/bookings/pending', icon: <Clock size={18} />, label: 'Pending Bookings', roles: ['Backoffice', 'GridOperator'] },
+        { path: '/bookings/history', icon: <History size={18} />, label: 'Booking History', roles: ['Backoffice', 'GridOperator'] },
       ],
     },
     {
       title: 'Reservations',
       items: [
-        { path: '/reservations', icon: '🔖', label: 'Reservations', roles: ['Backoffice', 'GridOperator'] },
+        { path: '/reservations', icon: <Bookmark size={18} />, label: 'Reservations', roles: ['Backoffice', 'GridOperator'] },
       ],
     },
     {
       title: 'Administration',
       items: [
-        { path: '/prosumers/pending', icon: '✅', label: 'Pending Activations', roles: ['Backoffice'] },
+        { path: '/prosumers/pending', icon: <CheckSquare size={18} />, label: 'Pending Activations', roles: ['Backoffice'] },
       ],
     },
   ];
@@ -51,7 +52,7 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <div className="sidebar-logo">☀️</div>
+        <div className="sidebar-logo"><Sun size={24} color="var(--primary-color)" /></div>
         <div>
           <div className="sidebar-title">Smart Solar</div>
           <div className="sidebar-subtitle">Microgrid System</div>
