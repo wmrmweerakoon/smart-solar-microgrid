@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard';
 import ProsumerList from './pages/prosumer/ProsumerList';
 import CreateProsumer from './pages/prosumer/CreateProsumer';
 import EditProsumer from './pages/prosumer/EditProsumer';
+import ProsumerDetails from './pages/prosumer/ProsumerDetails';
 import PendingActivation from './pages/prosumer/PendingActivation';
 
 // Microgrid Pages
@@ -228,6 +229,7 @@ const App = () => {
       <Route path="/prosumers/create" element={<ProtectedRoute><AuthenticatedLayout><CreateProsumer /></AuthenticatedLayout></ProtectedRoute>} />
       <Route path="/prosumers/edit/:id" element={<ProtectedRoute><AuthenticatedLayout><EditProsumer /></AuthenticatedLayout></ProtectedRoute>} />
       <Route path="/prosumers/pending" element={<ProtectedRoute allowedRoles={['Backoffice']}><AuthenticatedLayout><PendingActivation /></AuthenticatedLayout></ProtectedRoute>} />
+      <Route path="/prosumers/:id" element={<ProtectedRoute><AuthenticatedLayout><ProsumerDetails /></AuthenticatedLayout></ProtectedRoute>} />
 
       {/* Microgrid Routes */}
       <Route path="/microgrid" element={<ProtectedRoute><AuthenticatedLayout><MicrogridList /></AuthenticatedLayout></ProtectedRoute>} />
