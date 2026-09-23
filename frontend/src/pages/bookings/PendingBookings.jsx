@@ -1,3 +1,4 @@
+import { Plus, Pencil, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { bookingService } from '../../services/api';
 import Table from '../../components/Table';
@@ -44,7 +45,7 @@ const PendingBookings = () => {
       key: 'actions', label: 'Actions',
       render: (row) => (
         <div className="btn-group">
-          <Button variant="success" size="sm" onClick={() => handleConfirm(row.id)}>✅ Confirm</Button>
+          <Button variant="success" size="sm" onClick={() => handleConfirm(row.id)}><CheckCircle size={16} className="icon-mr" /> Confirm</Button>
           <Button variant="danger" size="sm" onClick={() => handleCancel(row.id)}>❌ Cancel</Button>
         </div>
       ),
@@ -54,7 +55,7 @@ const PendingBookings = () => {
   return (
     <div className="page-container">
       <div className="page-header"><h1 className="page-title">Pending Bookings</h1><p className="page-subtitle">Bookings awaiting confirmation</p></div>
-      {alert && <div className={`alert alert-${alert.type}`}>{alert.type === 'success' ? '✅' : '⚠️'} {alert.message}</div>}
+      {alert && <div className={`alert alert-${alert.type}`}>{alert.type === 'success' ? '<CheckCircle size={16} className="icon-mr" />' : '<AlertTriangle size={16} className="icon-mr" />'} {alert.message}</div>}
       <Table columns={columns} data={bookings} loading={loading} emptyMessage="No pending bookings" emptyIcon="⏳" />
     </div>
   );

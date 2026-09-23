@@ -1,3 +1,4 @@
+import { Plus, Pencil, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { prosumerService } from '../../services/api';
@@ -59,14 +60,14 @@ const ProsumerList = () => {
       render: (row) => (
         <div className="btn-group">
           <Button variant="secondary" size="sm" onClick={() => navigate(`/prosumers/edit/${row.id}`)}>
-            ✏️ Edit
+            <Pencil size={14} className="icon-mr" /> Edit
           </Button>
           <Button
             variant="danger"
             size="sm"
             onClick={() => setDeleteModal({ open: true, id: row.id, name: row.name })}
           >
-            🗑️
+            <Trash2 size={14} />
           </Button>
         </div>
       ),
@@ -81,13 +82,13 @@ const ProsumerList = () => {
           <p className="page-subtitle">Manage solar energy prosumers</p>
         </div>
         <Button variant="primary" onClick={() => navigate('/prosumers/create')}>
-          ➕ Add Prosumer
+          <Plus size={16} className="icon-mr" /> Add Prosumer
         </Button>
       </div>
 
       {alert && (
         <div className={`alert alert-${alert.type}`}>
-          {alert.type === 'success' ? '✅' : '⚠️'} {alert.message}
+          {alert.type === 'success' ? '<CheckCircle size={16} className="icon-mr" />' : '<AlertTriangle size={16} className="icon-mr" />'} {alert.message}
         </div>
       )}
 

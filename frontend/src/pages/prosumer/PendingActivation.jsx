@@ -1,3 +1,4 @@
+import { Plus, Pencil, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { prosumerService } from '../../services/api';
 import Table from '../../components/Table';
@@ -59,7 +60,7 @@ const PendingActivation = () => {
       render: (row) => (
         <div className="btn-group">
           <Button variant="success" size="sm" onClick={() => handleActivate(row.id)}>
-            ✅ Activate
+            <CheckCircle size={16} className="icon-mr" /> Activate
           </Button>
           <Button variant="danger" size="sm" onClick={() => handleDeactivate(row.id)}>
             ❌ Reject
@@ -78,7 +79,7 @@ const PendingActivation = () => {
 
       {alert && (
         <div className={`alert alert-${alert.type}`}>
-          {alert.type === 'success' ? '✅' : '⚠️'} {alert.message}
+          {alert.type === 'success' ? <CheckCircle size={16} className="icon-mr" /> : <AlertTriangle size={16} className="icon-mr" />} {alert.message}
         </div>
       )}
 
@@ -87,7 +88,7 @@ const PendingActivation = () => {
         data={prosumers}
         loading={loading}
         emptyMessage="No pending activations"
-        emptyIcon="✅"
+        emptyIcon={<CheckCircle size={16} className="icon-mr" />}
       />
     </div>
   );

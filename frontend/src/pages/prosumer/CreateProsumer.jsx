@@ -1,3 +1,4 @@
+import { Plus, Pencil, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { prosumerService, microgridService } from '../../services/api';
@@ -55,7 +56,7 @@ const CreateProsumer = () => {
       </div>
 
       <div className="card" style={{ maxWidth: 700 }}>
-        {error && <div className="alert alert-error">⚠️ {error}</div>}
+        {error && <div className="alert alert-error"><AlertTriangle size={16} className="icon-mr" /> {error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">
@@ -96,7 +97,7 @@ const CreateProsumer = () => {
           </div>
 
           <div className="btn-group" style={{ marginTop: 24 }}>
-            <Button type="submit" variant="primary" loading={loading}>💾 Create Prosumer</Button>
+            <Button type="submit" variant="primary" loading={loading}><Save size={16} className="icon-mr" /> Create Prosumer</Button>
             <Button variant="secondary" onClick={() => navigate('/prosumers')}>Cancel</Button>
           </div>
         </form>

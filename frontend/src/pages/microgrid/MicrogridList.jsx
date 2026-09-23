@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Pencil, Trash2, PauseCircle, CheckCircle, AlertTriangle } from 'lucide-react';
 import { microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
@@ -36,6 +37,17 @@ const MicrogridList = () => {
     }
   };
 
+  const handleDeactivate = async (id) => {
+    try {
+      const res = await microgridService.deactivate(id);
+      setNodes(nodes.map(n => n.id === id ? res.data : n));
+      setAlert({ type: 'success', message: 'Node deactivated successfully.' });
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Failed to deactivate node.';
+      setAlert({ type: 'error', message: msg });
+    }
+  };
+
   const getStatusClass = (status) => {
     const map = { Active: 'status-active', Inactive: 'status-inactive', Maintenance: 'status-maintenance' };
     return map[status] || '';
@@ -45,6 +57,7 @@ const MicrogridList = () => {
     { key: 'nodeName', label: 'Node Name' },
     { key: 'location', label: 'Location' },
     { key: 'capacity', label: 'Capacity (kW)', render: (row) => `${row.capacity} kW` },
+    { key: 'batteryStorageSlots', label: 'Battery Slots', render: (row) => row.batteryStorageSlots || 0 },
     { key: 'currentLoad', label: 'Load (kW)', render: (row) => `${row.currentLoad} kW` },
     {
       key: 'status', label: 'Status',
@@ -54,8 +67,11 @@ const MicrogridList = () => {
       key: 'actions', label: 'Actions',
       render: (row) => (
         <div className="btn-group">
-          <Button variant="secondary" size="sm" onClick={() => navigate(`/microgrid/edit/${row.id}`)}>✏️ Edit</Button>
-          <Button variant="danger" size="sm" onClick={() => setDeleteModal({ open: true, id: row.id, name: row.nodeName })}>🗑️</Button>
+          {row.status === 'Active' && (
+            <Button variant="secondary" size="sm" onClick={() => handleDeactivate(row.id)}><PauseCircle size={14} className="icon-mr" /> Deactivate</Button>
+          )}
+          <Button variant="secondary" size="sm" onClick={() => navigate(`/microgrid/edit/${row.id}`)}><Pencil size={14} className="icon-mr" /> Edit</Button>
+          <Button variant="danger" size="sm" onClick={() => setDeleteModal({ open: true, id: row.id, name: row.nodeName })}><Trash2 size={14} /></Button>
         </div>
       ),
     },
@@ -68,10 +84,15 @@ const MicrogridList = () => {
           <h1 className="page-title">Microgrid Nodes</h1>
           <p className="page-subtitle">Manage solar microgrid infrastructure</p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/microgrid/create')}>➕ Add Node</Button>
+        <Button variant="primary" onClick={() => navigate('/microgrid/create')}><Plus size={16} className="icon-mr" /> Add Node</Button>
       </div>
 
-      {alert && <div className={`alert alert-${alert.type}`}>{alert.type === 'success' ? '✅' : '⚠️'} {alert.message}</div>}
+      {alert && (
+        <div className={`alert alert-${alert.type}`}>
+          {alert.type === 'success' ? <CheckCircle size={16} className="icon-mr" /> : <AlertTriangle size={16} className="icon-mr" />}
+          {alert.message}
+        </div>
+      )}
 
       <Table columns={columns} data={nodes} loading={loading} emptyMessage="No microgrid nodes found" emptyIcon="⚡" />
 
