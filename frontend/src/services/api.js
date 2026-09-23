@@ -51,14 +51,16 @@ export const dashboardService = {
 // ═══════════════ Prosumer Service ═══════════════
 export const prosumerService = {
   getAll: () => api.get('/prosumer'),
-  getById: (id) => api.get(`/prosumer/${id}`),
+  getById: (nic) => api.get(`/prosumer/${nic}`),
+  getDetails: (nic) => api.get(`/prosumer/${nic}/details`),
+  search: (params) => api.get('/prosumer/search', { params }),
   getByStatus: (status) => api.get(`/prosumer/status/${status}`),
   getByNode: (nodeId) => api.get(`/prosumer/node/${nodeId}`),
   create: (data) => api.post('/prosumer', data),
-  update: (id, data) => api.put(`/prosumer/${id}`, data),
-  activate: (id) => api.put(`/prosumer/${id}/activate`),
-  deactivate: (id) => api.put(`/prosumer/${id}/deactivate`),
-  delete: (id) => api.delete(`/prosumer/${id}`),
+  update: (nic, data) => api.put(`/prosumer/${nic}`, data),
+  activate: (nic) => api.put(`/prosumer/${nic}/activate`),
+  deactivate: (nic, reason) => api.put(`/prosumer/${nic}/deactivate`, { reason }),
+  delete: (nic) => api.delete(`/prosumer/${nic}`),
 };
 
 // ═══════════════ Microgrid Service ═══════════════
