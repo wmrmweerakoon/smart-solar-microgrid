@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Users, UserPlus, Zap, CheckCircle, Battery, Package, ClipboardList, Bookmark, Clock } from 'lucide-react';
 import { dashboardService } from '../services/api';
 import { getUser, getRole } from '../utils/auth';
 
@@ -28,15 +29,15 @@ const Dashboard = () => {
 
   const statCards = stats
     ? [
-        { icon: '👥', label: 'Total Prosumers', value: stats.totalProsumers, colorClass: 'primary' },
-        { icon: '⏳', label: 'Pending Prosumers', value: stats.pendingProsumers, colorClass: 'warning' },
-        { icon: '⚡', label: 'Microgrid Nodes', value: stats.totalNodes, colorClass: 'accent' },
-        { icon: '✅', label: 'Active Nodes', value: stats.activeNodes, colorClass: 'success' },
-        { icon: '🔋', label: 'Energy Slots', value: stats.totalEnergySlots, colorClass: 'info' },
-        { icon: '📦', label: 'Available Slots', value: stats.availableSlots, colorClass: 'success' },
-        { icon: '📋', label: 'Current Bookings', value: stats.currentBookings, colorClass: 'primary' },
-        { icon: '🔖', label: 'Total Reservations', value: stats.totalReservations, colorClass: 'accent' },
-        { icon: '⏰', label: 'Pending Reservations', value: stats.pendingReservations, colorClass: 'warning' },
+        { icon: <Users size={24} />, label: 'Total Prosumers', value: stats.totalProsumers, colorClass: 'primary' },
+        { icon: <UserPlus size={24} />, label: 'Pending Prosumers', value: stats.pendingProsumers, colorClass: 'warning' },
+        { icon: <Zap size={24} />, label: 'Microgrid Nodes', value: stats.totalNodes, colorClass: 'accent' },
+        { icon: <CheckCircle size={24} />, label: 'Active Nodes', value: stats.activeNodes, colorClass: 'success' },
+        { icon: <Battery size={24} />, label: 'Energy Slots', value: stats.totalEnergySlots, colorClass: 'info' },
+        { icon: <Package size={24} />, label: 'Available Slots', value: stats.availableSlots, colorClass: 'success' },
+        { icon: <ClipboardList size={24} />, label: 'Current Bookings', value: stats.currentBookings, colorClass: 'primary' },
+        { icon: <Bookmark size={24} />, label: 'Total Reservations', value: stats.totalReservations, colorClass: 'accent' },
+        { icon: <Clock size={24} />, label: 'Pending Reservations', value: stats.pendingReservations, colorClass: 'warning' },
       ]
     : [];
 

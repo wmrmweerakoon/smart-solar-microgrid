@@ -68,6 +68,7 @@ export const microgridService = {
   getByStatus: (status) => api.get(`/microgrid/status/${status}`),
   create: (data) => api.post('/microgrid', data),
   update: (id, data) => api.put(`/microgrid/${id}`, data),
+  deactivate: (id) => api.put(`/microgrid/${id}/deactivate`),
   delete: (id) => api.delete(`/microgrid/${id}`),
 };
 

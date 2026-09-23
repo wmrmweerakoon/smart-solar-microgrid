@@ -46,6 +46,11 @@ namespace SmartSolarMicrogrid.API.Repositories
             return await _reservations.Find(r => r.EnergySlotId == slotId).ToListAsync();
         }
 
+        public async Task<List<Reservation>> GetActiveReservationsByNodeIdAsync(string nodeId)
+        {
+            return await _reservations.Find(r => r.MicrogridNodeId == nodeId && (r.Status == "Pending" || r.Status == "Confirmed")).ToListAsync();
+        }
+
         public async Task CreateAsync(Reservation reservation)
         {
             await _reservations.InsertOneAsync(reservation);

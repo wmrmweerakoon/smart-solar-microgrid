@@ -1,3 +1,5 @@
+import { Inbox } from 'lucide-react';
+
 /**
  * Reusable data Table component with loading, empty state, and action column support.
  *
@@ -6,14 +8,14 @@
  * @param {Array<object>} props.data
  * @param {boolean} props.loading
  * @param {string} props.emptyMessage
- * @param {string} props.emptyIcon
+ * @param {React.ReactNode} props.emptyIcon
  */
 const Table = ({
   columns = [],
   data = [],
   loading = false,
   emptyMessage = 'No data found',
-  emptyIcon = '📭',
+  emptyIcon = <Inbox size={48} strokeWidth={1} color="var(--text-secondary)" />,
 }) => {
   if (loading) {
     return (

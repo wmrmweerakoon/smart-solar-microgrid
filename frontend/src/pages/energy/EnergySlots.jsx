@@ -1,3 +1,4 @@
+import { Plus, Pencil, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { energySlotService, prosumerService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
@@ -76,7 +77,7 @@ const EnergySlots = () => {
     { key: 'status', label: 'Status', render: (row) => <span className={`status-badge ${getStatusClass(row.status)}`}>{row.status}</span> },
     {
       key: 'actions', label: '', render: (row) => row.status === 'Available' ? (
-        <Button variant="danger" size="sm" onClick={() => handleDelete(row.id)}>🗑️</Button>
+        <Button variant="danger" size="sm" onClick={() => handleDelete(row.id)}><Trash2 size={14} /></Button>
       ) : null,
     },
   ];
@@ -85,17 +86,17 @@ const EnergySlots = () => {
     <div className="page-container">
       <div className="page-header-actions">
         <div><h1 className="page-title">Energy Slots</h1><p className="page-subtitle">Manage tradeable energy time slots</p></div>
-        <Button variant="primary" onClick={() => setShowCreate(true)}>➕ Create Slot</Button>
+        <Button variant="primary" onClick={() => setShowCreate(true)}><Plus size={16} className="icon-mr" /> Create Slot</Button>
       </div>
 
-      {alert && <div className={`alert alert-${alert.type}`}>{alert.type === 'success' ? '✅' : '⚠️'} {alert.message}</div>}
+      {alert && <div className={`alert alert-${alert.type}`}>{alert.type === 'success' ? '<CheckCircle size={16} className="icon-mr" />' : '<AlertTriangle size={16} className="icon-mr" />'} {alert.message}</div>}
 
       <Table columns={columns} data={slots} loading={loading} emptyMessage="No energy slots found" emptyIcon="🔋" />
 
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create Energy Slot"
         footer={<>
           <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
-          <Button variant="primary" loading={createLoading} onClick={handleCreate}>💾 Create</Button>
+          <Button variant="primary" loading={createLoading} onClick={handleCreate}><Save size={16} className="icon-mr" /> Create</Button>
         </>}
       >
         <form onSubmit={handleCreate}>

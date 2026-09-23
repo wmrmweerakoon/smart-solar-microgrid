@@ -56,9 +56,18 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            var result = await _service.DeleteNodeAsync(id);
-            if (!result) return NotFound(new { message = "Microgrid node not found." });
-            return Ok(new { message = "Microgrid node deleted successfully." });
+            var success = await _service.DeleteNodeAsync(id);
+            if (!success) return NotFound(new { message = "Node not found." });
+            return NoContent();
+        }
+
+        [HttpPut("{id}/deactivate")]
+        [Authorize(Roles = "Backoffice,GridOperator")]
+        public async Task<IActionResult> Deactivate(string id)
+        {
+            var updatedNode = await _service.DeactivateNodeAsync(id);
+            if (updatedNode == null) return NotFound(new { message = "Node not found." });
+            return Ok(updatedNode);
         }
     }
 }

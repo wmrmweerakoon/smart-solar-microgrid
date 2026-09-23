@@ -1,3 +1,4 @@
+import { Plus, Pencil, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { reservationService, prosumerService } from '../../services/api';
@@ -67,10 +68,10 @@ const Reservations = () => {
       render: (row) => (
         <div className="btn-group">
           <Button variant="secondary" size="sm" onClick={() => navigate(`/reservations/${row.id}`)}>👁️</Button>
-          {row.status === 'Pending' && <Button variant="success" size="sm" onClick={() => handleConfirm(row.id)}>✅</Button>}
+          {row.status === 'Pending' && <Button variant="success" size="sm" onClick={() => handleConfirm(row.id)}><CheckCircle size={16} className="icon-mr" /></Button>}
           {row.status === 'Confirmed' && <Button variant="primary" size="sm" onClick={() => handleComplete(row.id)}>🏁</Button>}
           {(row.status === 'Pending' || row.status === 'Confirmed') && <Button variant="danger" size="sm" onClick={() => handleCancel(row.id)}>❌</Button>}
-          <Button variant="danger" size="sm" onClick={() => setDeleteModal({ open: true, id: row.id })}>🗑️</Button>
+          <Button variant="danger" size="sm" onClick={() => setDeleteModal({ open: true, id: row.id })}><Trash2 size={14} /></Button>
         </div>
       ),
     },
@@ -79,7 +80,7 @@ const Reservations = () => {
   return (
     <div className="page-container">
       <div className="page-header"><h1 className="page-title">Reservations</h1><p className="page-subtitle">Manage energy trading reservations</p></div>
-      {alert && <div className={`alert alert-${alert.type}`}>{alert.type === 'success' ? '✅' : '⚠️'} {alert.message}</div>}
+      {alert && <div className={`alert alert-${alert.type}`}>{alert.type === 'success' ? '<CheckCircle size={16} className="icon-mr" />' : '<AlertTriangle size={16} className="icon-mr" />'} {alert.message}</div>}
       <Table columns={columns} data={reservations} loading={loading} emptyMessage="No reservations found" emptyIcon="🔖" />
       <Modal isOpen={deleteModal.open} onClose={() => setDeleteModal({ open: false, id: null })} title="Delete Reservation"
         footer={<><Button variant="secondary" onClick={() => setDeleteModal({ open: false, id: null })}>Cancel</Button><Button variant="danger" onClick={handleDelete}>Delete</Button></>}
