@@ -49,6 +49,7 @@ namespace SmartSolarMicrogrid.API.Services
 
             var prosumer = new Prosumer
             {
+                Nic = dto.Nic,
                 Name = dto.Name,
                 Email = dto.Email,
                 Phone = dto.Phone,
@@ -88,6 +89,7 @@ namespace SmartSolarMicrogrid.API.Services
 
             prosumer.Status = "Active";
             prosumer.ActivatedBy = activatedBy;
+            prosumer.ActivatedAt = DateTime.UtcNow;
             prosumer.UpdatedAt = DateTime.UtcNow;
 
             await _repository.UpdateAsync(id, prosumer);
@@ -121,6 +123,7 @@ namespace SmartSolarMicrogrid.API.Services
         private static ProsumerDto MapToDto(Prosumer prosumer) => new ProsumerDto
         {
             Id = prosumer.Id,
+            Nic = prosumer.Nic,
             Name = prosumer.Name,
             Email = prosumer.Email,
             Phone = prosumer.Phone,
@@ -129,6 +132,7 @@ namespace SmartSolarMicrogrid.API.Services
             Status = prosumer.Status,
             SolarCapacity = prosumer.SolarCapacity,
             ActivatedBy = prosumer.ActivatedBy,
+            ActivatedAt = prosumer.ActivatedAt,
             CreatedAt = prosumer.CreatedAt,
             UpdatedAt = prosumer.UpdatedAt
         };

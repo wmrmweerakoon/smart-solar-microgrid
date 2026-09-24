@@ -10,6 +10,7 @@ namespace SmartSolarMicrogrid.API.Models
         public string EndTime { get; set; } = string.Empty;
     }
 
+    [BsonIgnoreExtraElements]
     public class MicrogridNode
     {
         [BsonId]
