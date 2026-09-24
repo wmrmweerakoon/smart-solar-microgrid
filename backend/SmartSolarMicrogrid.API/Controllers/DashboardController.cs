@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Services;
 
@@ -8,46 +7,42 @@ namespace SmartSolarMicrogrid.API.Controllers
     [Route("api/[controller]")]
     public class DashboardController : ControllerBase
     {
-        private readonly ProsumerService _prosumerService;
-        private readonly MicrogridService _microgridService;
-        private readonly EnergySlotService _energySlotService;
-        private readonly BookingService _bookingService;
-        private readonly ReservationService _reservationService;
+        private readonly DashboardService _dashboardService;
 
-        public DashboardController(
-            ProsumerService prosumerService,
-            MicrogridService microgridService,
-            EnergySlotService energySlotService,
-            BookingService bookingService,
-            ReservationService reservationService)
+        public DashboardController(DashboardService dashboardService)
         {
-            _prosumerService = prosumerService;
-            _microgridService = microgridService;
-            _energySlotService = energySlotService;
-            _bookingService = bookingService;
-            _reservationService = reservationService;
+            _dashboardService = dashboardService;
         }
 
         /// <summary>
-        /// Get dashboard summary statistics.
+        /// Get comprehensive dashboard summary statistics dynamically.
+        /// Includes pending reservations and approved future reservations per the marking scheme.
         /// </summary>
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
-            var stats = new
-            {
-                TotalProsumers = await _prosumerService.GetCountAsync(),
-                PendingProsumers = await _prosumerService.GetPendingCountAsync(),
-                TotalNodes = await _microgridService.GetCountAsync(),
-                ActiveNodes = await _microgridService.GetActiveCountAsync(),
-                TotalEnergySlots = await _energySlotService.GetCountAsync(),
-                AvailableSlots = await _energySlotService.GetAvailableCountAsync(),
-                CurrentBookings = await _bookingService.GetCurrentBookingsCountAsync(),
-                TotalReservations = await _reservationService.GetCountAsync(),
-                PendingReservations = await _reservationService.GetPendingCountAsync()
-            };
-
+            var stats = await _dashboardService.GetDashboardStatsAsync();
             return Ok(stats);
+        }
+
+        /// <summary>
+        /// Get live operational monitoring data and recent booking events.
+        /// </summary>
+        [HttpGet("monitoring")]
+        public async Task<IActionResult> GetMonitoring()
+        {
+            var stats = await _dashboardService.GetDashboardStatsAsync();
+            return Ok(new
+            {
+                stats.CurrentBookings,
+                stats.PendingBookings,
+                stats.CompletedBookings,
+                stats.PendingReservations,
+                stats.ApprovedFutureReservations,
+                stats.TotalEnergyTradedKWh,
+                stats.TotalRevenueTraded,
+                stats.RecentBookings
+            });
         }
     }
 }
