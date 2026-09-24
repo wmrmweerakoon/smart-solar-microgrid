@@ -46,6 +46,7 @@ export const authService = {
 // ═══════════════ Dashboard Service ═══════════════
 export const dashboardService = {
   getStats: () => api.get('/dashboard/stats'),
+  getMonitoring: () => api.get('/dashboard/monitoring'),
 };
 
 // ═══════════════ Prosumer Service ═══════════════
@@ -92,6 +93,8 @@ export const bookingService = {
   getPending: () => api.get('/booking/pending'),
   getHistory: () => api.get('/booking/history'),
   getById: (id) => api.get(`/booking/${id}`),
+  getDetails: (id) => api.get(`/booking/${id}/details`),
+  search: (params) => api.get('/booking/search', { params }),
   confirm: (id) => api.put(`/booking/${id}/confirm`),
   complete: (id) => api.put(`/booking/${id}/complete`),
   cancel: (id) => api.put(`/booking/${id}/cancel`),

@@ -25,6 +25,7 @@ builder.Services.AddScoped<MicrogridService>();
 builder.Services.AddScoped<EnergySlotService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<ReservationService>();
+builder.Services.AddScoped<DashboardService>();
 
 // ──────────────── JWT Authentication ────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
