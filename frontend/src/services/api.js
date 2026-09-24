@@ -101,6 +101,7 @@ export const bookingService = {
 export const reservationService = {
   getAll: () => api.get('/reservation'),
   getById: (id) => api.get(`/reservation/${id}`),
+  getDetails: (id) => api.get(`/reservation/${id}/details`),
   getByStatus: (status) => api.get(`/reservation/status/${status}`),
   create: (data) => api.post('/reservation', data),
   update: (id, data) => api.put(`/reservation/${id}`, data),
