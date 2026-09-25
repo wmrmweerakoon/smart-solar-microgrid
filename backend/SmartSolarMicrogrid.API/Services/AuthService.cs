@@ -28,8 +28,9 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
+            var cleanUsername = request.Username?.Trim() ?? string.Empty;
             var user = await _context.Users
-                .Find(u => u.Username == request.Username)
+                .Find(u => u.Username.ToLower() == cleanUsername.ToLower())
                 .FirstOrDefaultAsync();
 
             if (user == null)
@@ -72,18 +73,15 @@ namespace SmartSolarMicrogrid.API.Services
         }
 
         /// <summary>
-        /// Seed default admin users if they don't exist.
+        /// Seed default admin and operator users if missing or reset their passwords.
         /// Called during application startup.
         /// </summary>
         public async Task SeedDefaultUsersAsync()
         {
-            var existingUsers = await _context.Users.CountDocumentsAsync(_ => true);
-            if (existingUsers > 0)
-                return;
-
-            var defaultUsers = new List<User>
+            var adminUser = await _context.Users.Find(u => u.Username.ToLower() == "admin").FirstOrDefaultAsync();
+            if (adminUser == null)
             {
-                new User
+                await _context.Users.InsertOneAsync(new User
                 {
                     Username = "admin",
                     Email = "admin@smartsolar.com",
@@ -93,8 +91,21 @@ namespace SmartSolarMicrogrid.API.Services
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                },
-                new User
+                });
+            }
+            else
+            {
+                var update = Builders<User>.Update
+                    .Set(u => u.PasswordHash, BCrypt.Net.BCrypt.HashPassword("admin123"))
+                    .Set(u => u.IsActive, true)
+                    .Set(u => u.Role, "Backoffice");
+                await _context.Users.UpdateOneAsync(u => u.Id == adminUser.Id, update);
+            }
+
+            var operatorUser = await _context.Users.Find(u => u.Username.ToLower() == "gridoperator").FirstOrDefaultAsync();
+            if (operatorUser == null)
+            {
+                await _context.Users.InsertOneAsync(new User
                 {
                     Username = "gridoperator",
                     Email = "operator@smartsolar.com",
@@ -104,10 +115,16 @@ namespace SmartSolarMicrogrid.API.Services
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                }
-            };
-
-            await _context.Users.InsertManyAsync(defaultUsers);
+                });
+            }
+            else
+            {
+                var update = Builders<User>.Update
+                    .Set(u => u.PasswordHash, BCrypt.Net.BCrypt.HashPassword("operator123"))
+                    .Set(u => u.IsActive, true)
+                    .Set(u => u.Role, "GridOperator");
+                await _context.Users.UpdateOneAsync(u => u.Id == operatorUser.Id, update);
+            }
         }
 
         /// <summary>

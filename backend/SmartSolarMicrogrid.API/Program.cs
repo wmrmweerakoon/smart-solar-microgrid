@@ -57,7 +57,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -105,6 +105,9 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// ──────────────── Middleware Pipeline (CORS must be first) ────────────────
+app.UseCors("AllowReactApp");
+
 // ──────────────── Seed Default Data ────────────────
 using (var scope = app.Services.CreateScope())
 {
@@ -112,7 +115,6 @@ using (var scope = app.Services.CreateScope())
     await authService.SeedDefaultUsersAsync();
 }
 
-// ──────────────── Middleware Pipeline ────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -120,7 +122,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
