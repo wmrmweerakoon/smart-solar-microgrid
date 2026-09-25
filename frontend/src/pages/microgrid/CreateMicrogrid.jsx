@@ -1,20 +1,38 @@
-import { Plus, Pencil, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Trash2, Save, AlertTriangle, ArrowLeft, MapPin } from 'lucide-react';
 import { microgridService } from '../../services/api';
 import Button from '../../components/Button';
+import LocationPickerMap from '../../components/LocationPickerMap';
 
 const CreateMicrogrid = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    nodeName: '', location: '', capacity: '', batteryStorageSlots: '', latitude: '', longitude: '', status: 'Active',
+    nodeName: '',
+    location: '',
+    capacity: '',
+    batteryStorageSlots: '',
+    latitude: '',
+    longitude: '',
+    status: 'Active',
   });
   const [schedules, setSchedules] = useState([]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
+  };
+
+  // Called automatically when user clicks map, moves marker, or chooses a preset
+  const handleMapLocationSelect = ({ latitude, longitude, location }) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude,
+      longitude,
+      location: location || prev.location,
+    }));
     setError('');
   };
 
@@ -58,63 +76,150 @@ const CreateMicrogrid = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <h1 className="page-title">Add Microgrid Node</h1>
-        <p className="page-subtitle">Register a new microgrid infrastructure node</p>
+      <div className="page-header-actions" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="page-title">Add Microgrid Node</h1>
+          <p className="page-subtitle">Register a new microgrid infrastructure node with geographic positioning</p>
+        </div>
+        <Button variant="secondary" onClick={() => navigate('/microgrid')}>
+          <ArrowLeft size={16} className="icon-mr" /> Back to Nodes
+        </Button>
       </div>
-      <div className="card" style={{ maxWidth: 800 }}>
-        {error && <div className="alert alert-error"><AlertTriangle size={16} className="icon-mr" /> {error}</div>}
+
+      <div className="card" style={{ maxWidth: 840, margin: '0 auto' }}>
+        {error && (
+          <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+            <AlertTriangle size={18} color="var(--danger)" />
+            <span>{error}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Node Name *</label>
-              <input className="form-input" name="nodeName" value={formData.nodeName} onChange={handleChange} placeholder="e.g. Node-Alpha" />
+              <input
+                className="form-control"
+                name="nodeName"
+                value={formData.nodeName}
+                onChange={handleChange}
+                placeholder="e.g. Node Silver Moon"
+                required
+              />
             </div>
             <div className="form-group">
-              <label className="form-label">Location *</label>
-              <input className="form-input" name="location" value={formData.location} onChange={handleChange} placeholder="e.g. Colombo District" />
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <MapPin size={15} color="var(--primary)" />
+                Location *
+              </label>
+              <input
+                className="form-control"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="e.g. Galle, Colombo, Kandy"
+                required
+              />
+              <small style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
+                Auto-detected when you click the map below, or type custom city.
+              </small>
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Capacity (kW)</label>
-              <input className="form-input" name="capacity" type="number" step="0.1" value={formData.capacity} onChange={handleChange} placeholder="e.g. 100" />
+              <input
+                className="form-control"
+                name="capacity"
+                type="number"
+                step="0.1"
+                min="0"
+                value={formData.capacity}
+                onChange={handleChange}
+                placeholder="e.g. 500"
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Battery Storage Slots</label>
-              <input className="form-input" name="batteryStorageSlots" type="number" value={formData.batteryStorageSlots} onChange={handleChange} placeholder="e.g. 5" />
+              <input
+                className="form-control"
+                name="batteryStorageSlots"
+                type="number"
+                min="0"
+                value={formData.batteryStorageSlots}
+                onChange={handleChange}
+                placeholder="e.g. 10"
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Status</label>
-              <select className="form-select" name="status" value={formData.status} onChange={handleChange}>
+              <select className="form-control" name="status" value={formData.status} onChange={handleChange}>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
                 <option value="Maintenance">Maintenance</option>
               </select>
             </div>
           </div>
+
+          {/* Interactive Map Picker */}
+          <LocationPickerMap
+            latitude={formData.latitude}
+            longitude={formData.longitude}
+            locationName={formData.location}
+            onLocationSelect={handleMapLocationSelect}
+          />
+
+          {/* Coordinates (auto-filled, fine-tunable) */}
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Latitude</label>
-              <input className="form-input" name="latitude" type="number" step="any" value={formData.latitude} onChange={handleChange} placeholder="e.g. 6.9271" />
+              <label className="form-label">Latitude (Auto-detected)</label>
+              <input
+                className="form-control"
+                name="latitude"
+                type="number"
+                step="any"
+                value={formData.latitude}
+                onChange={handleChange}
+                placeholder="e.g. 6.0535"
+              />
             </div>
             <div className="form-group">
-              <label className="form-label">Longitude</label>
-              <input className="form-input" name="longitude" type="number" step="any" value={formData.longitude} onChange={handleChange} placeholder="e.g. 79.8612" />
+              <label className="form-label">Longitude (Auto-detected)</label>
+              <input
+                className="form-control"
+                name="longitude"
+                type="number"
+                step="any"
+                value={formData.longitude}
+                onChange={handleChange}
+                placeholder="e.g. 80.2210"
+              />
             </div>
           </div>
 
-          <div style={{ marginTop: 24, padding: 16, border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)' }}>
+          {/* Operational Schedules */}
+          <div style={{ marginTop: 24, padding: 18, border: '1px solid var(--border)', borderRadius: 'var(--radius-md, 8px)', background: 'rgba(255, 255, 255, 0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0 }}>Operational Schedules</h3>
-              <Button type="button" variant="secondary" size="sm" onClick={addSchedule}><Plus size={16} className="icon-mr" /> Add Schedule</Button>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Operational Schedules</h3>
+              <Button type="button" variant="secondary" size="sm" onClick={addSchedule}>
+                <Plus size={16} className="icon-mr" /> Add Schedule
+              </Button>
             </div>
-            {schedules.length === 0 && <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No schedules added yet.</p>}
+            {schedules.length === 0 && (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
+                No schedules added yet. Default operational schedule will be 24/7.
+              </p>
+            )}
             {schedules.map((schedule, i) => (
-              <div key={i} className="form-row" style={{ alignItems: 'flex-end', marginBottom: 16 }}>
+              <div key={i} className="form-row" style={{ alignItems: 'flex-end', marginBottom: 14 }}>
                 <div className="form-group">
                   <label className="form-label">Day</label>
-                  <select className="form-select" value={schedule.dayOfWeek} onChange={(e) => handleScheduleChange(i, 'dayOfWeek', e.target.value)}>
+                  <select
+                    className="form-control"
+                    value={schedule.dayOfWeek}
+                    onChange={(e) => handleScheduleChange(i, 'dayOfWeek', e.target.value)}
+                  >
                     <option value="Monday">Monday</option>
                     <option value="Tuesday">Tuesday</option>
                     <option value="Wednesday">Wednesday</option>
@@ -128,22 +233,38 @@ const CreateMicrogrid = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Start Time</label>
-                  <input type="time" className="form-input" value={schedule.startTime} onChange={(e) => handleScheduleChange(i, 'startTime', e.target.value)} />
+                  <input
+                    type="time"
+                    className="form-control"
+                    value={schedule.startTime}
+                    onChange={(e) => handleScheduleChange(i, 'startTime', e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">End Time</label>
-                  <input type="time" className="form-input" value={schedule.endTime} onChange={(e) => handleScheduleChange(i, 'endTime', e.target.value)} />
+                  <input
+                    type="time"
+                    className="form-control"
+                    value={schedule.endTime}
+                    onChange={(e) => handleScheduleChange(i, 'endTime', e.target.value)}
+                  />
                 </div>
-                <div className="form-group">
-                  <Button type="button" variant="danger" onClick={() => removeSchedule(i)}><Trash2 size={14} /></Button>
+                <div className="form-group" style={{ flex: '0 0 auto' }}>
+                  <Button type="button" variant="danger" size="sm" onClick={() => removeSchedule(i)} title="Remove schedule">
+                    <Trash2 size={14} />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="btn-group" style={{ marginTop: 24 }}>
-            <Button type="submit" variant="primary" loading={loading}><Save size={16} className="icon-mr" /> Create Node</Button>
-            <Button variant="secondary" onClick={() => navigate('/microgrid')}>Cancel</Button>
+          <div className="btn-group" style={{ marginTop: 28, display: 'flex', gap: 12 }}>
+            <Button type="submit" variant="primary" loading={loading}>
+              <Save size={16} className="icon-mr" /> Create Node
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => navigate('/microgrid')}>
+              Cancel
+            </Button>
           </div>
         </form>
       </div>
