@@ -99,7 +99,7 @@ const CreateMicrogrid = () => {
             <div className="form-group">
               <label className="form-label">Node Name *</label>
               <input
-                className="form-control"
+                className="form-input"
                 name="nodeName"
                 value={formData.nodeName}
                 onChange={handleChange}
@@ -113,7 +113,7 @@ const CreateMicrogrid = () => {
                 Location *
               </label>
               <input
-                className="form-control"
+                className="form-input"
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
@@ -126,11 +126,11 @@ const CreateMicrogrid = () => {
             </div>
           </div>
 
-          <div className="form-row">
+          <div className="form-row-3">
             <div className="form-group">
               <label className="form-label">Capacity (kW)</label>
               <input
-                className="form-control"
+                className="form-input"
                 name="capacity"
                 type="number"
                 step="0.1"
@@ -143,7 +143,7 @@ const CreateMicrogrid = () => {
             <div className="form-group">
               <label className="form-label">Battery Storage Slots</label>
               <input
-                className="form-control"
+                className="form-input"
                 name="batteryStorageSlots"
                 type="number"
                 min="0"
@@ -154,7 +154,7 @@ const CreateMicrogrid = () => {
             </div>
             <div className="form-group">
               <label className="form-label">Status</label>
-              <select className="form-control" name="status" value={formData.status} onChange={handleChange}>
+              <select className="form-select" name="status" value={formData.status} onChange={handleChange}>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
                 <option value="Maintenance">Maintenance</option>
@@ -175,7 +175,7 @@ const CreateMicrogrid = () => {
             <div className="form-group">
               <label className="form-label">Latitude (Auto-detected)</label>
               <input
-                className="form-control"
+                className="form-input"
                 name="latitude"
                 type="number"
                 step="any"
@@ -187,7 +187,7 @@ const CreateMicrogrid = () => {
             <div className="form-group">
               <label className="form-label">Longitude (Auto-detected)</label>
               <input
-                className="form-control"
+                className="form-input"
                 name="longitude"
                 type="number"
                 step="any"

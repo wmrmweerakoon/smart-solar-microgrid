@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Navigation, Search, CheckCircle, Compass } from 'lucide-react';
+import { MapPin, Navigation, Search, Compass, Layers, CheckCircle2 } from 'lucide-react';
 import Button from './Button';
 
 // SRI LANKA COMMON REGIONAL PRESETS
@@ -25,28 +25,28 @@ const createMicrogridPin = () => {
     html: `
       <div style="
         position: relative;
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
         display: flex;
         align-items: center;
         justify-content: center;
       ">
         <div style="
           position: absolute;
-          width: 32px;
-          height: 32px;
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
-          background: rgba(245, 158, 11, 0.35);
+          background: rgba(245, 158, 11, 0.4);
           animation: pulseMarker 2s infinite;
         "></div>
         <div style="
-          width: 26px;
-          height: 26px;
+          width: 28px;
+          height: 28px;
           background: #f59e0b;
-          border: 2px solid #ffffff;
+          border: 2.5px solid #ffffff;
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.7);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -61,9 +61,9 @@ const createMicrogridPin = () => {
         </div>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
+    iconSize: [34, 34],
+    iconAnchor: [17, 34],
+    popupAnchor: [0, -34],
   });
 };
 
@@ -83,13 +83,15 @@ const LocationPickerMap = ({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+  const tileLayerRef = useRef(null);
 
   const [geocoding, setGeocoding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCoords, setSelectedCoords] = useState(null);
+  const [mapTheme, setMapTheme] = useState('dark'); // 'dark' | 'street'
 
   // Parse initial coordinates or fallback to Sri Lanka center
-  const initialLat = parseFloat(latitude) || 6.9271; // Default Colombo
+  const initialLat = parseFloat(latitude) || 6.9271;
   const initialLng = parseFloat(longitude) || 79.8612;
   const hasInitialCoords = Boolean(parseFloat(latitude) && parseFloat(longitude));
 
@@ -118,7 +120,7 @@ const LocationPickerMap = ({
 
       return detectedCity;
     } catch {
-      // Fallback: estimate nearest preset city
+      // Fallback: estimate nearest preset city in Sri Lanka
       let nearestCity = 'Sri Lanka';
       let minDistance = Infinity;
       for (const preset of SRI_LANKA_PRESETS) {
@@ -134,7 +136,7 @@ const LocationPickerMap = ({
     }
   }, []);
 
-  // Update marker and dispatch selected position
+  // Update marker position and emit values to parent form
   const setPosition = useCallback(
     async (lat, lng, overrideLocationName = null) => {
       const roundedLat = parseFloat(lat.toFixed(6));
@@ -142,8 +144,8 @@ const LocationPickerMap = ({
 
       setSelectedCoords({ lat: roundedLat, lng: roundedLng });
 
-      // Move or create marker
-      if (markerRef.current && mapInstanceRef.current) {
+      // Move marker
+      if (markerRef.current) {
         markerRef.current.setLatLng([roundedLat, roundedLng]);
       }
 
@@ -167,7 +169,7 @@ const LocationPickerMap = ({
   // Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    if (mapInstanceRef.current) return; // Prevent double init
+    if (mapInstanceRef.current) return; // Prevent double initialization
 
     const centerLat = hasInitialCoords ? initialLat : 7.8731; // Sri Lanka center
     const centerLng = hasInitialCoords ? initialLng : 80.7718;
@@ -180,14 +182,17 @@ const LocationPickerMap = ({
       maxZoom: 18,
     });
 
-    // Dark-themed tiles from CartoDB with fallback attribution
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
-      subdomains: 'abcd',
+    // Use OpenStreetMap standard tiles (100% free, reliable, no API key required)
+    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: ['a', 'b', 'c'],
       maxZoom: 19,
+      className: mapTheme === 'dark' ? 'leaflet-dark-tiles' : '',
     }).addTo(map);
 
-    // Initial marker if coords exist
+    tileLayerRef.current = tileLayer;
+
+    // Microgrid pin marker
     const pinIcon = createMicrogridPin();
     const marker = L.marker([centerLat, centerLng], {
       icon: pinIcon,
@@ -213,16 +218,36 @@ const LocationPickerMap = ({
       await setPosition(lat, lng);
     });
 
-    // Invalidate size after layout mounts to ensure proper rendering
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 250);
+    // Invalidate size multiple times to ensure full canvas load
+    const t1 = setTimeout(() => map.invalidateSize(), 100);
+    const t2 = setTimeout(() => map.invalidateSize(), 300);
+    const t3 = setTimeout(() => map.invalidateSize(), 600);
 
     return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
       map.remove();
       mapInstanceRef.current = null;
     };
   }, []); // Run once on mount
+
+  // Toggle map theme between dark and street
+  const toggleTheme = () => {
+    const newTheme = mapTheme === 'dark' ? 'street' : 'dark';
+    setMapTheme(newTheme);
+
+    if (mapInstanceRef.current && tileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(tileLayerRef.current);
+      const newLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: ['a', 'b', 'c'],
+        maxZoom: 19,
+        className: newTheme === 'dark' ? 'leaflet-dark-tiles' : '',
+      }).addTo(mapInstanceRef.current);
+      tileLayerRef.current = newLayer;
+    }
+  };
 
   // Sync if latitude/longitude change from external inputs
   useEffect(() => {
@@ -269,7 +294,7 @@ const LocationPickerMap = ({
         await setPosition(lat, lng, name);
       }
     } catch {
-      // Ignored
+      // Search fallback handled gracefully
     } finally {
       setGeocoding(false);
     }
@@ -294,7 +319,7 @@ const LocationPickerMap = ({
   };
 
   return (
-    <div style={{ marginTop: 8, marginBottom: 24 }}>
+    <div style={{ marginTop: 12, marginBottom: 24 }}>
       {/* Header / Instructions */}
       <div style={{
         display: 'flex',
@@ -302,13 +327,13 @@ const LocationPickerMap = ({
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: 12,
-        marginBottom: 10
+        marginBottom: 12
       }}>
-        <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+        <label className="form-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-primary)' }}>
           <MapPin size={16} color="var(--primary)" />
           Interactive Node Location Picker
         </label>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
           Click anywhere on map or drag pin to auto-detect coordinates & location
         </span>
       </div>
@@ -316,28 +341,39 @@ const LocationPickerMap = ({
       {/* Search & Actions Bar */}
       <div style={{
         display: 'flex',
-        gap: 8,
+        gap: 10,
         flexWrap: 'wrap',
         alignItems: 'center',
-        marginBottom: 12
+        marginBottom: 14
       }}>
         <div style={{ position: 'relative', flex: '1 1 240px', minWidth: 200 }}>
-          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', zIndex: 1 }} />
           <input
             type="text"
-            className="form-control"
+            className="form-input"
             placeholder="Search town (e.g. Galle, Kandy, Negombo)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
-            style={{ paddingLeft: 34, height: 36, fontSize: '0.85rem' }}
+            style={{ paddingLeft: 38, height: 40, fontSize: '0.88rem' }}
           />
         </div>
-        <Button type="button" variant="secondary" size="sm" onClick={handleSearch} disabled={geocoding}>
+        <Button type="button" variant="secondary" size="sm" onClick={handleSearch} disabled={geocoding} style={{ height: 40 }}>
           <Search size={14} className="icon-mr" /> Find
         </Button>
-        <Button type="button" variant="secondary" size="sm" onClick={handleUseCurrentLocation} title="Locate via GPS">
+        <Button type="button" variant="secondary" size="sm" onClick={handleUseCurrentLocation} title="Locate via GPS" style={{ height: 40 }}>
           <Navigation size={14} className="icon-mr" /> My Location
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={toggleTheme}
+          title={mapTheme === 'dark' ? 'Switch to Street View' : 'Switch to Dark Microgrid View'}
+          style={{ height: 40, padding: '0 12px' }}
+        >
+          <Layers size={14} className="icon-mr" />
+          {mapTheme === 'dark' ? 'Street View' : 'Dark Theme'}
         </Button>
       </div>
 
@@ -345,12 +381,12 @@ const LocationPickerMap = ({
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 6,
+        gap: 8,
         flexWrap: 'wrap',
-        marginBottom: 12
+        marginBottom: 14
       }}>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <Compass size={13} /> Quick Select:
+        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+          <Compass size={14} /> Quick Select:
         </span>
         {SRI_LANKA_PRESETS.map((p) => {
           const isSelected =
@@ -363,15 +399,27 @@ const LocationPickerMap = ({
               type="button"
               onClick={() => handleSelectPreset(p)}
               style={{
-                background: isSelected ? 'var(--primary)' : 'rgba(255, 255, 255, 0.05)',
+                background: isSelected ? 'var(--primary)' : 'rgba(255, 255, 255, 0.06)',
                 color: isSelected ? '#ffffff' : 'var(--text-secondary)',
                 border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
-                padding: '3px 10px',
-                borderRadius: '14px',
-                fontSize: '0.75rem',
+                padding: '4px 12px',
+                borderRadius: '16px',
+                fontSize: '0.78rem',
                 cursor: 'pointer',
                 fontWeight: isSelected ? 700 : 500,
                 transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                }
               }}
             >
               {p.name}
@@ -384,18 +432,18 @@ const LocationPickerMap = ({
       <div
         style={{
           position: 'relative',
-          borderRadius: 'var(--radius-md, 8px)',
+          borderRadius: 'var(--radius-lg, 12px)',
           overflow: 'hidden',
           border: '1px solid var(--border)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
         }}
       >
         <div
           ref={mapContainerRef}
           style={{
-            height: 320,
+            height: 380,
             width: '100%',
-            background: '#131b2e',
+            background: '#0b1120',
             cursor: 'crosshair',
           }}
         />
@@ -404,37 +452,52 @@ const LocationPickerMap = ({
         <div
           style={{
             position: 'absolute',
-            bottom: 12,
-            left: 12,
-            right: 12,
+            bottom: 14,
+            left: 14,
+            right: 14,
             zIndex: 1000,
-            background: 'rgba(15, 23, 42, 0.88)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '6px',
-            padding: '8px 14px',
+            background: 'rgba(15, 23, 42, 0.92)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
+            borderRadius: '8px',
+            padding: '10px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: 8,
+            gap: 10,
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.85rem' }}>
             <span style={{
-              width: 8,
-              height: 8,
+              width: 9,
+              height: 9,
               borderRadius: '50%',
               backgroundColor: geocoding ? 'var(--warning, #f59e0b)' : 'var(--success, #10b981)',
-              boxShadow: geocoding ? '0 0 8px #f59e0b' : '0 0 8px #10b981'
+              boxShadow: geocoding ? '0 0 10px #f59e0b' : '0 0 10px #10b981'
             }} />
             <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-              {geocoding ? 'Detecting location name...' : `Selected: ${locationName || 'Sri Lanka'}`}
+              {geocoding ? 'Detecting location name...' : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle2 size={15} color="var(--success)" />
+                  Location: <strong style={{ color: 'var(--primary-light)' }}>{locationName || 'Sri Lanka'}</strong>
+                </span>
+              )}
             </span>
           </div>
 
           {selectedCoords && (
-            <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--accent, #f59e0b)', fontWeight: 700 }}>
+            <div style={{
+              fontSize: '0.82rem',
+              fontFamily: 'monospace',
+              color: 'var(--accent-light, #38bdf8)',
+              background: 'rgba(6, 182, 212, 0.1)',
+              border: '1px solid rgba(6, 182, 212, 0.25)',
+              padding: '3px 10px',
+              borderRadius: '4px',
+              fontWeight: 700
+            }}>
               Lat: {selectedCoords.lat.toFixed(4)}, Lng: {selectedCoords.lng.toFixed(4)}
             </div>
           )}
