@@ -58,17 +58,21 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 /**
  * Layout wrapper for authenticated pages (Navbar + Sidebar + Content).
  */
-const AuthenticatedLayout = ({ children }) => (
-  <div className="app-layout">
-    <Sidebar />
-    <div style={{ flex: 1 }}>
-      <Navbar />
-      <div className="main-content">
-        {children}
+const AuthenticatedLayout = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  return (
+    <div className="app-layout">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <Navbar onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+        <main className="main-content">
+          {children}
+        </main>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 /**
  * Landing page for unauthenticated users.
