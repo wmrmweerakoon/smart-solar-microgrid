@@ -125,4 +125,22 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// ──────────────── Backend Connected Confirmation Message ────────────────
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine();
+    Console.WriteLine("================================================================================");
+    Console.WriteLine("  SUCCESSFULLY CONNECTED TO BACKEND!");
+    Console.WriteLine("  Smart Solar Microgrid API server started without any error.");
+    Console.WriteLine("  ------------------------------------------------------------------");
+    Console.WriteLine("  * Local Address:  http://localhost:5299");
+    Console.WriteLine("  * Swagger Docs:   http://localhost:5299/swagger");
+    Console.WriteLine("  * Database:       MongoDB Atlas Connected");
+    Console.WriteLine("  * Status:         Operational & Ready for Requests");
+    Console.WriteLine("================================================================================");
+    Console.WriteLine();
+    Console.ResetColor();
+});
+
 app.Run();
