@@ -51,6 +51,16 @@ namespace SmartSolarMicrogrid.API.Repositories
             return await _reservations.Find(r => r.MicrogridNodeId == nodeId && (r.Status == "Pending" || r.Status == "Confirmed")).ToListAsync();
         }
 
+        public async Task<List<Reservation>> GetActiveReservationsByProsumerIdAsync(string prosumerId)
+        {
+            return await _reservations.Find(r => (r.BuyerProsumerId == prosumerId || r.SellerProsumerId == prosumerId) && (r.Status == "Pending" || r.Status == "Confirmed")).ToListAsync();
+        }
+
+        public async Task<List<Reservation>> GetReservationsByProsumerIdAsync(string prosumerId)
+        {
+            return await _reservations.Find(r => r.BuyerProsumerId == prosumerId || r.SellerProsumerId == prosumerId).SortByDescending(r => r.ReservedAt).ToListAsync();
+        }
+
         public async Task CreateAsync(Reservation reservation)
         {
             await _reservations.InsertOneAsync(reservation);

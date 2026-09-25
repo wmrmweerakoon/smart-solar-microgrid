@@ -15,8 +15,7 @@ namespace SmartSolarMicrogrid.API.Models
         public string MicrogridNodeId { get; set; } = string.Empty;
 
         [BsonElement("prosumerId")]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string ProsumerId { get; set; } = string.Empty;
+        public string ProsumerId { get; set; } = string.Empty; // Stored as NIC string
 
         [BsonElement("energyAmount")]
         public double EnergyAmount { get; set; } // in kWh

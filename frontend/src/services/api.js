@@ -46,19 +46,22 @@ export const authService = {
 // ═══════════════ Dashboard Service ═══════════════
 export const dashboardService = {
   getStats: () => api.get('/dashboard/stats'),
+  getMonitoring: () => api.get('/dashboard/monitoring'),
 };
 
 // ═══════════════ Prosumer Service ═══════════════
 export const prosumerService = {
   getAll: () => api.get('/prosumer'),
-  getById: (id) => api.get(`/prosumer/${id}`),
+  getById: (nic) => api.get(`/prosumer/${nic}`),
+  getDetails: (nic) => api.get(`/prosumer/${nic}/details`),
+  search: (params) => api.get('/prosumer/search', { params }),
   getByStatus: (status) => api.get(`/prosumer/status/${status}`),
   getByNode: (nodeId) => api.get(`/prosumer/node/${nodeId}`),
   create: (data) => api.post('/prosumer', data),
-  update: (id, data) => api.put(`/prosumer/${id}`, data),
-  activate: (id) => api.put(`/prosumer/${id}/activate`),
-  deactivate: (id) => api.put(`/prosumer/${id}/deactivate`),
-  delete: (id) => api.delete(`/prosumer/${id}`),
+  update: (nic, data) => api.put(`/prosumer/${nic}`, data),
+  activate: (nic) => api.put(`/prosumer/${nic}/activate`),
+  deactivate: (nic, reason) => api.put(`/prosumer/${nic}/deactivate`, { reason }),
+  delete: (nic) => api.delete(`/prosumer/${nic}`),
 };
 
 // ═══════════════ Microgrid Service ═══════════════
@@ -90,6 +93,8 @@ export const bookingService = {
   getPending: () => api.get('/booking/pending'),
   getHistory: () => api.get('/booking/history'),
   getById: (id) => api.get(`/booking/${id}`),
+  getDetails: (id) => api.get(`/booking/${id}/details`),
+  search: (params) => api.get('/booking/search', { params }),
   confirm: (id) => api.put(`/booking/${id}/confirm`),
   complete: (id) => api.put(`/booking/${id}/complete`),
   cancel: (id) => api.put(`/booking/${id}/cancel`),
@@ -99,6 +104,7 @@ export const bookingService = {
 export const reservationService = {
   getAll: () => api.get('/reservation'),
   getById: (id) => api.get(`/reservation/${id}`),
+  getDetails: (id) => api.get(`/reservation/${id}/details`),
   getByStatus: (status) => api.get(`/reservation/status/${status}`),
   create: (data) => api.post('/reservation', data),
   update: (id, data) => api.put(`/reservation/${id}`, data),

@@ -1,135 +1,205 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle,
-  AlertTriangle,
   XCircle,
   Eye,
-  RefreshCw,
   Search,
-  Zap,
-  Calendar,
-  Clock,
-  DollarSign
+  RotateCcw,
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
-import { bookingService } from '../../services/api';
+import { bookingService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
 
+/**
+ * Pending Bookings operational view.
+ * Displays energy claims awaiting operator approval with batch and individual confirmation controls.
+ */
 const PendingBookings = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
+  const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
   const [alert, setAlert] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [cancelModal, setCancelModal] = useState({ open: false, id: null });
 
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedNode, setSelectedNode] = useState('All');
+  const [selectedDate, setSelectedDate] = useState('');
+
   useEffect(() => {
-    fetchBookings();
+    fetchData();
   }, []);
 
-  const fetchBookings = async () => {
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, selectedNode, selectedDate, bookings]);
+
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const res = await bookingService.getPending();
-      setBookings(res.data || []);
+      const [bookingsRes, nodesRes] = await Promise.all([
+        bookingService.getPending(),
+        microgridService.getAll().catch(() => ({ data: [] }))
+      ]);
+      setBookings(bookingsRes.data || []);
+      setNodes(nodesRes.data || []);
     } catch {
-      setAlert({ type: 'error', message: 'Failed to load pending bookings.' });
+      setAlert({ type: 'error', message: 'Failed to load pending bookings from the central service.' });
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchBookings();
+  const applyFilters = () => {
+    let result = [...bookings];
+
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(
+        (b) =>
+          b.id?.toLowerCase().includes(q) ||
+          b.buyerName?.toLowerCase().includes(q) ||
+          b.buyerProsumerId?.toLowerCase().includes(q) ||
+          b.sellerName?.toLowerCase().includes(q) ||
+          b.sellerProsumerId?.toLowerCase().includes(q) ||
+          b.microgridNodeName?.toLowerCase().includes(q)
+      );
+    }
+
+    if (selectedNode !== 'All') {
+      result = result.filter((b) => b.microgridNodeId === selectedNode);
+    }
+
+    if (selectedDate) {
+      result = result.filter(
+        (b) => new Date(b.slotDate).toISOString().slice(0, 10) === selectedDate
+      );
+    }
+
+    setFilteredBookings(result);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setSelectedNode('All');
+    setSelectedDate('');
   };
 
   const handleConfirm = async (id) => {
+    setActionLoading(id);
     try {
       await bookingService.confirm(id);
-      fetchBookings();
-      setAlert({ type: 'success', message: 'Booking confirmed successfully!' });
-    } catch {
-      setAlert({ type: 'error', message: 'Failed to confirm booking.' });
+      setAlert({ type: 'success', message: `Booking #${id.slice(-6)} has been approved and confirmed!` });
+      await fetchData();
+    } catch (err) {
+      setAlert({
+        type: 'error',
+        message: err.response?.data?.message || 'Failed to approve booking.'
+      });
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleCancel = async () => {
     if (!cancelModal.id) return;
+    const id = cancelModal.id;
+    setActionLoading(id);
     try {
-      await bookingService.cancel(cancelModal.id);
+      await bookingService.cancel(id);
       setCancelModal({ open: false, id: null });
-      fetchBookings();
-      setAlert({ type: 'success', message: 'Booking cancelled.' });
-    } catch {
-      setAlert({ type: 'error', message: 'Failed to cancel booking.' });
+      setAlert({ type: 'success', message: `Booking #${id.slice(-6)} has been rejected and cancelled.` });
+      await fetchData();
+    } catch (err) {
+      setAlert({
+        type: 'error',
+        message: err.response?.data?.message || 'Failed to cancel booking.'
+      });
+    } finally {
+      setActionLoading(null);
     }
   };
-
-  const filteredBookings = useMemo(() => {
-    if (!searchQuery.trim()) return bookings;
-    const q = searchQuery.toLowerCase();
-    return bookings.filter((b) => {
-      const id = (b.id || '').toLowerCase();
-      const node = (b.microgridNodeId || '').toLowerCase();
-      const energy = String(b.energyAmount || '');
-      const price = String(b.pricePerUnit || '');
-      const date = b.slotDate ? new Date(b.slotDate).toLocaleDateString().toLowerCase() : '';
-      return id.includes(q) || node.includes(q) || energy.includes(q) || price.includes(q) || date.includes(q);
-    });
-  }, [bookings, searchQuery]);
 
   const columns = [
     {
       key: 'id',
       label: 'Booking ID',
       render: (row) => (
-        <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          #{row.id ? row.id.slice(-6) : '—'}
+        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
+          {row.id ? `#${row.id.slice(-8)}` : '—'}
         </span>
       ),
     },
     {
-      key: 'energyAmount',
-      label: 'Energy (kWh)',
+      key: 'microgridNodeName',
+      label: 'Microgrid Node',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600, color: 'var(--accent-light)' }}>
-          <Zap size={14} />
-          {row.energyAmount} kWh
-        </span>
+        <div>
+          <div style={{ fontWeight: 500 }}>{row.microgridNodeName || 'Assigned Node'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.microgridLocation || ''}</div>
+        </div>
       ),
     },
     {
-      key: 'pricePerUnit',
-      label: 'Price/kWh',
+      key: 'buyer',
+      label: 'Claiming Buyer',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 600, color: 'var(--primary-light)' }}>
-          <DollarSign size={14} />
-          {row.pricePerUnit}
-        </span>
+        <div>
+          <div style={{ fontWeight: 500 }}>{row.buyerName || 'Unassigned / Open'}</div>
+          {row.buyerProsumerId && row.buyerProsumerId !== 'N/A' && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.buyerProsumerId}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'seller',
+      label: 'Source Seller',
+      render: (row) => (
+        <div>
+          <div style={{ fontWeight: 500 }}>{row.sellerName || 'Seller'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.sellerProsumerId || ''}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'energy',
+      label: 'Energy Volume',
+      render: (row) => (
+        <div>
+          <strong style={{ color: 'var(--accent-light)' }}>{row.energyAmount} kWh</strong>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            ${row.pricePerUnit}/kWh
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'totalPrice',
+      label: 'Total Value',
+      render: (row) => (
+        <strong style={{ color: 'var(--primary-light)' }}>
+          ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
+        </strong>
       ),
     },
     {
       key: 'slotDate',
-      label: 'Date',
+      label: 'Schedule',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-          <Calendar size={13} color="var(--text-muted)" />
-          {new Date(row.slotDate).toLocaleDateString()}
-        </span>
-      ),
-    },
-    {
-      key: 'time',
-      label: 'Time Window',
-      render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-          <Clock size={13} color="var(--text-muted)" />
-          {row.startTime} – {row.endTime}
-        </span>
+        <div>
+          <div>{new Date(row.slotDate).toLocaleDateString()}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            {row.startTime} – {row.endTime}
+          </div>
+        </div>
       ),
     },
     {
@@ -139,7 +209,7 @@ const PendingBookings = () => {
     },
     {
       key: 'actions',
-      label: 'Actions',
+      label: 'Operational Actions',
       render: (row) => (
         <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           <Button
@@ -148,23 +218,27 @@ const PendingBookings = () => {
             onClick={() => navigate(`/bookings/${row.id}`)}
             title="View Details"
           >
-            <Eye size={14} className="icon-mr" /> View
+            <Eye size={14} className="icon-mr" /> Details
           </Button>
+
           <Button
             variant="success"
             size="sm"
             onClick={() => handleConfirm(row.id)}
-            title="Confirm Booking"
+            disabled={actionLoading === row.id}
+            title="Approve booking"
           >
             <CheckCircle size={14} className="icon-mr" /> Confirm
           </Button>
+
           <Button
             variant="danger"
             size="sm"
             onClick={() => setCancelModal({ open: true, id: row.id })}
-            title="Cancel Booking"
+            disabled={actionLoading === row.id}
+            title="Reject booking"
           >
-            <XCircle size={14} className="icon-mr" /> Cancel
+            <XCircle size={14} className="icon-mr" /> Reject
           </Button>
         </div>
       ),
@@ -173,80 +247,106 @@ const PendingBookings = () => {
 
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 className="page-title">Pending Bookings</h1>
-          <p className="page-subtitle">Energy bookings awaiting confirmation and network scheduling</p>
-        </div>
-        <div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw size={14} className={refreshing ? 'icon-mr spin' : 'icon-mr'} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
-        </div>
+      <div className="page-header">
+        <h1 className="page-title">Pending Bookings</h1>
+        <p className="page-subtitle">
+          Review, approve, or reject incoming energy bookings awaiting network confirmation
+        </p>
       </div>
 
-      {/* Alert Notification */}
       {alert && (
-        <div className={`alert alert-${alert.type}`}>
+        <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {alert.type === 'success' ? (
-            <CheckCircle size={16} className="icon-mr" />
+            <CheckCircle size={18} color="var(--success)" />
           ) : (
-            <AlertTriangle size={16} className="icon-mr" />
+            <AlertTriangle size={18} color="var(--danger)" />
           )}
           <span>{alert.message}</span>
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
-        <div style={{ display: 'flex', gap: 12, maxWidth: 450, position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Search pending bookings by ID, energy, date..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: 38, width: '100%' }}
-          />
+      {/* Filter and Search Bar */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Keyword Search */}
+          <div style={{ position: 'relative', flex: '1 1 240px' }}>
+            <Search
+              size={16}
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}
+            />
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by Prosumer, NIC, Node, ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ paddingLeft: 36 }}
+            />
+          </div>
+
+          {/* Microgrid Node Filter */}
+          <div style={{ flex: '1 1 200px' }}>
+            <select
+              className="form-control"
+              value={selectedNode}
+              onChange={(e) => setSelectedNode(e.target.value)}
+            >
+              <option value="All">All Microgrid Nodes</option>
+              {nodes.map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.nodeName} ({n.location})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date Filter */}
+          <div style={{ flex: '1 1 160px' }}>
+            <input
+              type="date"
+              className="form-control"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+
+          {/* Reset Button */}
+          {(searchTerm || selectedNode !== 'All' || selectedDate) && (
+            <Button variant="secondary" size="sm" onClick={handleResetFilters}>
+              <RotateCcw size={14} className="icon-mr" /> Reset
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Table */}
+      {/* Bookings Table */}
       <Table
         columns={columns}
         data={filteredBookings}
         loading={loading}
-        emptyMessage="No pending bookings found"
-        emptySubtext="All submitted energy bookings have been processed."
-        emptyIcon={<Clock size={44} strokeWidth={1.5} color="var(--text-secondary)" />}
+        emptyMessage="No pending bookings match your criteria"
+        emptySubtext="All submitted energy bookings have been processed or none match the active filters."
+        emptyIcon={<Clock size={48} strokeWidth={1} color="var(--text-secondary)" />}
       />
 
-      {/* Cancel Modal */}
+      {/* Reject/Cancel Confirmation Modal */}
       <Modal
         isOpen={cancelModal.open}
         onClose={() => setCancelModal({ open: false, id: null })}
-        title="Cancel Pending Booking"
+        title="Reject Pending Booking"
         footer={
           <>
             <Button variant="secondary" onClick={() => setCancelModal({ open: false, id: null })}>
-              Keep Booking
+              Keep Pending
             </Button>
             <Button variant="danger" onClick={handleCancel}>
-              Confirm Cancellation
+              Confirm Rejection
             </Button>
           </>
         }
       >
         <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Are you sure you want to cancel this pending booking?
+          Are you sure you want to reject and cancel this pending booking?
         </p>
       </Modal>
     </div>

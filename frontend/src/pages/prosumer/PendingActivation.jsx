@@ -1,28 +1,40 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle,
   XCircle,
+  Eye,
   AlertTriangle,
+  Clock,
+  Zap,
+  ShieldCheck,
+  RefreshCw,
   Search,
   RotateCcw,
-  Clock,
   UserCheck
 } from 'lucide-react';
-import { prosumerService } from '../../services/api';
+import { prosumerService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
+import Modal from '../../components/Modal';
 
 /**
  * Pending Activation Management Page (Member 2).
  * Restricted to Backoffice role. Displays pending accounts requiring verification.
  */
 const PendingActivation = () => {
-  const [prosumers, setProsumers] = useState([]);
+  const navigate = useNavigate();
+
+  const [pendingProsumers, setPendingProsumers] = useState([]);
   const [filteredProsumers, setFilteredProsumers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+
+  // Reject / Deactivate Modal
+  const [rejectModal, setRejectModal] = useState({ open: false, nic: '', name: '', reason: '' });
 
   useEffect(() => {
     fetchPending();
@@ -32,7 +44,7 @@ const PendingActivation = () => {
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       setFilteredProsumers(
-        prosumers.filter(
+        pendingProsumers.filter(
           (p) =>
             p.nic?.toLowerCase().includes(q) ||
             p.name?.toLowerCase().includes(q) ||
@@ -41,48 +53,57 @@ const PendingActivation = () => {
         )
       );
     } else {
-      setFilteredProsumers(prosumers);
+      setFilteredProsumers(pendingProsumers);
     }
-  }, [searchTerm, prosumers]);
+  }, [searchTerm, pendingProsumers]);
 
   const fetchPending = async () => {
     setLoading(true);
     try {
-      const response = await prosumerService.getByStatus('Pending');
-      setProsumers(response.data);
+      const [pendingRes, nodesRes] = await Promise.all([
+        prosumerService.getByStatus('Pending'),
+        microgridService.getAll().catch(() => ({ data: [] })),
+      ]);
+      setPendingProsumers(pendingRes.data || []);
+      setNodes(nodesRes.data || []);
     } catch (error) {
-      setAlert({ type: 'error', message: 'Failed to load pending prosumers from service.' });
+      setAlert({ type: 'error', message: 'Failed to retrieve pending activations.' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleActivate = async (id) => {
-    setActionLoading(id);
+  const handleActivate = async (nic, name) => {
+    setActionLoading(true);
     try {
-      await prosumerService.activate(id);
-      setProsumers(prosumers.filter((p) => (p.nic || p.id) !== id));
-      setAlert({ type: 'success', message: `Prosumer #${id} activated successfully!` });
+      await prosumerService.activate(nic);
+      setPendingProsumers((prev) => prev.filter((p) => (p.nic || p.id) !== nic));
+      setAlert({ type: 'success', message: `Prosumer "${name}" (NIC: ${nic}) has been activated successfully!` });
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to activate prosumer.' });
+      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to activate prosumer account.' });
     } finally {
-      setActionLoading(null);
+      setActionLoading(false);
     }
   };
 
-  const handleDeactivate = async (id) => {
-    if (!window.confirm(`Reject registration for prosumer #${id}?`)) return;
-
-    setActionLoading(id);
+  const handleReject = async () => {
+    setActionLoading(true);
     try {
-      await prosumerService.deactivate(id, 'Registration rejected by administrator');
-      setProsumers(prosumers.filter((p) => (p.nic || p.id) !== id));
-      setAlert({ type: 'success', message: `Prosumer #${id} registration rejected.` });
+      await prosumerService.deactivate(rejectModal.nic, rejectModal.reason || 'Rejected by Backoffice operator');
+      setPendingProsumers((prev) => prev.filter((p) => (p.nic || p.id) !== rejectModal.nic));
+      setAlert({ type: 'success', message: `Prosumer "${rejectModal.name}" was rejected and marked Inactive.` });
+      setRejectModal({ open: false, nic: '', name: '', reason: '' });
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to reject prosumer.' });
+      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to reject application.' });
     } finally {
-      setActionLoading(null);
+      setActionLoading(false);
     }
+  };
+
+  const getNodeName = (nodeId) => {
+    if (!nodeId) return 'Unassigned';
+    const found = nodes.find((n) => n.id === nodeId);
+    return found ? `${found.nodeName} (${found.location})` : 'Assigned Node';
   };
 
   const columns = [
@@ -90,59 +111,85 @@ const PendingActivation = () => {
       key: 'nic',
       label: 'NIC (Identity)',
       render: (row) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color, var(--primary))' }}>
           {row.nic || row.id}
         </span>
       ),
     },
-    { key: 'name', label: 'Full Name', render: (row) => <strong>{row.name}</strong> },
-    { key: 'email', label: 'Email Address' },
+    { key: 'name', label: 'Applicant Name', render: (row) => <strong>{row.name}</strong> },
+    { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Phone' },
     {
       key: 'solarCapacity',
       label: 'Capacity',
-      render: (row) => `${row.solarCapacity} kW`,
+      render: (row) => (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Zap size={14} color="var(--primary-color, var(--primary))" /> {row.solarCapacity} kW
+        </span>
+      ),
     },
     {
-      key: 'status',
-      label: 'Status',
-      render: () => <span className="status-badge status-pending">Pending Approval</span>,
+      key: 'microgridNodeId',
+      label: 'Microgrid Node',
+      render: (row) => getNodeName(row.microgridNodeId),
+    },
+    {
+      key: 'createdAt',
+      label: 'Registered On',
+      render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : 'N/A'),
     },
     {
       key: 'actions',
       label: 'Backoffice Actions',
-      render: (row) => (
-        <div className="btn-group">
-          <Button
-            variant="success"
-            size="sm"
-            onClick={() => handleActivate(row.nic || row.id)}
-            disabled={actionLoading === (row.nic || row.id)}
-          >
-            <CheckCircle size={14} className="icon-mr" /> Activate
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => handleDeactivate(row.nic || row.id)}
-            disabled={actionLoading === (row.nic || row.id)}
-          >
-            <XCircle size={14} className="icon-mr" /> Reject
-          </Button>
-        </div>
-      ),
+      render: (row) => {
+        const nic = row.nic || row.id;
+        return (
+          <div className="btn-group">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/prosumers/${nic}`)}
+              title="Review Complete Profile"
+            >
+              <Eye size={14} className="icon-mr" /> Review
+            </Button>
+            <Button
+              variant="success"
+              size="sm"
+              disabled={actionLoading}
+              onClick={() => handleActivate(nic, row.name)}
+              title="Approve and Activate Account"
+            >
+              <CheckCircle size={14} className="icon-mr" /> Approve & Activate
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setRejectModal({ open: true, nic, name: row.name, reason: '' })}
+              title="Reject Application"
+            >
+              <XCircle size={14} className="icon-mr" /> Reject
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <h1 className="page-title">Pending Account Activations</h1>
-        <p className="page-subtitle">Review, verify, and approve new solar prosumer registration requests</p>
+      <div className="page-header-actions" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="page-title">Pending Account Activations</h1>
+          <p className="page-subtitle">Review, verify, and approve new prosumer onboarding requests</p>
+        </div>
+        <Button variant="secondary" onClick={fetchPending} loading={loading}>
+          <RefreshCw size={14} className="icon-mr" /> Refresh List
+        </Button>
       </div>
 
       {alert && (
-        <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
           {alert.type === 'success' ? (
             <CheckCircle size={18} color="var(--success)" />
           ) : (
@@ -152,18 +199,50 @@ const PendingActivation = () => {
         </div>
       )}
 
+      {/* Summary KPI Banner */}
+      <div className="card" style={{ marginBottom: 20, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ 
+            width: 48, 
+            height: 48, 
+            borderRadius: '50%', 
+            background: 'rgba(245, 158, 11, 0.15)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            color: 'var(--accent, #f59e0b)'
+          }}>
+            <Clock size={24} />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              {pendingProsumers.length} {pendingProsumers.length === 1 ? 'Application' : 'Applications'} Pending Review
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Authorized Backoffice action is required to verify identity and enable trading access.
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="status-badge status-pending" style={{ fontSize: '0.85rem', padding: '6px 14px' }}>
+            Backoffice Verification
+          </span>
+        </div>
+      </div>
+
       {/* Search Bar */}
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <Search
               size={16}
-              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
             />
             <input
               type="text"
               className="form-control"
-              placeholder="Search by NIC, Name, Email, or Phone..."
+              placeholder="Search pending by NIC, Name, Email, or Phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ paddingLeft: 36 }}
@@ -185,6 +264,47 @@ const PendingActivation = () => {
         emptySubtext="There are no pending registrations requiring backoffice action."
         emptyIcon={<UserCheck size={44} strokeWidth={1.5} color="var(--success)" />}
       />
+
+      {/* Reject Modal */}
+      <Modal
+        isOpen={rejectModal.open}
+        onClose={() => setRejectModal({ open: false, nic: '', name: '', reason: '' })}
+        title="Reject Prosumer Registration"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setRejectModal({ open: false, nic: '', name: '', reason: '' })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              loading={actionLoading}
+              onClick={handleReject}
+            >
+              Confirm Rejection
+            </Button>
+          </>
+        }
+      >
+        <p style={{ marginBottom: 12 }}>
+          Are you sure you want to reject the application for <strong>{rejectModal.name}</strong> (NIC: {rejectModal.nic})?
+        </p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 16 }}>
+          This will set the prosumer account to <strong>Inactive</strong> status and prevent energy trading.
+        </p>
+        <div className="form-group">
+          <label className="form-label">Rejection / Deactivation Reason</label>
+          <textarea
+            className="form-control"
+            rows="3"
+            placeholder="e.g. Incomplete documentation, invalid meter number, unverified address..."
+            value={rejectModal.reason}
+            onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };

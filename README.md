@@ -69,23 +69,42 @@ The web app will start on `http://localhost:5173`
 
 ## API Endpoints
 
-| Endpoint                        | Method | Description                    |
-|---------------------------------|--------|--------------------------------|
-| `/api/auth/login`               | POST   | User authentication            |
-| `/api/dashboard/stats`          | GET    | Dashboard statistics           |
-| `/api/prosumer`                 | CRUD   | Prosumer management            |
-| `/api/microgrid`                | CRUD   | Microgrid node management      |
-| `/api/energyslot`               | CRUD   | Energy slot management         |
-| `/api/booking/current`          | GET    | Current bookings               |
-| `/api/booking/pending`          | GET    | Pending bookings               |
-| `/api/booking/history`          | GET    | Booking history                |
-| `/api/reservation`              | CRUD   | Reservation management         |
+| Endpoint                        | Method | Description                                      |
+|---------------------------------|--------|--------------------------------------------------|
+| `/api/auth/login`               | POST   | User authentication                             |
+| `/api/dashboard/stats`          | GET    | Dynamic metrics (Pending & Approved Future Resv) |
+| `/api/dashboard/monitoring`     | GET    | Real-time operational monitoring & recent events |
+| `/api/prosumer`                 | CRUD   | Prosumer management (NIC as primary identifier)  |
+| `/api/microgrid`                | CRUD   | Microgrid node management & geo-mapping          |
+| `/api/energyslot`               | CRUD   | Energy slot inventory management                 |
+| `/api/booking/current`          | GET    | Active claimed bookings with counterpart details |
+| `/api/booking/pending`          | GET    | Pending bookings awaiting confirmation           |
+| `/api/booking/history`          | GET    | Completed and cancelled historical bookings      |
+| `/api/booking/search`           | GET    | Multi-criteria search & filtering                |
+| `/api/booking/{id}/details`     | GET    | Complete 360° operational booking breakdown      |
+| `/api/booking/{id}/confirm`     | PUT    | Confirm & approve pending booking                |
+| `/api/booking/{id}/complete`    | PUT    | Mark booking as concluded                        |
+| `/api/booking/{id}/cancel`      | PUT    | Terminate / cancel booking                       |
+| `/api/reservation`              | CRUD   | Reservation management (7-day rule, 12h notice)  |
+
+## Phase 5 – Member 4: Booking Operations & Monitoring
+
+- **Operational Dashboard**: Real-time aggregated overview featuring pending reservation counts, approved future reservation counts (marking scheme compliant), active bookings, energy traded volume (kWh & $), and live activity feeds with auto-refresh.
+- **Current Bookings**: Live tracking of active energy slots with buyer/seller counterpart contact details, schedules, and complete/cancel actions.
+- **Pending Bookings**: Centralized approval queue for pending energy trades with instant state refresh.
+- **Booking History**: Full audit trail of concluded and cancelled transactions with multi-status filtering.
+- **Booking Details**: 360-degree operational view linking prosumer profiles, microgrid nodes, and audit timestamps.
+- **Search & Filtering**: Multi-criteria query engine supporting keyword search, microgrid node filtering, date selection, and status filters.
 
 ## User Roles
 
-- **Backoffice**: Full administrative access including prosumer activation
-- **Grid Operator**: Operational access for grid and energy management
+- **Backoffice**: Full administrative access including prosumer activation and operational governance
+- **Grid Operator**: Operational access for grid, slot reservations, and booking management
 
 ## Team
 
 Smart Solar Microgrid Team – University Group Project
+- **Member 1**: Microgrid Nodes & Energy Supply
+- **Member 2**: Prosumer Management & Account Activation
+- **Member 3**: Energy Slot & Reservation Management
+- **Member 4**: Booking Operations, Dashboard and Monitoring

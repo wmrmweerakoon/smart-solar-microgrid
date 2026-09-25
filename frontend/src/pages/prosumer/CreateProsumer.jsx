@@ -4,12 +4,13 @@ import {
   Save,
   ArrowLeft,
   AlertTriangle,
+  ShieldCheck,
+  Sun,
   User,
-  Shield,
-  Zap,
   Mail,
   Phone,
   MapPin,
+  Zap,
   CreditCard
 } from 'lucide-react';
 import { prosumerService, microgridService } from '../../services/api';
@@ -24,6 +25,7 @@ const CreateProsumer = () => {
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
   const [formData, setFormData] = useState({
     nic: '',
     name: '',
@@ -34,40 +36,77 @@ const CreateProsumer = () => {
     solarCapacity: '',
   });
 
+  const [fieldErrors, setFieldErrors] = useState({});
+
   useEffect(() => {
-    microgridService.getAll()
+    microgridService
+      .getAll()
       .then((res) => setNodes(res.data))
       .catch(() => {});
   }, []);
 
+  const validate = () => {
+    const errors = {};
+    const nicRegex = /^([0-9]{9}[vVxX]|[0-9]{12})$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const trimmedNic = formData.nic.trim();
+    if (!trimmedNic) {
+      errors.nic = 'NIC is required as the primary identifier.';
+    } else if (!nicRegex.test(trimmedNic)) {
+      errors.nic = 'Invalid NIC format. Must be 9 digits + V/X (e.g., 981234567V) or 12 digits (e.g., 200012345678).';
+    }
+
+    if (!formData.name.trim()) {
+      errors.name = 'Full name is required.';
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email address is required.';
+    } else if (!emailRegex.test(formData.email.trim())) {
+      errors.email = 'Please enter a valid email address.';
+    }
+
+    if (!formData.phone.trim()) {
+      errors.phone = 'Phone number is required.';
+    }
+
+    if (!formData.address.trim()) {
+      errors.address = 'Property address is required.';
+    }
+
+    const capacity = parseFloat(formData.solarCapacity);
+    if (!formData.solarCapacity || isNaN(capacity) || capacity <= 0) {
+      errors.solarCapacity = 'Solar capacity must be greater than 0 kW.';
+    }
+
+    if (!formData.microgridNodeId) {
+      errors.microgridNodeId = 'Please select a microgrid node.';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+    }
     setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const cleanNic = formData.nic.trim();
-    if (!cleanNic) {
-      setError('National Identity Card (NIC) is required as the unique identifier.');
-      return;
-    }
-
-    if (!formData.name.trim() || !formData.email.trim()) {
-      setError('Full Name and Email Address are required.');
-      return;
-    }
-
-    if (!formData.microgridNodeId) {
-      setError('Please select an associated Microgrid Node.');
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
+    setError('');
+
     try {
       await prosumerService.create({
-        nic: cleanNic,
+        nic: formData.nic.trim().toUpperCase(),
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
@@ -77,7 +116,7 @@ const CreateProsumer = () => {
       });
       navigate('/prosumers');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create prosumer profile.');
+      setError(err.response?.data?.message || 'Failed to register prosumer. Please check input data.');
     } finally {
       setLoading(false);
     }
@@ -85,15 +124,17 @@ const CreateProsumer = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header">
-        <Button variant="secondary" size="sm" onClick={() => navigate('/prosumers')} style={{ marginBottom: 12 }}>
-          <ArrowLeft size={14} className="icon-mr" /> Back to Prosumers
+      <div className="page-header-actions" style={{ marginBottom: 24 }}>
+        <div>
+          <h1 className="page-title">Register Solar Prosumer</h1>
+          <p className="page-subtitle">Create a new prosumer profile using National Identity Card (NIC) as primary identifier</p>
+        </div>
+        <Button variant="secondary" onClick={() => navigate('/prosumers')}>
+          <ArrowLeft size={16} className="icon-mr" /> Back to Prosumers
         </Button>
-        <h1 className="page-title">Add Solar Prosumer</h1>
-        <p className="page-subtitle">Register a new energy prosumer with unique NIC identification</p>
       </div>
 
-      <div className="card" style={{ maxWidth: 760, margin: '0 auto' }}>
+      <div className="card" style={{ maxWidth: 780, margin: '0 auto' }}>
         {error && (
           <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
             <AlertTriangle size={18} color="var(--danger)" />
@@ -102,27 +143,34 @@ const CreateProsumer = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Primary Identifier: NIC */}
-          <div className="form-group" style={{ marginBottom: 20 }}>
-            <label className="form-label" htmlFor="nic" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <CreditCard size={15} color="var(--primary)" />
-              National Identity Card (NIC) *
-            </label>
-            <input
-              id="nic"
-              className="form-control"
-              name="nic"
-              value={formData.nic}
-              onChange={handleChange}
-              placeholder="e.g. 199012345678 or 901234567V"
-              required
-            />
-            <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>
-              Primary key required by the microgrid governance system.
-            </small>
+          {/* Identity Section */}
+          <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <ShieldCheck size={18} color="var(--primary)" /> National Identity & Personal Details
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              NIC serves as the unique primary key for prosumer verification and energy transactions.
+            </p>
           </div>
 
           <div className="form-row">
+            <div className="form-group">
+              <label className="form-label" htmlFor="nic" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CreditCard size={15} color="var(--primary)" />
+                NIC (National Identity Card) *
+              </label>
+              <input
+                id="nic"
+                className={`form-control ${fieldErrors.nic ? 'input-error' : ''}`}
+                name="nic"
+                value={formData.nic}
+                onChange={handleChange}
+                placeholder="e.g. 981234567V or 200012345678"
+                style={{ textTransform: 'uppercase' }}
+              />
+              {fieldErrors.nic && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.nic}</span>}
+            </div>
+
             <div className="form-group">
               <label className="form-label" htmlFor="name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <User size={15} color="var(--accent)" />
@@ -130,15 +178,17 @@ const CreateProsumer = () => {
               </label>
               <input
                 id="name"
-                className="form-control"
+                className={`form-control ${fieldErrors.name ? 'input-error' : ''}`}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="e.g. Sunil Perera"
-                required
+                placeholder="e.g. Samantha Perera"
               />
+              {fieldErrors.name && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.name}</span>}
             </div>
+          </div>
 
+          <div className="form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Mail size={15} color="var(--info)" />
@@ -146,95 +196,108 @@ const CreateProsumer = () => {
               </label>
               <input
                 id="email"
-                className="form-control"
+                className={`form-control ${fieldErrors.email ? 'input-error' : ''}`}
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="e.g. sunil@example.com"
-                required
+                placeholder="prosumer@solar.lk"
               />
+              {fieldErrors.email && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.email}</span>}
             </div>
-          </div>
 
-          <div className="form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="phone" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Phone size={15} color="var(--success)" />
-                Phone Number
+                Phone Number *
               </label>
               <input
                 id="phone"
-                className="form-control"
+                className={`form-control ${fieldErrors.phone ? 'input-error' : ''}`}
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+94 77 123 4567"
               />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="solarCapacity" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Zap size={15} color="var(--primary)" />
-                Solar Generation Capacity (kW)
-              </label>
-              <input
-                id="solarCapacity"
-                className="form-control"
-                name="solarCapacity"
-                type="number"
-                step="0.1"
-                min="0"
-                value={formData.solarCapacity}
-                onChange={handleChange}
-                placeholder="e.g. 15.5"
-              />
+              {fieldErrors.phone && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.phone}</span>}
             </div>
           </div>
 
           <div className="form-group">
             <label className="form-label" htmlFor="address" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MapPin size={15} color="var(--text-secondary)" />
-              Premises / Property Address
+              <MapPin size={15} color="var(--text-muted)" />
+              Property Address *
             </label>
             <input
               id="address"
-              className="form-control"
+              className={`form-control ${fieldErrors.address ? 'input-error' : ''}`}
               name="address"
               value={formData.address}
               onChange={handleChange}
-              placeholder="e.g. 45 Lake Road, Colombo 03"
+              placeholder="e.g. No. 45, Temple Road, Kandy"
             />
+            {fieldErrors.address && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.address}</span>}
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="microgridNodeId" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Shield size={15} color="var(--accent)" />
-              Connected Microgrid Node *
-            </label>
-            <select
-              id="microgridNodeId"
-              className="form-control"
-              name="microgridNodeId"
-              value={formData.microgridNodeId}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select a Microgrid Node...</option>
-              {nodes.map((node) => (
-                <option key={node.id} value={node.id}>
-                  {node.nodeName} ({node.location}) — Capacity: {node.capacity} kW
-                </option>
-              ))}
-            </select>
+          {/* Solar & Microgrid Section */}
+          <div style={{ marginTop: 32, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Sun size={18} color="var(--primary)" /> Solar Generation & Grid Allocation
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Configure property solar capacity and assign to a local microgrid node.
+            </p>
           </div>
 
-          <div className="btn-group" style={{ marginTop: 28, display: 'flex', gap: 12 }}>
-            <Button type="submit" variant="primary" loading={loading}>
-              <Save size={16} className="icon-mr" /> Save Prosumer Profile
-            </Button>
-            <Button variant="secondary" onClick={() => navigate('/prosumers')}>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label" htmlFor="solarCapacity" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Zap size={15} color="var(--primary)" />
+                Solar Panel Capacity (kW) *
+              </label>
+              <input
+                id="solarCapacity"
+                className={`form-control ${fieldErrors.solarCapacity ? 'input-error' : ''}`}
+                name="solarCapacity"
+                type="number"
+                step="0.1"
+                min="0.1"
+                value={formData.solarCapacity}
+                onChange={handleChange}
+                placeholder="e.g. 5.5"
+              />
+              {fieldErrors.solarCapacity && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.solarCapacity}</span>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="microgridNodeId" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <ShieldCheck size={15} color="var(--accent)" />
+                Assigned Microgrid Node *
+              </label>
+              <select
+                id="microgridNodeId"
+                className={`form-control ${fieldErrors.microgridNodeId ? 'input-error' : ''}`}
+                name="microgridNodeId"
+                value={formData.microgridNodeId}
+                onChange={handleChange}
+              >
+                <option value="">Select a microgrid node...</option>
+                {nodes.map((node) => (
+                  <option key={node.id} value={node.id}>
+                    {node.nodeName} ({node.location}) — Capacity: {node.capacity} kW
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.microgridNodeId && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.microgridNodeId}</span>}
+            </div>
+          </div>
+
+          <div className="btn-group" style={{ marginTop: 28, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+            <Button type="button" variant="secondary" onClick={() => navigate('/prosumers')}>
               Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={loading}>
+              <Save size={16} className="icon-mr" /> Register Prosumer Profile
             </Button>
           </div>
         </form>

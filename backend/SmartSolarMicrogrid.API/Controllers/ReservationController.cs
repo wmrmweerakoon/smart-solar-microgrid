@@ -7,6 +7,7 @@ namespace SmartSolarMicrogrid.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ReservationController : ControllerBase
     {
         private readonly ReservationService _service;
@@ -31,6 +32,14 @@ namespace SmartSolarMicrogrid.API.Controllers
             return Ok(reservation);
         }
 
+        [HttpGet("{id}/details")]
+        public async Task<IActionResult> GetDetails(string id)
+        {
+            var details = await _service.GetReservationDetailsByIdAsync(id);
+            if (details == null) return NotFound(new { message = "Reservation not found." });
+            return Ok(details);
+        }
+
         [HttpGet("status/{status}")]
         public async Task<IActionResult> GetByStatus(string status)
         {
@@ -39,42 +48,77 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ReservationDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateReservationRequest request)
         {
-            var result = await _service.CreateReservationAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            try
+            {
+                var result = await _service.CreateReservationAsync(request);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody] ReservationDto dto)
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateReservationRequest request)
         {
-            var result = await _service.UpdateReservationAsync(id, dto);
-            if (result == null) return NotFound(new { message = "Reservation not found." });
-            return Ok(result);
+            try
+            {
+                var result = await _service.UpdateReservationAsync(id, request);
+                if (result == null) return NotFound(new { message = "Reservation not found." });
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}/confirm")]
         public async Task<IActionResult> Confirm(string id)
         {
-            var result = await _service.ConfirmReservationAsync(id);
-            if (!result) return NotFound(new { message = "Reservation not found." });
-            return Ok(new { message = "Reservation confirmed successfully." });
+            try
+            {
+                var result = await _service.ConfirmReservationAsync(id);
+                if (!result) return NotFound(new { message = "Reservation not found." });
+                return Ok(new { message = "Reservation confirmed successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}/cancel")]
         public async Task<IActionResult> Cancel(string id)
         {
-            var result = await _service.CancelReservationAsync(id);
-            if (!result) return NotFound(new { message = "Reservation not found." });
-            return Ok(new { message = "Reservation cancelled successfully." });
+            try
+            {
+                var result = await _service.CancelReservationAsync(id);
+                if (!result) return NotFound(new { message = "Reservation not found." });
+                return Ok(new { message = "Reservation cancelled successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}/complete")]
         public async Task<IActionResult> Complete(string id)
         {
-            var result = await _service.CompleteReservationAsync(id);
-            if (!result) return NotFound(new { message = "Reservation not found." });
-            return Ok(new { message = "Reservation completed successfully." });
+            try
+            {
+                var result = await _service.CompleteReservationAsync(id);
+                if (!result) return NotFound(new { message = "Reservation not found." });
+                return Ok(new { message = "Reservation completed successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]

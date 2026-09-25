@@ -9,16 +9,17 @@ import {
   User,
   ShieldCheck,
   AlertCircle,
+  AlertTriangle,
   CheckCircle,
   XCircle,
   FileText,
   MapPin,
   Phone,
   Mail,
-  Activity,
   Layers,
   Check,
-  CheckCheck
+  CheckCheck,
+  Pencil
 } from 'lucide-react';
 import {
   reservationService,
@@ -33,15 +34,18 @@ const ReservationDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [reservation, setReservation] = useState(null);
-  const [slot, setSlot] = useState(null);
-  const [buyer, setBuyer] = useState(null);
-  const [seller, setSeller] = useState(null);
-  const [node, setNode] = useState(null);
-
+  const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Edit Modal State
+  const [editModal, setEditModal] = useState(false);
+  const [editAmount, setEditAmount] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Cancel Modal State
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   useEffect(() => {
@@ -51,48 +55,75 @@ const ReservationDetails = () => {
   const fetchReservationDetails = async () => {
     setLoading(true);
     try {
-      const resRes = await reservationService.getById(id);
-      const resData = resRes.data;
-      setReservation(resData);
-
-      // Concurrently fetch related entities
-      const promises = [];
-
-      if (resData.energySlotId) {
-        promises.push(
-          energySlotService.getById(resData.energySlotId)
-            .then((r) => setSlot(r.data))
-            .catch(() => setSlot(null))
-        );
+      // Try rich details endpoint first
+      let data = null;
+      try {
+        const res = await reservationService.getDetails(id);
+        data = res.data;
+      } catch {
+        // Fallback to basic getById if getDetails is not supported
+        const basicRes = await reservationService.getById(id);
+        data = basicRes.data;
       }
 
-      if (resData.buyerProsumerId) {
-        promises.push(
-          prosumerService.getById(resData.buyerProsumerId)
-            .then((r) => setBuyer(r.data))
-            .catch(() => setBuyer(null))
-        );
+      // If missing nested prosumer/slot info, augment concurrently
+      if (data && (!data.buyerName || !data.microgridNodeName)) {
+        const promises = [];
+        if (data.energySlotId && !data.slotDate) {
+          promises.push(
+            energySlotService.getById(data.energySlotId)
+              .then((r) => {
+                data.slotDate = r.data.slotDate;
+                data.startTime = r.data.startTime;
+                data.endTime = r.data.endTime;
+                data.pricePerUnit = r.data.pricePerUnit;
+              })
+              .catch(() => {})
+          );
+        }
+        if (data.buyerProsumerId && !data.buyerName) {
+          promises.push(
+            prosumerService.getById(data.buyerProsumerId)
+              .then((r) => {
+                data.buyerName = r.data.name;
+                data.buyerEmail = r.data.email;
+                data.buyerPhone = r.data.phone;
+              })
+              .catch(() => {})
+          );
+        }
+        if (data.sellerProsumerId && !data.sellerName) {
+          promises.push(
+            prosumerService.getById(data.sellerProsumerId)
+              .then((r) => {
+                data.sellerName = r.data.name;
+                data.sellerEmail = r.data.email;
+                data.sellerPhone = r.data.phone;
+                data.sellerSolarCapacity = r.data.solarCapacity;
+              })
+              .catch(() => {})
+          );
+        }
+        if (data.microgridNodeId && !data.microgridNodeName) {
+          promises.push(
+            microgridService.getById(data.microgridNodeId)
+              .then((r) => {
+                data.microgridNodeName = r.data.nodeName;
+                data.microgridLocation = r.data.location;
+              })
+              .catch(() => {})
+          );
+        }
+        await Promise.allSettled(promises);
       }
 
-      if (resData.sellerProsumerId) {
-        promises.push(
-          prosumerService.getById(resData.sellerProsumerId)
-            .then((r) => setSeller(r.data))
-            .catch(() => setSeller(null))
-        );
+      setDetails(data);
+      if (data) {
+        setEditAmount(data.energyAmount || '');
+        setEditNotes(data.notes || '');
       }
-
-      if (resData.microgridNodeId) {
-        promises.push(
-          microgridService.getById(resData.microgridNodeId)
-            .then((r) => setNode(r.data))
-            .catch(() => setNode(null))
-        );
-      }
-
-      await Promise.allSettled(promises);
-    } catch (err) {
-      setAlert({ type: 'error', message: 'Failed to load complete reservation records.' });
+    } catch {
+      setAlert({ type: 'error', message: 'Failed to retrieve reservation details.' });
     } finally {
       setLoading(false);
     }
@@ -100,11 +131,25 @@ const ReservationDetails = () => {
 
   // 12-Hour Cancellation & Update Notice Calculation
   const calculateNoticeStatus = () => {
-    if (!slot || !slot.slotDate) return null;
+    if (!details) return null;
+
+    if (details.canModifyOrCancel !== undefined) {
+      const hours = details.hoursUntilSlot !== undefined ? details.hoursUntilSlot : 0;
+      return {
+        canModify: details.canModifyOrCancel,
+        hours: hours > 0 ? hours : 0,
+        text: details.canModifyOrCancel
+          ? `12-Hour Notice Window Active (${hours}h remaining)`
+          : `Within 12-Hour Cutoff (${hours}h left)`,
+        eligible: details.canModifyOrCancel
+      };
+    }
+
+    if (!details.slotDate) return null;
 
     try {
-      const datePart = slot.slotDate.split('T')[0];
-      const timePart = slot.startTime ? `${slot.startTime}:00` : '00:00:00';
+      const datePart = details.slotDate.split('T')[0];
+      const timePart = details.startTime ? `${details.startTime}:00` : '00:00:00';
       const slotStartTime = new Date(`${datePart}T${timePart}`);
 
       if (isNaN(slotStartTime.getTime())) return null;
@@ -113,28 +158,15 @@ const ReservationDetails = () => {
       const diffMs = slotStartTime.getTime() - now.getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
 
-      if (diffHours < 0) {
-        return {
-          status: 'concluded',
-          text: 'Slot Schedule Concluded',
-          hours: Math.abs(diffHours).toFixed(1),
-          canCancel: false,
-        };
-      } else if (diffHours >= 12) {
-        return {
-          status: 'eligible',
-          text: `12-Hour Notice Window Active (${diffHours.toFixed(1)} hrs remaining)`,
-          hours: diffHours.toFixed(1),
-          canCancel: true,
-        };
-      } else {
-        return {
-          status: 'restricted',
-          text: `Within 12-Hour Cutoff (${diffHours.toFixed(1)} hrs left)`,
-          hours: diffHours.toFixed(1),
-          canCancel: false,
-        };
-      }
+      const canMod = diffHours >= 12;
+      return {
+        canModify: canMod,
+        hours: Math.max(0, diffHours).toFixed(1),
+        text: canMod
+          ? `12-Hour Notice Window Active (${diffHours.toFixed(1)}h remaining)`
+          : `Within 12-Hour Cutoff (${Math.max(0, diffHours).toFixed(1)}h left)`,
+        eligible: canMod
+      };
     } catch {
       return null;
     }
@@ -159,12 +191,30 @@ const ReservationDetails = () => {
     setActionLoading(true);
     try {
       await reservationService.complete(id);
-      setAlert({ type: 'success', message: 'Reservation marked as completed!' });
+      setAlert({ type: 'success', message: 'Reservation marked as Completed!' });
       await fetchReservationDetails();
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to complete reservation.' });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    if (e) e.preventDefault();
+    setEditLoading(true);
+    try {
+      await reservationService.update(id, {
+        energyAmount: parseFloat(editAmount) || 0,
+        notes: editNotes,
+      });
+      setEditModal(false);
+      setAlert({ type: 'success', message: 'Reservation updated successfully!' });
+      await fetchReservationDetails();
+    } catch (err) {
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to update reservation.' });
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -182,14 +232,18 @@ const ReservationDetails = () => {
     }
   };
 
-  const getStatusClass = (status) => {
+  const getStatusBadge = (status) => {
     const map = {
       Pending: 'status-pending',
-      Confirmed: 'status-confirmed',
-      Cancelled: 'status-cancelled',
+      Confirmed: 'status-active',
       Completed: 'status-completed',
+      Cancelled: 'status-inactive',
     };
-    return map[status] || '';
+    return (
+      <span className={`status-badge ${map[status] || ''}`} style={{ fontSize: '0.9rem', padding: '6px 14px' }}>
+        {status}
+      </span>
+    );
   };
 
   if (loading) {
@@ -203,7 +257,7 @@ const ReservationDetails = () => {
     );
   }
 
-  if (!reservation) {
+  if (!details) {
     return (
       <div className="page-container">
         <div className="empty-state">
@@ -225,315 +279,268 @@ const ReservationDetails = () => {
   return (
     <div className="page-container">
       {/* Top Navigation & Action Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-        <Button variant="secondary" onClick={() => navigate('/reservations')}>
-          <ArrowLeft size={16} className="icon-mr" /> Back to Reservations
-        </Button>
+      <div className="page-header-actions" style={{ alignItems: 'flex-start', marginBottom: 24 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <h1 className="page-title" style={{ margin: 0 }}>Reservation Details</h1>
+            {getStatusBadge(details.status)}
+          </div>
+          <p className="page-subtitle" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+            <span>ID:</span>
+            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color, var(--primary))' }}>{details.id}</span>
+          </p>
+        </div>
 
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          {reservation.status === 'Pending' && (
-            <Button
-              variant="success"
-              onClick={handleConfirm}
-              disabled={actionLoading}
-            >
-              <Check size={16} className="icon-mr" /> Confirm Reservation
+        <div className="btn-group">
+          <Button variant="secondary" onClick={() => navigate('/reservations')}>
+            <ArrowLeft size={16} className="icon-mr" /> Back
+          </Button>
+
+          {details.status === 'Pending' && (
+            <Button variant="success" onClick={handleConfirm} disabled={actionLoading}>
+              <CheckCircle size={16} className="icon-mr" /> Approve & Confirm
             </Button>
           )}
 
-          {reservation.status === 'Confirmed' && (
-            <Button
-              variant="primary"
-              onClick={handleComplete}
-              disabled={actionLoading}
-            >
+          {details.status === 'Confirmed' && (
+            <Button variant="primary" onClick={handleComplete} disabled={actionLoading}>
               <CheckCheck size={16} className="icon-mr" /> Mark Completed
             </Button>
           )}
 
-          {(reservation.status === 'Pending' || reservation.status === 'Confirmed') && (
-            <Button
-              variant="danger"
-              onClick={() => setCancelModalOpen(true)}
-              disabled={actionLoading}
-            >
-              <XCircle size={16} className="icon-mr" /> Cancel Reservation
-            </Button>
+          {(details.status === 'Pending' || details.status === 'Confirmed') && (
+            <>
+              {noticeInfo?.canModify && (
+                <Button variant="secondary" onClick={() => setEditModal(true)}>
+                  <Pencil size={16} className="icon-mr" /> Update
+                </Button>
+              )}
+              <Button variant="danger" onClick={() => setCancelModalOpen(true)} disabled={actionLoading}>
+                <XCircle size={16} className="icon-mr" /> Cancel
+              </Button>
+            </>
           )}
         </div>
       </div>
 
       {/* Alert Messages */}
       {alert && (
-        <div className={`alert alert-${alert.type}`}>
+        <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
           {alert.type === 'success' ? (
-            <CheckCircle size={16} className="icon-mr" />
+            <CheckCircle size={18} color="var(--success)" />
           ) : (
-            <AlertCircle size={16} className="icon-mr" />
+            <AlertTriangle size={18} color="var(--danger)" />
           )}
           <span>{alert.message}</span>
         </div>
       )}
 
-      {/* Main Reservation Overview Header Card */}
-      <div className="card" style={{ marginBottom: 24, padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <h1 className="page-title" style={{ margin: 0, fontSize: '1.5rem' }}>
-                Reservation #{reservation.id?.slice(-8) || reservation.id}
-              </h1>
-              <span className={`status-badge ${getStatusClass(reservation.status)}`}>
-                {reservation.status}
-              </span>
+      {/* 12-Hour Notice Status Banner */}
+      {noticeInfo && (
+        <div className="card" style={{ marginBottom: 24, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 42,
+              height: 42,
+              borderRadius: '50%',
+              background: noticeInfo.eligible ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: noticeInfo.eligible ? 'var(--success)' : 'var(--danger)'
+            }}>
+              <Clock size={22} />
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
-              Created on {new Date(reservation.reservedAt).toLocaleString()} • System Ref: {reservation.id}
-            </p>
-          </div>
-
-          {/* 12-Hour Cancellation Notice Window Status */}
-          {noticeInfo && (
-            <div
-              style={{
-                padding: '10px 16px',
-                borderRadius: 'var(--radius-md)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                background:
-                  noticeInfo.status === 'eligible'
-                    ? 'rgba(16, 185, 129, 0.12)'
-                    : noticeInfo.status === 'restricted'
-                    ? 'rgba(245, 158, 11, 0.12)'
-                    : 'rgba(100, 116, 139, 0.12)',
-                border: `1px solid ${
-                  noticeInfo.status === 'eligible'
-                    ? 'rgba(16, 185, 129, 0.3)'
-                    : noticeInfo.status === 'restricted'
-                    ? 'rgba(245, 158, 11, 0.3)'
-                    : 'rgba(100, 116, 139, 0.3)'
-                }`,
-                color:
-                  noticeInfo.status === 'eligible'
-                    ? 'var(--success)'
-                    : noticeInfo.status === 'restricted'
-                    ? 'var(--warning)'
-                    : 'var(--text-muted)',
-              }}
-            >
-              <Clock size={16} />
-              <div>
-                <div>{noticeInfo.text}</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 400, opacity: 0.9 }}>
-                  {noticeInfo.canCancel
-                    ? 'Eligible for standard prosumer cancellation'
-                    : 'Subject to 12-hour administrative cancellation rule'}
-                </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                12-Hour Notice Window: {noticeInfo.eligible ? 'Active & Modifiable' : 'Locked'}
+              </div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                {noticeInfo.hours > 0 ? (
+                  <>Slot begins in <strong>{noticeInfo.hours} hours</strong>. (Requires at least 12h advance notice to modify or cancel).</>
+                ) : (
+                  <>Scheduled slot window has commenced or concluded.</>
+                )}
               </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Grid: 360 Information View */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, marginBottom: 24 }}>
-        {/* Card 1: Energy & Financials */}
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
-            <Zap size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Energy & Financials</h3>
           </div>
-          <div style={{ display: 'grid', gap: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span className="form-label" style={{ margin: 0 }}>Energy Volume</span>
-              <strong style={{ color: 'var(--accent-light)', fontSize: '1.1rem' }}>
-                {reservation.energyAmount} kWh
-              </strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span className="form-label" style={{ margin: 0 }}>Total Transaction</span>
-              <strong style={{ color: 'var(--primary-light)', fontSize: '1.1rem' }}>
-                ${typeof reservation.totalPrice === 'number' ? reservation.totalPrice.toFixed(2) : reservation.totalPrice}
-              </strong>
-            </div>
-            {slot && (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span className="form-label" style={{ margin: 0 }}>Unit Tariff</span>
-                  <span>${slot.pricePerUnit} / kWh</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span className="form-label" style={{ margin: 0 }}>Scheduled Date</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <Calendar size={13} color="var(--text-muted)" />
-                    {new Date(slot.slotDate).toLocaleDateString()}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span className="form-label" style={{ margin: 0 }}>Time Window</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <Clock size={13} color="var(--text-muted)" />
-                    {slot.startTime} – {slot.endTime}
-                  </span>
-                </div>
-              </>
+
+          <div>
+            {noticeInfo.eligible ? (
+              <span className="status-badge status-active">Eligible for Changes</span>
+            ) : (
+              <span className="status-badge status-inactive">Changes Locked (&lt; 12h)</span>
             )}
           </div>
         </div>
+      )}
 
-        {/* Card 2: Microgrid Node Infrastructure */}
+      {/* 360 Information View Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
+        {/* Card 1: Prosumer Participants */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
-            <Layers size={20} color="var(--accent)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Microgrid Node</h3>
-          </div>
-          {node ? (
-            <div style={{ display: 'grid', gap: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Node Name</span>
-                <strong>{node.nodeName}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Location</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <MapPin size={13} color="var(--text-muted)" />
-                  {node.location}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Grid Capacity</span>
-                <span>{node.capacity} kW</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Operational Status</span>
-                <span className={`status-badge status-${node.status?.toLowerCase()}`}>
-                  {node.status}
-                </span>
-              </div>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <User size={18} color="var(--primary)" /> Trading Prosumers
+          </h3>
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#60a5fa', fontWeight: 700 }}>Buyer (Purchaser)</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.buyerName || 'Unknown Buyer'}</div>
+              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.buyerProsumerId || '—'}</div>
+              {details.buyerEmail && (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <span>{details.buyerEmail}</span>
+                  {details.buyerPhone && <span>• {details.buyerPhone}</span>}
+                </div>
+              )}
             </div>
-          ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Microgrid Node ID: {reservation.microgridNodeId || 'Not linked'}
-            </p>
-          )}
-        </div>
-      </div>
 
-      {/* Grid: Prosumers Involved */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, marginBottom: 24 }}>
-        {/* Buyer Prosumer */}
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
-            <User size={20} color="var(--info)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Buyer Prosumer</h3>
-          </div>
-          {buyer ? (
-            <div style={{ display: 'grid', gap: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Full Name</span>
-                <strong>{buyer.name}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Email</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Mail size={13} color="var(--text-muted)" />
-                  {buyer.email}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Phone</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Phone size={13} color="var(--text-muted)" />
-                  {buyer.phone}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Address</span>
-                <span>{buyer.address || '—'}</span>
-              </div>
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#34d399', fontWeight: 700 }}>Seller (Generator)</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.sellerName || 'Unknown Seller'}</div>
+              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.sellerProsumerId || '—'}</div>
+              {details.sellerEmail && (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <span>{details.sellerEmail}</span>
+                  {details.sellerPhone && <span>• {details.sellerPhone}</span>}
+                </div>
+              )}
             </div>
-          ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Prosumer ID: {reservation.buyerProsumerId || 'Unknown'}
-            </p>
-          )}
+          </div>
         </div>
 
-        {/* Seller Prosumer */}
+        {/* Card 2: Microgrid Node & Energy Slot */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
-            <User size={20} color="var(--primary)" />
-            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Seller Prosumer</h3>
-          </div>
-          {seller ? (
-            <div style={{ display: 'grid', gap: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Full Name</span>
-                <strong>{seller.name}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Email</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Mail size={13} color="var(--text-muted)" />
-                  {seller.email}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Solar Capacity</span>
-                <span style={{ color: 'var(--primary-light)', fontWeight: 600 }}>
-                  {seller.solarCapacity} kW
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="form-label" style={{ margin: 0 }}>Phone</span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <Phone size={13} color="var(--text-muted)" />
-                  {seller.phone}
-                </span>
-              </div>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <MapPin size={18} color="var(--accent)" /> Microgrid Node & Energy Slot
+          </h3>
+          <div style={{ display: 'grid', gap: 14 }}>
+            <div>
+              <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Microgrid Node</span>
+              <p style={{ margin: 0, fontWeight: 600 }}>{details.microgridNodeName || 'Assigned Node'} {details.microgridLocation ? `(${details.microgridLocation})` : ''}</p>
             </div>
-          ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Prosumer ID: {reservation.sellerProsumerId || 'Unknown'}
-            </p>
-          )}
+            <div>
+              <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Slot Scheduled Date</span>
+              <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Calendar size={14} color="var(--text-muted)" /> {details.slotDate ? new Date(details.slotDate).toLocaleDateString() : 'N/A'}
+              </p>
+            </div>
+            <div>
+              <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Transfer Window</span>
+              <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Clock size={14} color="var(--text-muted)" /> {details.startTime || '—'} – {details.endTime || '—'}
+              </p>
+            </div>
+            <div>
+              <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Tariff Rate</span>
+              <p style={{ margin: 0, fontWeight: 600 }}>${details.pricePerUnit || 0} per kWh</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Energy & Financial Summary */}
+        <div className="card">
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Zap size={18} color="var(--primary)" /> Financial & Energy Summary
+          </h3>
+          <div style={{ display: 'grid', gap: 14 }}>
+            <div>
+              <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Reserved Energy</span>
+              <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>
+                {details.energyAmount} kWh
+              </p>
+            </div>
+            <div>
+              <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Total Transaction Cost</span>
+              <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)' }}>
+                ${typeof details.totalPrice === 'number' ? details.totalPrice.toFixed(2) : details.totalPrice}
+              </p>
+            </div>
+            <div>
+              <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Reserved At</span>
+              <p style={{ margin: 0, fontSize: '0.85rem' }}>{details.reservedAt ? new Date(details.reservedAt).toLocaleString() : 'N/A'}</p>
+            </div>
+            {details.notes && (
+              <div>
+                <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Reservation Notes</span>
+                <p style={{ margin: 0, fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--text-muted)' }}>"{details.notes}"</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Operational Audit & Notes Card */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
-          <FileText size={20} color="var(--text-secondary)" />
-          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Operational Audit & Notes</h3>
+          <FileText size={20} color="var(--text-muted)" />
+          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Operational Audit & Metadata</h3>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 16 }}>
           <div>
-            <span className="form-label">Reserved At</span>
-            <p>{new Date(reservation.reservedAt).toLocaleString()}</p>
-          </div>
-          <div>
-            <span className="form-label">Last Updated</span>
-            <p>{new Date(reservation.updatedAt).toLocaleString()}</p>
+            <span className="form-label">Reservation Record ID</span>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.id}</p>
           </div>
           <div>
             <span className="form-label">Energy Slot Reference</span>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{reservation.energySlotId || '—'}</p>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.energySlotId || '—'}</p>
+          </div>
+          <div>
+            <span className="form-label">Microgrid Node ID</span>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.microgridNodeId || '—'}</p>
           </div>
         </div>
         <div>
           <span className="form-label">Operational Notes</span>
           <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: 14, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-            <p style={{ margin: 0, color: reservation.notes ? 'var(--text-primary)' : 'var(--text-muted)', fontStyle: reservation.notes ? 'normal' : 'italic' }}>
-              {reservation.notes || 'No special operational notes recorded for this transaction.'}
+            <p style={{ margin: 0, color: details.notes ? 'var(--text-primary)' : 'var(--text-muted)', fontStyle: details.notes ? 'normal' : 'italic' }}>
+              {details.notes || 'No special operational notes recorded for this transaction.'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Cancellation Confirmation Modal */}
+      {/* Edit Modal */}
+      <Modal
+        isOpen={editModal}
+        onClose={() => setEditModal(false)}
+        title="Update Energy Reservation"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setEditModal(false)}>Cancel</Button>
+            <Button variant="primary" loading={editLoading} onClick={handleUpdate}>Save Changes</Button>
+          </>
+        }
+      >
+        <form onSubmit={handleUpdate}>
+          <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem' }}>
+            <Clock size={14} style={{ display: 'inline', marginRight: 4 }} />
+            Updates require at least 12 hours' advance notice before the slot begins.
+          </div>
+          <div className="form-group">
+            <label className="form-label">Energy Amount (kWh) *</label>
+            <input
+              className="form-control"
+              type="number"
+              step="0.1"
+              min="0.1"
+              value={editAmount}
+              onChange={(e) => setEditAmount(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Notes</label>
+            <textarea
+              className="form-control"
+              rows="3"
+              value={editNotes}
+              onChange={(e) => setEditNotes(e.target.value)}
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {/* Cancel Modal */}
       <Modal
         isOpen={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
@@ -549,11 +556,11 @@ const ReservationDetails = () => {
           </>
         }
       >
-        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-          Are you sure you want to cancel this reservation for <strong>{reservation.energyAmount} kWh</strong>?
+        <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          Are you sure you want to cancel this reservation for <strong>{details.energyAmount} kWh</strong>?
         </p>
 
-        {noticeInfo && !noticeInfo.canCancel && (
+        {noticeInfo && !noticeInfo.eligible && (
           <div style={{ marginTop: 12, padding: 12, background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 'var(--radius-sm)' }}>
             <p style={{ fontSize: '0.85rem', color: 'var(--warning)', margin: 0, fontWeight: 500 }}>
               Warning: This reservation is within the 12-hour cutoff window ({noticeInfo.hours} hours remaining). Late cancellations may impact prosumer reliability scores.

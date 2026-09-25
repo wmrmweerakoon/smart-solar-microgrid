@@ -1,123 +1,187 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  History,
-  Search,
-  RefreshCw,
   Eye,
-  Zap,
-  Calendar,
-  Clock,
-  DollarSign
+  Search,
+  RotateCcw,
+  History
 } from 'lucide-react';
-import { bookingService } from '../../services/api';
+import { bookingService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 
+/**
+ * Booking History page.
+ * Displays completed and cancelled energy booking archives with search and status filtering.
+ */
 const BookingHistory = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
+  const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [selectedNode, setSelectedNode] = useState('All');
+  const [selectedDate, setSelectedDate] = useState('');
 
   useEffect(() => {
-    fetchHistory();
+    fetchData();
   }, []);
 
-  const fetchHistory = async () => {
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, statusFilter, selectedNode, selectedDate, bookings]);
+
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const res = await bookingService.getHistory();
-      setBookings(res.data || []);
+      const [historyRes, nodesRes] = await Promise.all([
+        bookingService.getHistory(),
+        microgridService.getAll().catch(() => ({ data: [] }))
+      ]);
+      setBookings(historyRes.data || []);
+      setNodes(nodesRes.data || []);
     } catch {
       // silently handle
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchHistory();
+  const applyFilters = () => {
+    let result = [...bookings];
+
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(
+        (b) =>
+          b.id?.toLowerCase().includes(q) ||
+          b.buyerName?.toLowerCase().includes(q) ||
+          b.buyerProsumerId?.toLowerCase().includes(q) ||
+          b.sellerName?.toLowerCase().includes(q) ||
+          b.sellerProsumerId?.toLowerCase().includes(q) ||
+          b.microgridNodeName?.toLowerCase().includes(q)
+      );
+    }
+
+    if (statusFilter !== 'All') {
+      result = result.filter((b) => b.status === statusFilter);
+    }
+
+    if (selectedNode !== 'All') {
+      result = result.filter((b) => b.microgridNodeId === selectedNode);
+    }
+
+    if (selectedDate) {
+      result = result.filter(
+        (b) => new Date(b.slotDate).toISOString().slice(0, 10) === selectedDate
+      );
+    }
+
+    setFilteredBookings(result);
   };
 
-  const getStatusClass = (status) => {
-    const map = { Completed: 'status-completed', Cancelled: 'status-cancelled' };
-    return map[status] || '';
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('All');
+    setSelectedNode('All');
+    setSelectedDate('');
   };
 
-  const filteredBookings = useMemo(() => {
-    if (!searchQuery.trim()) return bookings;
-    const q = searchQuery.toLowerCase();
-    return bookings.filter((b) => {
-      const id = (b.id || '').toLowerCase();
-      const status = (b.status || '').toLowerCase();
-      const energy = String(b.energyAmount || '');
-      const price = String(b.pricePerUnit || '');
-      const date = b.slotDate ? new Date(b.slotDate).toLocaleDateString().toLowerCase() : '';
-      return id.includes(q) || status.includes(q) || energy.includes(q) || price.includes(q) || date.includes(q);
-    });
-  }, [bookings, searchQuery]);
+  const getStatusBadge = (status) => {
+    const s = status?.toLowerCase();
+    switch (s) {
+      case 'completed':
+        return <span className="status-badge status-completed">Completed</span>;
+      case 'cancelled':
+        return <span className="status-badge status-cancelled">Cancelled</span>;
+      default:
+        return <span className="status-badge status-available">{status}</span>;
+    }
+  };
 
   const columns = [
     {
       key: 'id',
       label: 'Booking ID',
       render: (row) => (
-        <span style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          #{row.id ? row.id.slice(-6) : '—'}
+        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
+          {row.id ? `#${row.id.slice(-8)}` : '—'}
         </span>
       ),
     },
     {
-      key: 'energyAmount',
-      label: 'Energy (kWh)',
+      key: 'microgridNodeName',
+      label: 'Microgrid Node',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600, color: 'var(--accent-light)' }}>
-          <Zap size={14} />
-          {row.energyAmount} kWh
-        </span>
+        <div>
+          <div style={{ fontWeight: 500 }}>{row.microgridNodeName || 'Assigned Node'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.microgridLocation || ''}</div>
+        </div>
       ),
     },
     {
-      key: 'pricePerUnit',
-      label: 'Price/kWh',
+      key: 'buyer',
+      label: 'Buyer Prosumer',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 600, color: 'var(--primary-light)' }}>
-          <DollarSign size={14} />
-          {row.pricePerUnit}
-        </span>
+        <div>
+          <div style={{ fontWeight: 500 }}>{row.buyerName || 'Unassigned / Open'}</div>
+          {row.buyerProsumerId && row.buyerProsumerId !== 'N/A' && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.buyerProsumerId}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'seller',
+      label: 'Seller Prosumer',
+      render: (row) => (
+        <div>
+          <div style={{ fontWeight: 500 }}>{row.sellerName || 'Seller'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.sellerProsumerId || ''}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'energy',
+      label: 'Energy Volume',
+      render: (row) => (
+        <div>
+          <strong style={{ color: 'var(--accent-light)' }}>{row.energyAmount} kWh</strong>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            ${row.pricePerUnit}/kWh
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'totalPrice',
+      label: 'Total Value',
+      render: (row) => (
+        <strong style={{ color: 'var(--primary-light)' }}>
+          ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
+        </strong>
       ),
     },
     {
       key: 'slotDate',
-      label: 'Date',
+      label: 'Schedule',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-          <Calendar size={13} color="var(--text-muted)" />
-          {new Date(row.slotDate).toLocaleDateString()}
-        </span>
-      ),
-    },
-    {
-      key: 'time',
-      label: 'Time Window',
-      render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-          <Clock size={13} color="var(--text-muted)" />
-          {row.startTime} – {row.endTime}
-        </span>
+        <div>
+          <div>{new Date(row.slotDate).toLocaleDateString()}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            {row.startTime} – {row.endTime}
+          </div>
+        </div>
       ),
     },
     {
       key: 'status',
       label: 'Status',
-      render: (row) => (
-        <span className={`status-badge ${getStatusClass(row.status)}`}>
-          {row.status}
-        </span>
-      ),
+      render: (row) => getStatusBadge(row.status),
     },
     {
       key: 'actions',
@@ -129,7 +193,7 @@ const BookingHistory = () => {
           onClick={() => navigate(`/bookings/${row.id}`)}
           title="View Details"
         >
-          <Eye size={14} className="icon-mr" /> View
+          <Eye size={14} className="icon-mr" /> Details
         </Button>
       ),
     },
@@ -137,37 +201,77 @@ const BookingHistory = () => {
 
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 className="page-title">Booking History</h1>
-          <p className="page-subtitle">Archive of past completed and cancelled energy booking transactions</p>
-        </div>
-        <div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw size={14} className={refreshing ? 'icon-mr spin' : 'icon-mr'} />
-            {refreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
-        </div>
+      <div className="page-header">
+        <h1 className="page-title">Booking History</h1>
+        <p className="page-subtitle">
+          Archive of completed and cancelled solar energy transactions across all nodes
+        </p>
       </div>
 
-      {/* Search Bar */}
-      <div className="card" style={{ marginBottom: 24, padding: '16px 20px' }}>
-        <div style={{ display: 'flex', gap: 12, maxWidth: 450, position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            className="form-input"
-            placeholder="Search booking history by ID, status, date..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: 38, width: '100%' }}
-          />
+      {/* Filter and Search Bar */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Keyword Search */}
+          <div style={{ position: 'relative', flex: '1 1 240px' }}>
+            <Search
+              size={16}
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}
+            />
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by Prosumer, NIC, Node, ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ paddingLeft: 36 }}
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div style={{ flex: '1 1 160px' }}>
+            <select
+              className="form-control"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All Statuses</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {/* Microgrid Node Filter */}
+          <div style={{ flex: '1 1 180px' }}>
+            <select
+              className="form-control"
+              value={selectedNode}
+              onChange={(e) => setSelectedNode(e.target.value)}
+            >
+              <option value="All">All Microgrid Nodes</option>
+              {nodes.map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.nodeName} ({n.location})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date Filter */}
+          <div style={{ flex: '1 1 160px' }}>
+            <input
+              type="date"
+              className="form-control"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+
+          {/* Reset Button */}
+          {(searchTerm || statusFilter !== 'All' || selectedNode !== 'All' || selectedDate) && (
+            <Button variant="secondary" size="sm" onClick={handleResetFilters}>
+              <RotateCcw size={14} className="icon-mr" /> Reset
+            </Button>
+          )}
         </div>
       </div>
 
@@ -176,9 +280,9 @@ const BookingHistory = () => {
         columns={columns}
         data={filteredBookings}
         loading={loading}
-        emptyMessage="No booking history found"
-        emptySubtext="No completed or cancelled bookings recorded in archive."
-        emptyIcon={<History size={44} strokeWidth={1.5} color="var(--text-secondary)" />}
+        emptyMessage="No historical bookings match your criteria"
+        emptySubtext="There are no completed or cancelled records matching the selected filters."
+        emptyIcon={<History size={48} strokeWidth={1} color="var(--text-secondary)" />}
       />
     </div>
   );
