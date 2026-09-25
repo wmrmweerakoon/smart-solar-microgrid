@@ -1,35 +1,61 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Eye, 
-  AlertTriangle, 
-  Clock, 
-  Zap, 
-  ShieldCheck, 
-  RefreshCw 
+import {
+  CheckCircle,
+  XCircle,
+  Eye,
+  AlertTriangle,
+  Clock,
+  Zap,
+  ShieldCheck,
+  RefreshCw,
+  Search,
+  RotateCcw,
+  UserCheck
 } from 'lucide-react';
 import { prosumerService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
 
+/**
+ * Pending Activation Management Page (Member 2).
+ * Restricted to Backoffice role. Displays pending accounts requiring verification.
+ */
 const PendingActivation = () => {
   const navigate = useNavigate();
 
   const [pendingProsumers, setPendingProsumers] = useState([]);
+  const [filteredProsumers, setFilteredProsumers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
   // Reject / Deactivate Modal
   const [rejectModal, setRejectModal] = useState({ open: false, nic: '', name: '', reason: '' });
-  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     fetchPending();
   }, []);
+
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      setFilteredProsumers(
+        pendingProsumers.filter(
+          (p) =>
+            p.nic?.toLowerCase().includes(q) ||
+            p.name?.toLowerCase().includes(q) ||
+            p.email?.toLowerCase().includes(q) ||
+            p.phone?.toLowerCase().includes(q)
+        )
+      );
+    } else {
+      setFilteredProsumers(pendingProsumers);
+    }
+  }, [searchTerm, pendingProsumers]);
 
   const fetchPending = async () => {
     setLoading(true);
@@ -38,8 +64,8 @@ const PendingActivation = () => {
         prosumerService.getByStatus('Pending'),
         microgridService.getAll().catch(() => ({ data: [] })),
       ]);
-      setPendingProsumers(pendingRes.data);
-      setNodes(nodesRes.data);
+      setPendingProsumers(pendingRes.data || []);
+      setNodes(nodesRes.data || []);
     } catch (error) {
       setAlert({ type: 'error', message: 'Failed to retrieve pending activations.' });
     } finally {
@@ -83,14 +109,14 @@ const PendingActivation = () => {
   const columns = [
     {
       key: 'nic',
-      label: 'NIC',
+      label: 'NIC (Identity)',
       render: (row) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color)' }}>
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color, var(--primary))' }}>
           {row.nic || row.id}
         </span>
       ),
     },
-    { key: 'name', label: 'Applicant Name' },
+    { key: 'name', label: 'Applicant Name', render: (row) => <strong>{row.name}</strong> },
     { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Phone' },
     {
@@ -98,7 +124,7 @@ const PendingActivation = () => {
       label: 'Capacity',
       render: (row) => (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <Zap size={14} color="var(--primary-color)" /> {row.solarCapacity} kW
+          <Zap size={14} color="var(--primary-color, var(--primary))" /> {row.solarCapacity} kW
         </span>
       ),
     },
@@ -110,7 +136,7 @@ const PendingActivation = () => {
     {
       key: 'createdAt',
       label: 'Registered On',
-      render: (row) => new Date(row.createdAt).toLocaleDateString(),
+      render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : 'N/A'),
     },
     {
       key: 'actions',
@@ -130,7 +156,7 @@ const PendingActivation = () => {
             <Button
               variant="success"
               size="sm"
-              loading={actionLoading}
+              disabled={actionLoading}
               onClick={() => handleActivate(nic, row.name)}
               title="Approve and Activate Account"
             >
@@ -152,7 +178,7 @@ const PendingActivation = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header-actions">
+      <div className="page-header-actions" style={{ marginBottom: 24 }}>
         <div>
           <h1 className="page-title">Pending Account Activations</h1>
           <p className="page-subtitle">Review, verify, and approve new prosumer onboarding requests</p>
@@ -164,13 +190,17 @@ const PendingActivation = () => {
 
       {alert && (
         <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-          {alert.type === 'success' ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
+          {alert.type === 'success' ? (
+            <CheckCircle size={18} color="var(--success)" />
+          ) : (
+            <AlertTriangle size={18} color="var(--danger)" />
+          )}
           <span>{alert.message}</span>
         </div>
       )}
 
       {/* Summary KPI Banner */}
-      <div className="card" style={{ marginBottom: 24, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+      <div className="card" style={{ marginBottom: 20, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ 
             width: 48, 
@@ -188,7 +218,7 @@ const PendingActivation = () => {
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {pendingProsumers.length} {pendingProsumers.length === 1 ? 'Application' : 'Applications'} Pending Review
             </div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               Authorized Backoffice action is required to verify identity and enable trading access.
             </div>
           </div>
@@ -201,11 +231,38 @@ const PendingActivation = () => {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Search
+              size={16}
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
+            />
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search pending by NIC, Name, Email, or Phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ paddingLeft: 36 }}
+            />
+          </div>
+          {searchTerm && (
+            <Button variant="secondary" size="sm" onClick={() => setSearchTerm('')}>
+              <RotateCcw size={14} className="icon-mr" /> Reset
+            </Button>
+          )}
+        </div>
+      </div>
+
       <Table
         columns={columns}
-        data={pendingProsumers}
+        data={filteredProsumers}
         loading={loading}
-        emptyMessage="No pending prosumer registrations require activation at this time."
+        emptyMessage="All prosumer accounts are currently activated"
+        emptySubtext="There are no pending registrations requiring backoffice action."
+        emptyIcon={<UserCheck size={44} strokeWidth={1.5} color="var(--success)" />}
       />
 
       {/* Reject Modal */}
@@ -234,13 +291,13 @@ const PendingActivation = () => {
         <p style={{ marginBottom: 12 }}>
           Are you sure you want to reject the application for <strong>{rejectModal.name}</strong> (NIC: {rejectModal.nic})?
         </p>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 16 }}>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 16 }}>
           This will set the prosumer account to <strong>Inactive</strong> status and prevent energy trading.
         </p>
         <div className="form-group">
           <label className="form-label">Rejection / Deactivation Reason</label>
           <textarea
-            className="form-input"
+            className="form-control"
             rows="3"
             placeholder="e.g. Incomplete documentation, invalid meter number, unverified address..."
             value={rejectModal.reason}

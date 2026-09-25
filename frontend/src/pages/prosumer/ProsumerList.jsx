@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  Eye, 
-  PowerOff, 
-  CheckCircle, 
-  AlertTriangle, 
-  Search, 
-  Filter, 
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Eye,
+  PowerOff,
+  CheckCircle,
+  AlertTriangle,
+  Search,
+  Filter,
   RotateCcw,
-  Zap
+  Zap,
+  Users,
+  Shield,
+  CreditCard
 } from 'lucide-react';
 import { prosumerService, microgridService } from '../../services/api';
 import { getRole } from '../../utils/auth';
@@ -19,6 +22,10 @@ import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
 
+/**
+ * Prosumer Management Page (Member 2).
+ * Displays prosumer directory with NIC primary key, search, status filtering, and edit/delete/deactivate actions.
+ */
 const ProsumerList = () => {
   const navigate = useNavigate();
   const userRole = getRole();
@@ -50,10 +57,10 @@ const ProsumerList = () => {
         prosumerService.getAll(),
         microgridService.getAll().catch(() => ({ data: [] }))
       ]);
-      setProsumers(prosumerRes.data);
-      setNodes(nodeRes.data);
+      setProsumers(prosumerRes.data || []);
+      setNodes(nodeRes.data || []);
     } catch (error) {
-      setAlert({ type: 'error', message: 'Failed to load prosumers list.' });
+      setAlert({ type: 'error', message: 'Failed to load prosumer directory.' });
     } finally {
       setLoading(false);
     }
@@ -68,7 +75,7 @@ const ProsumerList = () => {
         status: statusFilter,
         nodeId: nodeFilter,
       });
-      setProsumers(res.data);
+      setProsumers(res.data || []);
     } catch (error) {
       setAlert({ type: 'error', message: 'Search query failed.' });
     } finally {
@@ -83,7 +90,7 @@ const ProsumerList = () => {
     setLoading(true);
     try {
       const res = await prosumerService.getAll();
-      setProsumers(res.data);
+      setProsumers(res.data || []);
     } catch (error) {
       setAlert({ type: 'error', message: 'Failed to reload prosumers.' });
     } finally {
@@ -135,7 +142,7 @@ const ProsumerList = () => {
   const getNodeName = (nodeId) => {
     if (!nodeId) return '—';
     const found = nodes.find((n) => n.id === nodeId);
-    return found ? found.nodeName : 'Assigned Node';
+    return found ? `${found.nodeName} (${found.location})` : 'Assigned Node';
   };
 
   const getStatusBadge = (status) => {
@@ -154,22 +161,26 @@ const ProsumerList = () => {
   const columns = [
     {
       key: 'nic',
-      label: 'NIC',
+      label: 'NIC (Primary Key)',
       render: (row) => (
-        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color)' }}>
+        <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color, var(--primary))' }}>
           {row.nic || row.id}
         </span>
       ),
     },
-    { key: 'name', label: 'Name' },
+    {
+      key: 'name',
+      label: 'Name',
+      render: (row) => <strong>{row.name}</strong>,
+    },
     { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Phone' },
     {
       key: 'solarCapacity',
-      label: 'Solar (kW)',
+      label: 'Capacity',
       render: (row) => (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <Zap size={14} color="var(--primary-color)" /> {row.solarCapacity} kW
+          <Zap size={14} color="var(--primary-color, var(--primary))" /> {row.solarCapacity} kW
         </span>
       ),
     },
@@ -213,7 +224,7 @@ const ProsumerList = () => {
                 size="sm"
                 onClick={() => setDeactivateModal({ open: true, nic, name: row.name, reason: '' })}
                 title="Deactivate Account"
-                style={{ color: 'var(--danger-color, #ef4444)' }}
+                style={{ color: 'var(--danger-color, var(--danger))' }}
               >
                 <PowerOff size={14} className="icon-mr" /> Deactivate
               </Button>
@@ -221,6 +232,7 @@ const ProsumerList = () => {
               <Button
                 variant="success"
                 size="sm"
+                disabled={actionLoading}
                 onClick={() => handleActivate(nic)}
                 title="Activate Account"
               >
@@ -232,6 +244,7 @@ const ProsumerList = () => {
               <Button
                 variant="danger"
                 size="sm"
+                disabled={actionLoading}
                 onClick={() => setDeleteModal({ open: true, nic, name: row.name })}
                 title="Delete Profile"
               >
@@ -246,7 +259,7 @@ const ProsumerList = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header-actions">
+      <div className="page-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>
           <h1 className="page-title">Prosumer Management</h1>
           <p className="page-subtitle">Search, inspect, and manage solar prosumer profiles and states</p>
@@ -257,8 +270,12 @@ const ProsumerList = () => {
       </div>
 
       {alert && (
-        <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {alert.type === 'success' ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
+        <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+          {alert.type === 'success' ? (
+            <CheckCircle size={18} color="var(--success)" />
+          ) : (
+            <AlertTriangle size={18} color="var(--danger)" />
+          )}
           <span>{alert.message}</span>
         </div>
       )}
@@ -272,7 +289,7 @@ const ProsumerList = () => {
             </label>
             <input
               type="text"
-              className="form-input"
+              className="form-control"
               placeholder="Search by NIC, Name, Email, or Phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -284,7 +301,7 @@ const ProsumerList = () => {
               <Filter size={14} /> Status
             </label>
             <select
-              className="form-select"
+              className="form-control"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -296,9 +313,11 @@ const ProsumerList = () => {
           </div>
 
           <div style={{ flex: '0 1 220px' }}>
-            <label className="form-label">Microgrid Node</label>
+            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Shield size={14} /> Microgrid Node
+            </label>
             <select
-              className="form-select"
+              className="form-control"
               value={nodeFilter}
               onChange={(e) => setNodeFilter(e.target.value)}
             >
@@ -326,7 +345,13 @@ const ProsumerList = () => {
         columns={columns}
         data={prosumers}
         loading={loading}
-        emptyMessage="No prosumers match your criteria."
+        emptyMessage="No prosumers found matching your criteria"
+        emptyIcon={<Users size={44} strokeWidth={1.5} color="var(--text-secondary)" />}
+        emptyAction={
+          <Button variant="primary" size="sm" onClick={() => navigate('/prosumers/create')}>
+            <Plus size={14} className="icon-mr" /> Add First Prosumer
+          </Button>
+        }
       />
 
       {/* Deactivate Modal */}
@@ -361,7 +386,7 @@ const ProsumerList = () => {
         <div className="form-group">
           <label className="form-label">Deactivation Reason (Optional)</label>
           <textarea
-            className="form-input"
+            className="form-control"
             rows="3"
             placeholder="e.g. Inverter maintenance, user request, grid inspection..."
             value={deactivateModal.reason}
@@ -396,7 +421,7 @@ const ProsumerList = () => {
         <p>
           Are you sure you want to permanently delete prosumer <strong>{deleteModal.name}</strong> (NIC: {deleteModal.nic})?
         </p>
-        <p style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.85rem', marginTop: 8 }}>
+        <p style={{ color: 'var(--danger-color, var(--danger))', fontSize: '0.85rem', marginTop: 8 }}>
           This operation cannot be reversed.
         </p>
       </Modal>

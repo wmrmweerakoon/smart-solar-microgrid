@@ -7,33 +7,31 @@ import {
   Search,
   RotateCcw,
   AlertTriangle,
-  Clock,
-  Filter,
-  Check,
-  X
+  Clock
 } from 'lucide-react';
 import { bookingService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
+import Modal from '../../components/Modal';
 
 /**
- * Pending Bookings management page.
- * Displays energy bookings awaiting operational confirmation/approval.
+ * Pending Bookings operational view.
+ * Displays energy claims awaiting operator approval with batch and individual confirmation controls.
  */
 const PendingBookings = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [alert, setAlert] = useState(null);
+  const [cancelModal, setCancelModal] = useState({ open: false, id: null });
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNode, setSelectedNode] = useState('All');
   const [selectedDate, setSelectedDate] = useState('');
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -50,10 +48,10 @@ const PendingBookings = () => {
         bookingService.getPending(),
         microgridService.getAll().catch(() => ({ data: [] }))
       ]);
-      setBookings(bookingsRes.data);
-      setNodes(nodesRes.data);
-    } catch (err) {
-      setAlert({ type: 'error', message: 'Failed to load pending bookings from the API.' });
+      setBookings(bookingsRes.data || []);
+      setNodes(nodesRes.data || []);
+    } catch {
+      setAlert({ type: 'error', message: 'Failed to load pending bookings from the central service.' });
     } finally {
       setLoading(false);
     }
@@ -95,34 +93,29 @@ const PendingBookings = () => {
   };
 
   const handleConfirm = async (id) => {
-    if (!window.confirm('Approve and confirm this energy booking? This locks the energy slot for the buyer.')) {
-      return;
-    }
-
     setActionLoading(id);
     try {
       await bookingService.confirm(id);
-      setAlert({ type: 'success', message: `Booking ${id.slice(-6)} confirmed successfully.` });
+      setAlert({ type: 'success', message: `Booking #${id.slice(-6)} has been approved and confirmed!` });
       await fetchData();
     } catch (err) {
       setAlert({
         type: 'error',
-        message: err.response?.data?.message || 'Failed to confirm booking.'
+        message: err.response?.data?.message || 'Failed to approve booking.'
       });
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleCancel = async (id) => {
-    if (!window.confirm('Reject/cancel this pending booking? The slot will be returned to the open market.')) {
-      return;
-    }
-
+  const handleCancel = async () => {
+    if (!cancelModal.id) return;
+    const id = cancelModal.id;
     setActionLoading(id);
     try {
       await bookingService.cancel(id);
-      setAlert({ type: 'success', message: `Booking ${id.slice(-6)} cancelled.` });
+      setCancelModal({ open: false, id: null });
+      setAlert({ type: 'success', message: `Booking #${id.slice(-6)} has been rejected and cancelled.` });
       await fetchData();
     } catch (err) {
       setAlert({
@@ -140,7 +133,7 @@ const PendingBookings = () => {
       label: 'Booking ID',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-          {row.id ? row.id.slice(-8) : '—'}
+          {row.id ? `#${row.id.slice(-8)}` : '—'}
         </span>
       ),
     },
@@ -149,17 +142,17 @@ const PendingBookings = () => {
       label: 'Microgrid Node',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{row.microgridNodeName}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.microgridLocation}</div>
+          <div style={{ fontWeight: 500 }}>{row.microgridNodeName || 'Assigned Node'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.microgridLocation || ''}</div>
         </div>
       ),
     },
     {
       key: 'buyer',
-      label: 'Buyer Prosumer',
+      label: 'Claiming Buyer',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{row.buyerName || 'N/A'}</div>
+          <div style={{ fontWeight: 500 }}>{row.buyerName || 'Unassigned / Open'}</div>
           {row.buyerProsumerId && row.buyerProsumerId !== 'N/A' && (
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.buyerProsumerId}</div>
           )}
@@ -168,11 +161,11 @@ const PendingBookings = () => {
     },
     {
       key: 'seller',
-      label: 'Seller Prosumer',
+      label: 'Source Seller',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{row.sellerName}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.sellerProsumerId}</div>
+          <div style={{ fontWeight: 500 }}>{row.sellerName || 'Seller'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.sellerProsumerId || ''}</div>
         </div>
       ),
     },
@@ -181,7 +174,7 @@ const PendingBookings = () => {
       label: 'Energy Volume',
       render: (row) => (
         <div>
-          <strong>{row.energyAmount} kWh</strong>
+          <strong style={{ color: 'var(--accent-light)' }}>{row.energyAmount} kWh</strong>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
             ${row.pricePerUnit}/kWh
           </div>
@@ -192,14 +185,14 @@ const PendingBookings = () => {
       key: 'totalPrice',
       label: 'Total Value',
       render: (row) => (
-        <strong style={{ color: 'var(--accent)' }}>
+        <strong style={{ color: 'var(--primary-light)' }}>
           ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
         </strong>
       ),
     },
     {
       key: 'slotDate',
-      label: 'Scheduled Slot',
+      label: 'Schedule',
       render: (row) => (
         <div>
           <div>{new Date(row.slotDate).toLocaleDateString()}</div>
@@ -212,13 +205,13 @@ const PendingBookings = () => {
     {
       key: 'status',
       label: 'Status',
-      render: () => <span className="status-badge status-pending">Pending Approval</span>,
+      render: () => <span className="status-badge status-pending">Pending</span>,
     },
     {
       key: 'actions',
       label: 'Operational Actions',
       render: (row) => (
-        <div className="btn-group">
+        <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           <Button
             variant="secondary"
             size="sm"
@@ -233,19 +226,19 @@ const PendingBookings = () => {
             size="sm"
             onClick={() => handleConfirm(row.id)}
             disabled={actionLoading === row.id}
-            title="Confirm & Approve Booking"
+            title="Approve booking"
           >
-            <Check size={14} className="icon-mr" /> Approve
+            <CheckCircle size={14} className="icon-mr" /> Confirm
           </Button>
 
           <Button
             variant="danger"
             size="sm"
-            onClick={() => handleCancel(row.id)}
+            onClick={() => setCancelModal({ open: true, id: row.id })}
             disabled={actionLoading === row.id}
-            title="Reject / Cancel"
+            title="Reject booking"
           >
-            <X size={14} className="icon-mr" /> Cancel
+            <XCircle size={14} className="icon-mr" /> Reject
           </Button>
         </div>
       ),
@@ -257,7 +250,7 @@ const PendingBookings = () => {
       <div className="page-header">
         <h1 className="page-title">Pending Bookings</h1>
         <p className="page-subtitle">
-          Review, approve, or cancel booking requests awaiting operational authorization
+          Review, approve, or reject incoming energy bookings awaiting network confirmation
         </p>
       </div>
 
@@ -272,7 +265,7 @@ const PendingBookings = () => {
         </div>
       )}
 
-      {/* Filter Bar */}
+      {/* Filter and Search Bar */}
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           {/* Keyword Search */}
@@ -291,7 +284,7 @@ const PendingBookings = () => {
             />
           </div>
 
-          {/* Node Filter */}
+          {/* Microgrid Node Filter */}
           <div style={{ flex: '1 1 200px' }}>
             <select
               className="form-control"
@@ -326,14 +319,36 @@ const PendingBookings = () => {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Bookings Table */}
       <Table
         columns={columns}
         data={filteredBookings}
         loading={loading}
-        emptyMessage="No pending bookings requiring approval"
+        emptyMessage="No pending bookings match your criteria"
+        emptySubtext="All submitted energy bookings have been processed or none match the active filters."
         emptyIcon={<Clock size={48} strokeWidth={1} color="var(--text-secondary)" />}
       />
+
+      {/* Reject/Cancel Confirmation Modal */}
+      <Modal
+        isOpen={cancelModal.open}
+        onClose={() => setCancelModal({ open: false, id: null })}
+        title="Reject Pending Booking"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setCancelModal({ open: false, id: null })}>
+              Keep Pending
+            </Button>
+            <Button variant="danger" onClick={handleCancel}>
+              Confirm Rejection
+            </Button>
+          </>
+        }
+      >
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          Are you sure you want to reject and cancel this pending booking?
+        </p>
+      </Modal>
     </div>
   );
 };

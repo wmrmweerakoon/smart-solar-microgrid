@@ -1,9 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, AlertTriangle, ShieldCheck, Sun, User, Mail, Phone, MapPin, Zap } from 'lucide-react';
+import {
+  Save,
+  ArrowLeft,
+  AlertTriangle,
+  ShieldCheck,
+  Sun,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Zap,
+  CreditCard
+} from 'lucide-react';
 import { prosumerService, microgridService } from '../../services/api';
 import Button from '../../components/Button';
 
+/**
+ * Create Prosumer Profile Page (Member 2).
+ * Uses National Identity Card (NIC) as primary unique identifier.
+ */
 const CreateProsumer = () => {
   const navigate = useNavigate();
   const [nodes, setNodes] = useState([]);
@@ -38,7 +54,7 @@ const CreateProsumer = () => {
     if (!trimmedNic) {
       errors.nic = 'NIC is required as the primary identifier.';
     } else if (!nicRegex.test(trimmedNic)) {
-      errors.nic = 'Invalid NIC format. Format must be 9 digits + V/X (e.g., 981234567V) or 12 digits (e.g., 200012345678).';
+      errors.nic = 'Invalid NIC format. Must be 9 digits + V/X (e.g., 981234567V) or 12 digits (e.g., 200012345678).';
     }
 
     if (!formData.name.trim()) {
@@ -96,7 +112,7 @@ const CreateProsumer = () => {
         phone: formData.phone.trim(),
         address: formData.address.trim(),
         microgridNodeId: formData.microgridNodeId,
-        solarCapacity: parseFloat(formData.solarCapacity),
+        solarCapacity: parseFloat(formData.solarCapacity) || 0,
       });
       navigate('/prosumers');
     } catch (err) {
@@ -108,7 +124,7 @@ const CreateProsumer = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header-actions">
+      <div className="page-header-actions" style={{ marginBottom: 24 }}>
         <div>
           <h1 className="page-title">Register Solar Prosumer</h1>
           <p className="page-subtitle">Create a new prosumer profile using National Identity Card (NIC) as primary identifier</p>
@@ -121,7 +137,7 @@ const CreateProsumer = () => {
       <div className="card" style={{ maxWidth: 780, margin: '0 auto' }}>
         {error && (
           <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <AlertTriangle size={18} />
+            <AlertTriangle size={18} color="var(--danger)" />
             <span>{error}</span>
           </div>
         )}
@@ -130,94 +146,118 @@ const CreateProsumer = () => {
           {/* Identity Section */}
           <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShieldCheck size={18} color="var(--primary-color)" /> National Identity & Personal Details
+              <ShieldCheck size={18} color="var(--primary)" /> National Identity & Personal Details
             </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               NIC serves as the unique primary key for prosumer verification and energy transactions.
             </p>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">NIC (National Identity Card) *</label>
+              <label className="form-label" htmlFor="nic" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CreditCard size={15} color="var(--primary)" />
+                NIC (National Identity Card) *
+              </label>
               <input
-                className={`form-input ${fieldErrors.nic ? 'input-error' : ''}`}
+                id="nic"
+                className={`form-control ${fieldErrors.nic ? 'input-error' : ''}`}
                 name="nic"
                 value={formData.nic}
                 onChange={handleChange}
                 placeholder="e.g. 981234567V or 200012345678"
                 style={{ textTransform: 'uppercase' }}
               />
-              {fieldErrors.nic && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.nic}</span>}
+              {fieldErrors.nic && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.nic}</span>}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Full Name *</label>
+              <label className="form-label" htmlFor="name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <User size={15} color="var(--accent)" />
+                Full Name *
+              </label>
               <input
-                className={`form-input ${fieldErrors.name ? 'input-error' : ''}`}
+                id="name"
+                className={`form-control ${fieldErrors.name ? 'input-error' : ''}`}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="e.g. Samantha Perera"
               />
-              {fieldErrors.name && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.name}</span>}
+              {fieldErrors.name && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.name}</span>}
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Email Address *</label>
+              <label className="form-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Mail size={15} color="var(--info)" />
+                Email Address *
+              </label>
               <input
-                className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
+                id="email"
+                className={`form-control ${fieldErrors.email ? 'input-error' : ''}`}
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="prosumer@solar.lk"
               />
-              {fieldErrors.email && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.email}</span>}
+              {fieldErrors.email && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.email}</span>}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Phone Number *</label>
+              <label className="form-label" htmlFor="phone" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Phone size={15} color="var(--success)" />
+                Phone Number *
+              </label>
               <input
-                className={`form-input ${fieldErrors.phone ? 'input-error' : ''}`}
+                id="phone"
+                className={`form-control ${fieldErrors.phone ? 'input-error' : ''}`}
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+94 77 123 4567"
               />
-              {fieldErrors.phone && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.phone}</span>}
+              {fieldErrors.phone && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.phone}</span>}
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Property Address *</label>
+            <label className="form-label" htmlFor="address" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={15} color="var(--text-muted)" />
+              Property Address *
+            </label>
             <input
-              className={`form-input ${fieldErrors.address ? 'input-error' : ''}`}
+              id="address"
+              className={`form-control ${fieldErrors.address ? 'input-error' : ''}`}
               name="address"
               value={formData.address}
               onChange={handleChange}
               placeholder="e.g. No. 45, Temple Road, Kandy"
             />
-            {fieldErrors.address && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.address}</span>}
+            {fieldErrors.address && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.address}</span>}
           </div>
 
           {/* Solar & Microgrid Section */}
           <div style={{ marginTop: 32, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Sun size={18} color="var(--primary-color)" /> Solar Generation & Grid Allocation
+              <Sun size={18} color="var(--primary)" /> Solar Generation & Grid Allocation
             </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               Configure property solar capacity and assign to a local microgrid node.
             </p>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Solar Panel Capacity (kW) *</label>
+              <label className="form-label" htmlFor="solarCapacity" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Zap size={15} color="var(--primary)" />
+                Solar Panel Capacity (kW) *
+              </label>
               <input
-                className={`form-input ${fieldErrors.solarCapacity ? 'input-error' : ''}`}
+                id="solarCapacity"
+                className={`form-control ${fieldErrors.solarCapacity ? 'input-error' : ''}`}
                 name="solarCapacity"
                 type="number"
                 step="0.1"
@@ -226,13 +266,17 @@ const CreateProsumer = () => {
                 onChange={handleChange}
                 placeholder="e.g. 5.5"
               />
-              {fieldErrors.solarCapacity && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.solarCapacity}</span>}
+              {fieldErrors.solarCapacity && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.solarCapacity}</span>}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Assigned Microgrid Node *</label>
+              <label className="form-label" htmlFor="microgridNodeId" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <ShieldCheck size={15} color="var(--accent)" />
+                Assigned Microgrid Node *
+              </label>
               <select
-                className={`form-select ${fieldErrors.microgridNodeId ? 'input-error' : ''}`}
+                id="microgridNodeId"
+                className={`form-control ${fieldErrors.microgridNodeId ? 'input-error' : ''}`}
                 name="microgridNodeId"
                 value={formData.microgridNodeId}
                 onChange={handleChange}
@@ -240,11 +284,11 @@ const CreateProsumer = () => {
                 <option value="">Select a microgrid node...</option>
                 {nodes.map((node) => (
                   <option key={node.id} value={node.id}>
-                    {node.nodeName} — {node.location}
+                    {node.nodeName} ({node.location}) — Capacity: {node.capacity} kW
                   </option>
                 ))}
               </select>
-              {fieldErrors.microgridNodeId && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.microgridNodeId}</span>}
+              {fieldErrors.microgridNodeId && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.microgridNodeId}</span>}
             </div>
           </div>
 

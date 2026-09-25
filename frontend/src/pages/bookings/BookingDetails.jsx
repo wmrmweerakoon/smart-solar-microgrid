@@ -4,12 +4,10 @@ import {
   ArrowLeft,
   CheckCircle,
   XCircle,
-  Clock,
   User,
   Zap,
   Battery,
   Calendar,
-  DollarSign,
   AlertTriangle,
   Mail,
   Phone,
@@ -18,6 +16,7 @@ import {
 } from 'lucide-react';
 import { bookingService } from '../../services/api';
 import Button from '../../components/Button';
+import Modal from '../../components/Modal';
 
 /**
  * Booking Details operational view.
@@ -32,6 +31,7 @@ const BookingDetails = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   useEffect(() => {
     fetchDetails();
@@ -44,7 +44,6 @@ const BookingDetails = () => {
       setBooking(res.data);
     } catch (err) {
       console.error('Failed to load booking details:', err);
-      // Fallback to getById if getDetails fails
       try {
         const fallbackRes = await bookingService.getById(id);
         setBooking(fallbackRes.data);
@@ -57,11 +56,10 @@ const BookingDetails = () => {
   };
 
   const handleConfirm = async () => {
-    if (!window.confirm('Approve and confirm this booking?')) return;
     setActionLoading(true);
     try {
       await bookingService.confirm(id);
-      setAlert({ type: 'success', message: 'Booking confirmed successfully.' });
+      setAlert({ type: 'success', message: 'Booking confirmed and approved successfully.' });
       fetchDetails();
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to confirm booking.' });
@@ -71,7 +69,6 @@ const BookingDetails = () => {
   };
 
   const handleComplete = async () => {
-    if (!window.confirm('Mark this energy booking as completed?')) return;
     setActionLoading(true);
     try {
       await bookingService.complete(id);
@@ -85,11 +82,11 @@ const BookingDetails = () => {
   };
 
   const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
     setActionLoading(true);
     try {
       await bookingService.cancel(id);
-      setAlert({ type: 'success', message: 'Booking cancelled.' });
+      setCancelModalOpen(false);
+      setAlert({ type: 'success', message: 'Booking cancelled successfully.' });
       fetchDetails();
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to cancel booking.' });
@@ -179,7 +176,7 @@ const BookingDetails = () => {
           {(booking.status === 'Booked' || booking.status === 'Pending') && (
             <Button
               variant="danger"
-              onClick={handleCancel}
+              onClick={() => setCancelModalOpen(true)}
               disabled={actionLoading}
             >
               <XCircle size={16} className="icon-mr" /> Cancel Booking
@@ -370,13 +367,34 @@ const BookingDetails = () => {
           {booking.notes && (
             <div style={{ gridColumn: '1 / -1' }}>
               <span className="form-label">Notes & Instructions</span>
-              <p style={{ background: 'var(--card-bg-subtle, rgba(255,255,255,0.03))', padding: '10px 14px', borderRadius: 6 }}>
+              <p style={{ background: 'rgba(255,255,255,0.03)', padding: '10px 14px', borderRadius: 6 }}>
                 {booking.notes}
               </p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        isOpen={cancelModalOpen}
+        onClose={() => setCancelModalOpen(false)}
+        title="Confirm Booking Cancellation"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setCancelModalOpen(false)}>
+              Keep Booking
+            </Button>
+            <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
+              {actionLoading ? 'Cancelling...' : 'Confirm Cancellation'}
+            </Button>
+          </>
+        }
+      >
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          Are you sure you want to cancel this booking? This will terminate the scheduled energy transfer.
+        </p>
+      </Modal>
     </div>
   );
 };

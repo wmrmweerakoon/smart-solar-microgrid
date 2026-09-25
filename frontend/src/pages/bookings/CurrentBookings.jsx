@@ -7,34 +7,31 @@ import {
   Search,
   RotateCcw,
   AlertTriangle,
-  ClipboardList,
-  Filter,
-  Calendar,
-  Zap,
-  Info
+  ClipboardList
 } from 'lucide-react';
 import { bookingService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
+import Modal from '../../components/Modal';
 
 /**
  * Current Bookings management page.
  * Displays active claimed energy slots with linked buyer/seller details and operational controls.
  */
 const CurrentBookings = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [nodes, setNodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [alert, setAlert] = useState(null);
+  const [cancelModal, setCancelModal] = useState({ open: false, id: null });
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNode, setSelectedNode] = useState('All');
   const [selectedDate, setSelectedDate] = useState('');
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -51,9 +48,9 @@ const CurrentBookings = () => {
         bookingService.getCurrent(),
         microgridService.getAll().catch(() => ({ data: [] }))
       ]);
-      setBookings(bookingsRes.data);
-      setNodes(nodesRes.data);
-    } catch (err) {
+      setBookings(bookingsRes.data || []);
+      setNodes(nodesRes.data || []);
+    } catch {
       setAlert({ type: 'error', message: 'Failed to load current bookings from the central service.' });
     } finally {
       setLoading(false);
@@ -96,14 +93,10 @@ const CurrentBookings = () => {
   };
 
   const handleComplete = async (id) => {
-    if (!window.confirm('Mark this energy booking as completed? This confirms power transfer has concluded.')) {
-      return;
-    }
-
     setActionLoading(id);
     try {
       await bookingService.complete(id);
-      setAlert({ type: 'success', message: `Booking ${id.slice(-6)} marked as Completed.` });
+      setAlert({ type: 'success', message: `Booking #${id.slice(-6)} marked as Completed.` });
       await fetchData();
     } catch (err) {
       setAlert({
@@ -115,15 +108,14 @@ const CurrentBookings = () => {
     }
   };
 
-  const handleCancel = async (id) => {
-    if (!window.confirm('Are you sure you want to cancel this booking? This will terminate the scheduled transfer.')) {
-      return;
-    }
-
+  const handleCancel = async () => {
+    if (!cancelModal.id) return;
+    const id = cancelModal.id;
     setActionLoading(id);
     try {
       await bookingService.cancel(id);
-      setAlert({ type: 'success', message: `Booking ${id.slice(-6)} has been cancelled.` });
+      setCancelModal({ open: false, id: null });
+      setAlert({ type: 'success', message: `Booking #${id.slice(-6)} has been cancelled.` });
       await fetchData();
     } catch (err) {
       setAlert({
@@ -141,7 +133,7 @@ const CurrentBookings = () => {
       label: 'Booking ID',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-          {row.id ? row.id.slice(-8) : '—'}
+          {row.id ? `#${row.id.slice(-8)}` : '—'}
         </span>
       ),
     },
@@ -150,8 +142,8 @@ const CurrentBookings = () => {
       label: 'Microgrid Node',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{row.microgridNodeName}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.microgridLocation}</div>
+          <div style={{ fontWeight: 500 }}>{row.microgridNodeName || 'Assigned Node'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.microgridLocation || ''}</div>
         </div>
       ),
     },
@@ -160,7 +152,7 @@ const CurrentBookings = () => {
       label: 'Buyer Prosumer',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{row.buyerName || 'N/A'}</div>
+          <div style={{ fontWeight: 500 }}>{row.buyerName || 'Unassigned / Open'}</div>
           {row.buyerProsumerId && row.buyerProsumerId !== 'N/A' && (
             <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.buyerProsumerId}</div>
           )}
@@ -172,8 +164,8 @@ const CurrentBookings = () => {
       label: 'Seller Prosumer',
       render: (row) => (
         <div>
-          <div style={{ fontWeight: 500 }}>{row.sellerName}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.sellerProsumerId}</div>
+          <div style={{ fontWeight: 500 }}>{row.sellerName || 'Seller'}</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{row.sellerProsumerId || ''}</div>
         </div>
       ),
     },
@@ -182,7 +174,7 @@ const CurrentBookings = () => {
       label: 'Energy Volume',
       render: (row) => (
         <div>
-          <strong>{row.energyAmount} kWh</strong>
+          <strong style={{ color: 'var(--accent-light)' }}>{row.energyAmount} kWh</strong>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
             ${row.pricePerUnit}/kWh
           </div>
@@ -193,7 +185,7 @@ const CurrentBookings = () => {
       key: 'totalPrice',
       label: 'Total Value',
       render: (row) => (
-        <strong style={{ color: 'var(--accent)' }}>
+        <strong style={{ color: 'var(--primary-light)' }}>
           ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
         </strong>
       ),
@@ -219,7 +211,7 @@ const CurrentBookings = () => {
       key: 'actions',
       label: 'Operational Actions',
       render: (row) => (
-        <div className="btn-group">
+        <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           <Button
             variant="secondary"
             size="sm"
@@ -242,7 +234,7 @@ const CurrentBookings = () => {
           <Button
             variant="danger"
             size="sm"
-            onClick={() => handleCancel(row.id)}
+            onClick={() => setCancelModal({ open: true, id: row.id })}
             disabled={actionLoading === row.id}
             title="Cancel booking"
           >
@@ -333,8 +325,30 @@ const CurrentBookings = () => {
         data={filteredBookings}
         loading={loading}
         emptyMessage="No current bookings match your criteria"
+        emptySubtext="Try adjusting your filter parameters or search terms."
         emptyIcon={<ClipboardList size={48} strokeWidth={1} color="var(--text-secondary)" />}
       />
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        isOpen={cancelModal.open}
+        onClose={() => setCancelModal({ open: false, id: null })}
+        title="Confirm Booking Cancellation"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setCancelModal({ open: false, id: null })}>
+              Keep Booking
+            </Button>
+            <Button variant="danger" onClick={handleCancel}>
+              Confirm Cancellation
+            </Button>
+          </>
+        }
+      >
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          Are you sure you want to cancel this booking? This will terminate the scheduled transfer.
+        </p>
+      </Modal>
     </div>
   );
 };

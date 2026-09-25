@@ -1,9 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, ArrowLeft, AlertTriangle, ShieldCheck, Sun, CheckCircle } from 'lucide-react';
+import {
+  Save,
+  ArrowLeft,
+  AlertTriangle,
+  CheckCircle,
+  User,
+  ShieldCheck,
+  Zap,
+  Mail,
+  Phone,
+  MapPin,
+  CreditCard,
+  Sun
+} from 'lucide-react';
 import { prosumerService, microgridService } from '../../services/api';
 import Button from '../../components/Button';
 
+/**
+ * Edit Prosumer Profile Page (Member 2).
+ * Allows modifying prosumer contact, capacity, and node linkage. NIC is immutable.
+ */
 const EditProsumer = () => {
   const { id } = useParams(); // NIC or ID
   const navigate = useNavigate();
@@ -15,7 +32,7 @@ const EditProsumer = () => {
   const [success, setSuccess] = useState('');
 
   const [formData, setFormData] = useState({
-    nic: '',
+    nic: id || '',
     name: '',
     email: '',
     phone: '',
@@ -35,16 +52,16 @@ const EditProsumer = () => {
       .then(([prosumerRes, nodesRes]) => {
         const p = prosumerRes.data;
         setFormData({
-          nic: p.nic || p.id,
+          nic: p.nic || p.id || id,
           name: p.name || '',
           email: p.email || '',
           phone: p.phone || '',
           address: p.address || '',
           microgridNodeId: p.microgridNodeId || '',
-          solarCapacity: p.solarCapacity || '',
+          solarCapacity: p.solarCapacity?.toString() || '',
           status: p.status || 'Pending',
         });
-        setNodes(nodesRes.data);
+        setNodes(nodesRes.data || []);
       })
       .catch((err) => {
         setError(err.response?.data?.message || 'Failed to load prosumer profile.');
@@ -113,7 +130,7 @@ const EditProsumer = () => {
         phone: formData.phone.trim(),
         address: formData.address.trim(),
         microgridNodeId: formData.microgridNodeId,
-        solarCapacity: parseFloat(formData.solarCapacity),
+        solarCapacity: parseFloat(formData.solarCapacity) || 0,
         status: formData.status,
       });
 
@@ -133,7 +150,7 @@ const EditProsumer = () => {
       <div className="page-container">
         <div className="loading-container">
           <div className="spinner"></div>
-          <span className="loading-text">Loading profile data...</span>
+          <span className="loading-text">Loading prosumer data...</span>
         </div>
       </div>
     );
@@ -141,7 +158,7 @@ const EditProsumer = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header-actions">
+      <div className="page-header-actions" style={{ marginBottom: 24 }}>
         <div>
           <h1 className="page-title">Edit Prosumer Profile</h1>
           <p className="page-subtitle">Update contact details, solar capacity, or microgrid allocation</p>
@@ -156,14 +173,14 @@ const EditProsumer = () => {
       <div className="card" style={{ maxWidth: 780, margin: '0 auto' }}>
         {error && (
           <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <AlertTriangle size={18} />
+            <AlertTriangle size={18} color="var(--danger)" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
           <div className="alert alert-success" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <CheckCircle size={18} />
+            <CheckCircle size={18} color="var(--success)" />
             <span>{success}</span>
           </div>
         )}
@@ -172,85 +189,113 @@ const EditProsumer = () => {
           {/* Identity Header */}
           <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShieldCheck size={18} color="var(--primary-color)" /> National Identity & Account
+              <ShieldCheck size={18} color="var(--primary)" /> National Identity & Account
             </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
               NIC serves as the permanent primary identifier and cannot be modified.
             </p>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">NIC (Primary Identifier)</label>
+              <label className="form-label" htmlFor="nic" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CreditCard size={15} color="var(--primary)" />
+                NIC (Primary Identifier)
+              </label>
               <input
-                className="form-input"
+                id="nic"
+                className="form-control"
                 name="nic"
                 value={formData.nic}
                 disabled
-                style={{ fontFamily: 'monospace', fontWeight: 700, opacity: 0.7, cursor: 'not-allowed' }}
+                style={{ fontFamily: 'monospace', fontWeight: 700, opacity: 0.7, cursor: 'not-allowed', background: 'var(--bg-input)' }}
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Full Name *</label>
+              <label className="form-label" htmlFor="name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <User size={15} color="var(--accent)" />
+                Full Name *
+              </label>
               <input
-                className={`form-input ${fieldErrors.name ? 'input-error' : ''}`}
+                id="name"
+                className={`form-control ${fieldErrors.name ? 'input-error' : ''}`}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+                placeholder="e.g. Samantha Perera"
               />
-              {fieldErrors.name && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.name}</span>}
+              {fieldErrors.name && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.name}</span>}
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Email Address *</label>
+              <label className="form-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Mail size={15} color="var(--info)" />
+                Email Address *
+              </label>
               <input
-                className={`form-input ${fieldErrors.email ? 'input-error' : ''}`}
+                id="email"
+                className={`form-control ${fieldErrors.email ? 'input-error' : ''}`}
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
               />
-              {fieldErrors.email && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.email}</span>}
+              {fieldErrors.email && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.email}</span>}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Phone Number *</label>
+              <label className="form-label" htmlFor="phone" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Phone size={15} color="var(--success)" />
+                Phone Number *
+              </label>
               <input
-                className={`form-input ${fieldErrors.phone ? 'input-error' : ''}`}
+                id="phone"
+                className={`form-control ${fieldErrors.phone ? 'input-error' : ''}`}
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
               />
-              {fieldErrors.phone && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.phone}</span>}
+              {fieldErrors.phone && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.phone}</span>}
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Property Address *</label>
+            <label className="form-label" htmlFor="address" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={15} color="var(--text-muted)" />
+              Property Address *
+            </label>
             <input
-              className={`form-input ${fieldErrors.address ? 'input-error' : ''}`}
+              id="address"
+              className={`form-control ${fieldErrors.address ? 'input-error' : ''}`}
               name="address"
               value={formData.address}
               onChange={handleChange}
             />
-            {fieldErrors.address && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.address}</span>}
+            {fieldErrors.address && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.address}</span>}
           </div>
 
           {/* Grid & Solar Allocation */}
           <div style={{ marginTop: 32, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--border-color, rgba(255,255,255,0.08))' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Sun size={18} color="var(--primary-color)" /> Technical Parameters & Grid State
+              <Sun size={18} color="var(--primary)" /> Technical Parameters & Grid State
             </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Configure solar generating parameters and network status.
+            </p>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Solar Panel Capacity (kW) *</label>
+              <label className="form-label" htmlFor="solarCapacity" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Zap size={15} color="var(--primary)" />
+                Solar Panel Capacity (kW) *
+              </label>
               <input
-                className={`form-input ${fieldErrors.solarCapacity ? 'input-error' : ''}`}
+                id="solarCapacity"
+                className={`form-control ${fieldErrors.solarCapacity ? 'input-error' : ''}`}
                 name="solarCapacity"
                 type="number"
                 step="0.1"
@@ -258,13 +303,17 @@ const EditProsumer = () => {
                 value={formData.solarCapacity}
                 onChange={handleChange}
               />
-              {fieldErrors.solarCapacity && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.solarCapacity}</span>}
+              {fieldErrors.solarCapacity && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.solarCapacity}</span>}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Assigned Microgrid Node *</label>
+              <label className="form-label" htmlFor="microgridNodeId" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <ShieldCheck size={15} color="var(--accent)" />
+                Assigned Microgrid Node *
+              </label>
               <select
-                className={`form-select ${fieldErrors.microgridNodeId ? 'input-error' : ''}`}
+                id="microgridNodeId"
+                className={`form-control ${fieldErrors.microgridNodeId ? 'input-error' : ''}`}
                 name="microgridNodeId"
                 value={formData.microgridNodeId}
                 onChange={handleChange}
@@ -272,18 +321,19 @@ const EditProsumer = () => {
                 <option value="">Select a microgrid node...</option>
                 {nodes.map((node) => (
                   <option key={node.id} value={node.id}>
-                    {node.nodeName} — {node.location}
+                    {node.nodeName} ({node.location}) — Capacity: {node.capacity} kW
                   </option>
                 ))}
               </select>
-              {fieldErrors.microgridNodeId && <span style={{ color: 'var(--danger-color, #ef4444)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.microgridNodeId}</span>}
+              {fieldErrors.microgridNodeId && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: 4, display: 'block' }}>{fieldErrors.microgridNodeId}</span>}
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Account Status</label>
+            <label className="form-label" htmlFor="status">Account Status</label>
             <select
-              className="form-select"
+              id="status"
+              className="form-control"
               name="status"
               value={formData.status}
               onChange={handleChange}

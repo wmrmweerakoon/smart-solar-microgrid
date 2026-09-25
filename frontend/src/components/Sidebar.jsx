@@ -1,16 +1,33 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Zap, Battery, ClipboardList, Clock, History, Bookmark, CheckSquare, Sun } from 'lucide-react';
-import { getUser, getRole } from '../utils/auth';
+import {
+  LayoutDashboard,
+  Users,
+  Zap,
+  Battery,
+  ClipboardList,
+  Clock,
+  History,
+  Bookmark,
+  CheckSquare,
+  Sun,
+  X
+} from 'lucide-react';
+import { getRole } from '../utils/auth';
 
 /**
- * Sidebar navigation component with role-based menu items.
+ * Sidebar navigation component with role-based menu items and mobile responsiveness.
  */
-const Sidebar = () => {
+const Sidebar = ({ isOpen = false, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const role = getRole();
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+
+  const handleNav = (path) => {
+    navigate(path);
+    if (onClose) onClose();
+  };
 
   const menuSections = [
     {
@@ -50,40 +67,62 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-logo"><Sun size={24} color="var(--primary-color)" /></div>
-        <div>
-          <div className="sidebar-title">Smart Solar</div>
-          <div className="sidebar-subtitle">Microgrid System</div>
-        </div>
-      </div>
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
 
-      <nav className="sidebar-nav">
-        {menuSections.map((section) => {
-          const visibleItems = section.items.filter(
-            (item) => !item.roles || item.roles.includes(role)
-          );
-          if (visibleItems.length === 0) return null;
-
-          return (
-            <div className="sidebar-section" key={section.title}>
-              <div className="sidebar-section-title">{section.title}</div>
-              {visibleItems.map((item) => (
-                <button
-                  key={item.path}
-                  className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-                  onClick={() => navigate(item.path)}
-                >
-                  <span className="sidebar-link-icon">{item.icon}</span>
-                  {item.label}
-                </button>
-              ))}
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="sidebar-logo"><Sun size={24} color="var(--primary)" /></div>
+            <div>
+              <div className="sidebar-title">Smart Solar</div>
+              <div className="sidebar-subtitle">Microgrid System</div>
             </div>
-          );
-        })}
-      </nav>
-    </aside>
+          </div>
+
+          {/* Mobile close button */}
+          <button
+            className="sidebar-close-btn"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <nav className="sidebar-nav">
+          {menuSections.map((section) => {
+            const visibleItems = section.items.filter(
+              (item) => !item.roles || item.roles.includes(role)
+            );
+            if (visibleItems.length === 0) return null;
+
+            return (
+              <div className="sidebar-section" key={section.title}>
+                <div className="sidebar-section-title">{section.title}</div>
+                {visibleItems.map((item) => (
+                  <button
+                    key={item.path}
+                    className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+                    onClick={() => handleNav(item.path)}
+                  >
+                    <span className="sidebar-link-icon">{item.icon}</span>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
   );
 };
 

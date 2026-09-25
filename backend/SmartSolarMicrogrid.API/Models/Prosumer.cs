@@ -4,11 +4,13 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace SmartSolarMicrogrid.API.Models
 {
     /// <summary>
-    /// Solar prosumer entity using NIC as primary key.
+    /// Solar prosumer entity using NIC as primary key with BSON schema resilience.
     /// </summary>
+    [BsonIgnoreExtraElements]
     public class Prosumer
     {
         [BsonId]
+        [BsonElement("nic")]
         public string Nic { get; set; } = string.Empty;
 
         [BsonElement("name")]

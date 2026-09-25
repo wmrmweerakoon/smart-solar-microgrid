@@ -1,24 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  Trash2, 
-  Save, 
-  AlertTriangle, 
-  CheckCircle, 
-  Bookmark, 
-  Filter, 
-  Search, 
+import {
+  Plus,
+  Trash2,
+  Save,
+  AlertTriangle,
+  CheckCircle,
+  Bookmark,
+  Filter,
+  Search,
   RotateCcw,
   Zap,
   Calendar,
-  Clock
+  Clock,
+  Battery
 } from 'lucide-react';
 import { energySlotService, prosumerService, microgridService, reservationService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
 
+/**
+ * Energy Slot Management Page (Member 1).
+ * Displays available and scheduled energy generation slots with filtering, creation modal, and inventory control.
+ */
 const EnergySlots = () => {
   const navigate = useNavigate();
 
@@ -37,14 +42,16 @@ const EnergySlots = () => {
   // Create Slot Modal State
   const [showCreate, setShowCreate] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [formError, setFormError] = useState('');
+
   const [formData, setFormData] = useState({
     microgridNodeId: '',
     prosumerId: '',
     energyAmount: '',
     pricePerUnit: '',
     slotDate: '',
-    startTime: '',
-    endTime: '',
+    startTime: '09:00',
+    endTime: '12:00',
   });
 
   // Reserve Slot Modal State
@@ -66,12 +73,12 @@ const EnergySlots = () => {
     try {
       const [slotsRes, prosumersRes, nodesRes] = await Promise.all([
         energySlotService.getAll(),
-        prosumerService.getAll(),
-        microgridService.getAll(),
+        prosumerService.getAll().catch(() => ({ data: [] })),
+        microgridService.getAll().catch(() => ({ data: [] })),
       ]);
-      setSlots(slotsRes.data);
-      setProsumers(prosumersRes.data);
-      setNodes(nodesRes.data);
+      setSlots(slotsRes.data || []);
+      setProsumers(prosumersRes.data || []);
+      setNodes(nodesRes.data || []);
     } catch {
       setAlert({ type: 'error', message: 'Failed to load energy slots and related data.' });
     } finally {
@@ -80,13 +87,15 @@ const EnergySlots = () => {
   };
 
   const handleCreateChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormError('');
   };
 
   const handleCreateSlot = async (e) => {
     e.preventDefault();
     if (!formData.prosumerId || !formData.microgridNodeId || !formData.energyAmount || !formData.pricePerUnit || !formData.slotDate || !formData.startTime || !formData.endTime) {
-      setAlert({ type: 'error', message: 'Please fill in all required slot fields.' });
+      setFormError('Please fill in all required slot parameters.');
       return;
     }
 
@@ -94,9 +103,8 @@ const EnergySlots = () => {
     try {
       await energySlotService.create({
         ...formData,
-        energyAmount: parseFloat(formData.energyAmount) || 0,
-        pricePerUnit: parseFloat(formData.pricePerUnit) || 0,
-        slotDate: new Date(formData.slotDate).toISOString(),
+        energyAmount: parseFloat(formData.energyAmount),
+        pricePerUnit: parseFloat(formData.pricePerUnit),
       });
       setShowCreate(false);
       setFormData({
@@ -105,22 +113,23 @@ const EnergySlots = () => {
         energyAmount: '',
         pricePerUnit: '',
         slotDate: '',
-        startTime: '',
-        endTime: '',
+        startTime: '09:00',
+        endTime: '12:00',
       });
       await fetchData();
-      setAlert({ type: 'success', message: 'Energy trading slot created successfully!' });
+      setAlert({ type: 'success', message: 'New energy slot published successfully!' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to create energy slot.' });
+      setFormError(err.response?.data?.message || 'Failed to create energy slot.');
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleDeleteSlot = async (id) => {
+    if (!window.confirm('Delete this available energy slot?')) return;
     try {
       await energySlotService.delete(id);
-      setSlots(slots.filter((s) => s.id !== id));
+      setSlots((prev) => prev.filter((s) => s.id !== id));
       setAlert({ type: 'success', message: 'Energy slot deleted successfully.' });
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to delete slot.' });
@@ -132,7 +141,7 @@ const EnergySlots = () => {
       open: true,
       slot,
       buyerProsumerId: '',
-      energyAmount: slot.energyAmount,
+      energyAmount: slot.energyAmount.toString(),
       notes: '',
     });
   };
@@ -140,28 +149,32 @@ const EnergySlots = () => {
   const handleReserveSubmit = async (e) => {
     e.preventDefault();
     if (!reserveModal.buyerProsumerId) {
-      setAlert({ type: 'error', message: 'Please select a buyer prosumer.' });
+      setAlert({ type: 'error', message: 'Please select a buyer prosumer to claim this energy slot.' });
       return;
     }
 
-    const amount = parseFloat(reserveModal.energyAmount);
-    if (!amount || amount <= 0 || amount > reserveModal.slot.energyAmount) {
+    const requestedAmount = parseFloat(reserveModal.energyAmount);
+    if (!requestedAmount || requestedAmount <= 0 || requestedAmount > reserveModal.slot.energyAmount) {
       setAlert({ type: 'error', message: `Energy amount must be between 0.1 and ${reserveModal.slot.energyAmount} kWh.` });
       return;
     }
 
     setReserveLoading(true);
     try {
+      const calculatedTotal = requestedAmount * reserveModal.slot.pricePerUnit;
       await reservationService.create({
         energySlotId: reserveModal.slot.id,
         buyerProsumerId: reserveModal.buyerProsumerId,
-        energyAmount: amount,
+        sellerProsumerId: reserveModal.slot.prosumerId,
+        microgridNodeId: reserveModal.slot.microgridNodeId,
+        energyAmount: requestedAmount,
+        totalPrice: calculatedTotal,
         notes: reserveModal.notes,
       });
 
       setReserveModal({ open: false, slot: null, buyerProsumerId: '', energyAmount: '', notes: '' });
       await fetchData();
-      setAlert({ type: 'success', message: 'Energy reservation request created successfully!' });
+      setAlert({ type: 'success', message: 'Energy reservation created successfully!' });
       navigate('/reservations');
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to reserve energy slot.' });
@@ -174,13 +187,18 @@ const EnergySlots = () => {
   const findNode = (id) => nodes.find((n) => n.id === id);
 
   const getStatusClass = (status) => {
-    const map = {
-      Available: 'status-active',
-      Booked: 'status-pending',
-      Completed: 'status-active',
-      Cancelled: 'status-inactive',
-    };
-    return map[status] || '';
+    switch (status?.toLowerCase()) {
+      case 'available':
+        return 'status-available';
+      case 'booked':
+        return 'status-booked';
+      case 'completed':
+        return 'status-completed';
+      case 'cancelled':
+        return 'status-cancelled';
+      default:
+        return 'status-available';
+    }
   };
 
   // Filter slots
@@ -189,11 +207,12 @@ const EnergySlots = () => {
     const node = findNode(slot.microgridNodeId);
 
     // Text search
-    if (searchTerm) {
+    if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       const matchSeller = seller && (seller.name.toLowerCase().includes(term) || seller.nic?.toLowerCase().includes(term));
       const matchNode = node && (node.nodeName.toLowerCase().includes(term) || node.location.toLowerCase().includes(term));
-      if (!matchSeller && !matchNode) return false;
+      const matchId = slot.id?.toLowerCase().includes(term);
+      if (!matchSeller && !matchNode && !matchId) return false;
     }
 
     // Status filter
@@ -212,6 +231,15 @@ const EnergySlots = () => {
   });
 
   const columns = [
+    {
+      key: 'id',
+      label: 'Slot ID',
+      render: (row) => (
+        <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
+          {row.id ? `#${row.id.slice(-8)}` : '—'}
+        </span>
+      ),
+    },
     {
       key: 'prosumerId',
       label: 'Seller Prosumer',
@@ -239,15 +267,15 @@ const EnergySlots = () => {
       key: 'energyAmount',
       label: 'Capacity (kWh)',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
-          <Zap size={14} color="var(--primary-color)" /> {row.energyAmount} kWh
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700, color: 'var(--accent-light)' }}>
+          <Zap size={14} /> {row.energyAmount} kWh
         </span>
       ),
     },
     {
       key: 'pricePerUnit',
       label: 'Price/kWh',
-      render: (row) => <span style={{ fontWeight: 600 }}>${row.pricePerUnit}</span>,
+      render: (row) => <span style={{ fontWeight: 600, color: 'var(--primary-light)' }}>${row.pricePerUnit}</span>,
     },
     {
       key: 'slotDate',
@@ -265,7 +293,7 @@ const EnergySlots = () => {
     },
     {
       key: 'status',
-      label: 'Availability',
+      label: 'Status',
       render: (row) => (
         <span className={`status-badge ${getStatusClass(row.status)}`}>
           {row.status}
@@ -276,7 +304,7 @@ const EnergySlots = () => {
       key: 'actions',
       label: 'Actions',
       render: (row) => (
-        <div className="btn-group">
+        <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           {row.status === 'Available' && (
             <Button
               variant="primary"
@@ -304,9 +332,9 @@ const EnergySlots = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header-actions">
+      <div className="page-header-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 className="page-title">Energy Slots</h1>
+          <h1 className="page-title">Energy Slots Marketplace</h1>
           <p className="page-subtitle">Inspect, publish, and reserve tradeable solar microgrid energy slots</p>
         </div>
         <Button variant="primary" onClick={() => setShowCreate(true)}>
@@ -316,7 +344,7 @@ const EnergySlots = () => {
 
       {alert && (
         <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-          {alert.type === 'success' ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
+          {alert.type === 'success' ? <CheckCircle size={18} color="var(--success)" /> : <AlertTriangle size={18} color="var(--danger)" />}
           <span>{alert.message}</span>
         </div>
       )}
@@ -330,7 +358,7 @@ const EnergySlots = () => {
             </label>
             <input
               type="text"
-              className="form-input"
+              className="form-control"
               placeholder="Search by prosumer name, NIC, or node..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -342,7 +370,7 @@ const EnergySlots = () => {
               <Filter size={14} /> Status
             </label>
             <select
-              className="form-select"
+              className="form-control"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -357,7 +385,7 @@ const EnergySlots = () => {
           <div style={{ flex: '0 1 200px' }}>
             <label className="form-label">Microgrid Node</label>
             <select
-              className="form-select"
+              className="form-control"
               value={nodeFilter}
               onChange={(e) => setNodeFilter(e.target.value)}
             >
@@ -374,7 +402,7 @@ const EnergySlots = () => {
             <label className="form-label">Slot Date</label>
             <input
               type="date"
-              className="form-input"
+              className="form-control"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
             />
@@ -400,7 +428,9 @@ const EnergySlots = () => {
         columns={columns}
         data={filteredSlots}
         loading={loading}
-        emptyMessage="No energy slots match the specified filters."
+        emptyMessage="No energy slots match the specified filters"
+        emptySubtext="Try adjusting your filter parameters or search terms."
+        emptyIcon={<Battery size={44} strokeWidth={1.5} color="var(--accent)" />}
       />
 
       {/* Create Energy Slot Modal */}
@@ -419,33 +449,40 @@ const EnergySlots = () => {
           </>
         }
       >
+        {formError && (
+          <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <AlertTriangle size={16} color="var(--danger)" />
+            <span>{formError}</span>
+          </div>
+        )}
+
         <form onSubmit={handleCreateSlot}>
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: 14 }}>
             <label className="form-label">Seller Prosumer *</label>
             <select
-              className="form-select"
+              className="form-control"
               name="prosumerId"
               value={formData.prosumerId}
               onChange={handleCreateChange}
+              required
             >
-              <option value="">Select an active prosumer...</option>
-              {prosumers
-                .filter((p) => p.status === 'Active')
-                .map((p) => (
-                  <option key={p.nic || p.id} value={p.nic || p.id}>
-                    {p.name} ({p.nic || p.id}) — {p.solarCapacity} kW
-                  </option>
-                ))}
+              <option value="">Select a prosumer...</option>
+              {prosumers.map((p) => (
+                <option key={p.nic || p.id} value={p.nic || p.id}>
+                  {p.name} ({p.nic || p.id}) — {p.solarCapacity} kW
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: 14 }}>
             <label className="form-label">Assigned Microgrid Node *</label>
             <select
-              className="form-select"
+              className="form-control"
               name="microgridNodeId"
               value={formData.microgridNodeId}
               onChange={handleCreateChange}
+              required
             >
               <option value="">Select a node...</option>
               {nodes.map((n) => (
@@ -456,11 +493,11 @@ const EnergySlots = () => {
             </select>
           </div>
 
-          <div className="form-row">
+          <div className="form-row" style={{ marginBottom: 14 }}>
             <div className="form-group">
               <label className="form-label">Energy Capacity (kWh) *</label>
               <input
-                className="form-input"
+                className="form-control"
                 name="energyAmount"
                 type="number"
                 step="0.1"
@@ -468,12 +505,13 @@ const EnergySlots = () => {
                 placeholder="e.g. 25.0"
                 value={formData.energyAmount}
                 onChange={handleCreateChange}
+                required
               />
             </div>
             <div className="form-group">
               <label className="form-label">Price per Unit ($/kWh) *</label>
               <input
-                className="form-input"
+                className="form-control"
                 name="pricePerUnit"
                 type="number"
                 step="0.01"
@@ -481,18 +519,20 @@ const EnergySlots = () => {
                 placeholder="e.g. 0.15"
                 value={formData.pricePerUnit}
                 onChange={handleCreateChange}
+                required
               />
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: 14 }}>
             <label className="form-label">Slot Date *</label>
             <input
-              className="form-input"
+              className="form-control"
               name="slotDate"
               type="date"
               value={formData.slotDate}
               onChange={handleCreateChange}
+              required
             />
           </div>
 
@@ -500,21 +540,23 @@ const EnergySlots = () => {
             <div className="form-group">
               <label className="form-label">Start Time *</label>
               <input
-                className="form-input"
+                className="form-control"
                 name="startTime"
                 type="time"
                 value={formData.startTime}
                 onChange={handleCreateChange}
+                required
               />
             </div>
             <div className="form-group">
               <label className="form-label">End Time *</label>
               <input
-                className="form-input"
+                className="form-control"
                 name="endTime"
                 type="time"
                 value={formData.endTime}
                 onChange={handleCreateChange}
+                required
               />
             </div>
           </div>
@@ -554,17 +596,15 @@ const EnergySlots = () => {
                 Date & Time: {new Date(reserveModal.slot.slotDate).toLocaleDateString()} from {reserveModal.slot.startTime} to {reserveModal.slot.endTime}<br />
                 Price: ${reserveModal.slot.pricePerUnit} per kWh
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#93c5fd', marginTop: 6 }}>
-                Rule: Reservations must be scheduled within 7 days from today.
-              </div>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 14 }}>
               <label className="form-label">Buyer Prosumer *</label>
               <select
-                className="form-select"
+                className="form-control"
                 value={reserveModal.buyerProsumerId}
                 onChange={(e) => setReserveModal({ ...reserveModal, buyerProsumerId: e.target.value })}
+                required
               >
                 <option value="">Select buyer prosumer...</option>
                 {prosumers
@@ -577,17 +617,18 @@ const EnergySlots = () => {
               </select>
             </div>
 
-            <div className="form-row">
+            <div className="form-row" style={{ marginBottom: 14 }}>
               <div className="form-group">
                 <label className="form-label">Energy Amount (kWh) *</label>
                 <input
-                  className="form-input"
+                  className="form-control"
                   type="number"
                   step="0.1"
                   min="0.1"
                   max={reserveModal.slot.energyAmount}
                   value={reserveModal.energyAmount}
                   onChange={(e) => setReserveModal({ ...reserveModal, energyAmount: e.target.value })}
+                  required
                 />
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                   Max available: {reserveModal.slot.energyAmount} kWh
@@ -597,7 +638,7 @@ const EnergySlots = () => {
               <div className="form-group">
                 <label className="form-label">Estimated Total Price ($)</label>
                 <input
-                  className="form-input"
+                  className="form-control"
                   disabled
                   value={`$${((parseFloat(reserveModal.energyAmount) || 0) * reserveModal.slot.pricePerUnit).toFixed(2)}`}
                 />
@@ -607,7 +648,7 @@ const EnergySlots = () => {
             <div className="form-group">
               <label className="form-label">Reservation Notes (Optional)</label>
               <textarea
-                className="form-input"
+                className="form-control"
                 rows="2"
                 placeholder="e.g. EV charging demand, commercial consumption..."
                 value={reserveModal.notes}

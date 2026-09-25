@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  CheckCheck, 
-  XCircle, 
-  Pencil, 
-  Clock, 
-  Zap, 
-  Calendar, 
-  AlertTriangle, 
-  DollarSign, 
-  User, 
-  MapPin, 
-  FileText 
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Zap,
+  DollarSign,
+  User,
+  ShieldCheck,
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  FileText,
+  MapPin,
+  Phone,
+  Mail,
+  Layers,
+  Check,
+  CheckCheck,
+  Pencil
 } from 'lucide-react';
-import { reservationService } from '../../services/api';
+import {
+  reservationService,
+  prosumerService,
+  microgridService,
+  energySlotService
+} from '../../services/api';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
 
@@ -26,28 +37,91 @@ const ReservationDetails = () => {
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Edit Modal
+  // Edit Modal State
   const [editModal, setEditModal] = useState(false);
   const [editAmount, setEditAmount] = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [editLoading, setEditLoading] = useState(false);
 
-  // Cancel Modal
-  const [cancelModal, setCancelModal] = useState(false);
-  const [cancelLoading, setCancelLoading] = useState(false);
+  // Cancel Modal State
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchDetails();
+    fetchReservationDetails();
   }, [id]);
 
-  const fetchDetails = async () => {
+  const fetchReservationDetails = async () => {
     setLoading(true);
     try {
-      const res = await reservationService.getDetails(id);
-      setDetails(res.data);
-      setEditAmount(res.data.energyAmount);
-      setEditNotes(res.data.notes || '');
+      // Try rich details endpoint first
+      let data = null;
+      try {
+        const res = await reservationService.getDetails(id);
+        data = res.data;
+      } catch {
+        // Fallback to basic getById if getDetails is not supported
+        const basicRes = await reservationService.getById(id);
+        data = basicRes.data;
+      }
+
+      // If missing nested prosumer/slot info, augment concurrently
+      if (data && (!data.buyerName || !data.microgridNodeName)) {
+        const promises = [];
+        if (data.energySlotId && !data.slotDate) {
+          promises.push(
+            energySlotService.getById(data.energySlotId)
+              .then((r) => {
+                data.slotDate = r.data.slotDate;
+                data.startTime = r.data.startTime;
+                data.endTime = r.data.endTime;
+                data.pricePerUnit = r.data.pricePerUnit;
+              })
+              .catch(() => {})
+          );
+        }
+        if (data.buyerProsumerId && !data.buyerName) {
+          promises.push(
+            prosumerService.getById(data.buyerProsumerId)
+              .then((r) => {
+                data.buyerName = r.data.name;
+                data.buyerEmail = r.data.email;
+                data.buyerPhone = r.data.phone;
+              })
+              .catch(() => {})
+          );
+        }
+        if (data.sellerProsumerId && !data.sellerName) {
+          promises.push(
+            prosumerService.getById(data.sellerProsumerId)
+              .then((r) => {
+                data.sellerName = r.data.name;
+                data.sellerEmail = r.data.email;
+                data.sellerPhone = r.data.phone;
+                data.sellerSolarCapacity = r.data.solarCapacity;
+              })
+              .catch(() => {})
+          );
+        }
+        if (data.microgridNodeId && !data.microgridNodeName) {
+          promises.push(
+            microgridService.getById(data.microgridNodeId)
+              .then((r) => {
+                data.microgridNodeName = r.data.nodeName;
+                data.microgridLocation = r.data.location;
+              })
+              .catch(() => {})
+          );
+        }
+        await Promise.allSettled(promises);
+      }
+
+      setDetails(data);
+      if (data) {
+        setEditAmount(data.energyAmount || '');
+        setEditNotes(data.notes || '');
+      }
     } catch {
       setAlert({ type: 'error', message: 'Failed to retrieve reservation details.' });
     } finally {
@@ -55,28 +129,79 @@ const ReservationDetails = () => {
     }
   };
 
+  // 12-Hour Cancellation & Update Notice Calculation
+  const calculateNoticeStatus = () => {
+    if (!details) return null;
+
+    if (details.canModifyOrCancel !== undefined) {
+      const hours = details.hoursUntilSlot !== undefined ? details.hoursUntilSlot : 0;
+      return {
+        canModify: details.canModifyOrCancel,
+        hours: hours > 0 ? hours : 0,
+        text: details.canModifyOrCancel
+          ? `12-Hour Notice Window Active (${hours}h remaining)`
+          : `Within 12-Hour Cutoff (${hours}h left)`,
+        eligible: details.canModifyOrCancel
+      };
+    }
+
+    if (!details.slotDate) return null;
+
+    try {
+      const datePart = details.slotDate.split('T')[0];
+      const timePart = details.startTime ? `${details.startTime}:00` : '00:00:00';
+      const slotStartTime = new Date(`${datePart}T${timePart}`);
+
+      if (isNaN(slotStartTime.getTime())) return null;
+
+      const now = new Date();
+      const diffMs = slotStartTime.getTime() - now.getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
+
+      const canMod = diffHours >= 12;
+      return {
+        canModify: canMod,
+        hours: Math.max(0, diffHours).toFixed(1),
+        text: canMod
+          ? `12-Hour Notice Window Active (${diffHours.toFixed(1)}h remaining)`
+          : `Within 12-Hour Cutoff (${Math.max(0, diffHours).toFixed(1)}h left)`,
+        eligible: canMod
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const noticeInfo = calculateNoticeStatus();
+
   const handleConfirm = async () => {
+    setActionLoading(true);
     try {
       await reservationService.confirm(id);
-      await fetchDetails();
       setAlert({ type: 'success', message: 'Reservation confirmed successfully!' });
+      await fetchReservationDetails();
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to confirm reservation.' });
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleComplete = async () => {
+    setActionLoading(true);
     try {
       await reservationService.complete(id);
-      await fetchDetails();
       setAlert({ type: 'success', message: 'Reservation marked as Completed!' });
+      await fetchReservationDetails();
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to complete reservation.' });
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleUpdate = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setEditLoading(true);
     try {
       await reservationService.update(id, {
@@ -84,8 +209,8 @@ const ReservationDetails = () => {
         notes: editNotes,
       });
       setEditModal(false);
-      await fetchDetails();
       setAlert({ type: 'success', message: 'Reservation updated successfully!' });
+      await fetchReservationDetails();
     } catch (err) {
       setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to update reservation.' });
     } finally {
@@ -94,16 +219,16 @@ const ReservationDetails = () => {
   };
 
   const handleCancel = async () => {
-    setCancelLoading(true);
+    setActionLoading(true);
     try {
       await reservationService.cancel(id);
-      setCancelModal(false);
-      await fetchDetails();
-      setAlert({ type: 'success', message: 'Reservation cancelled successfully.' });
+      setCancelModalOpen(false);
+      setAlert({ type: 'success', message: 'Reservation cancelled successfully. Allocated slot released.' });
+      await fetchReservationDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Cancellation rejected.' });
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to cancel reservation.' });
     } finally {
-      setCancelLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -111,7 +236,7 @@ const ReservationDetails = () => {
     const map = {
       Pending: 'status-pending',
       Confirmed: 'status-active',
-      Completed: 'status-active',
+      Completed: 'status-completed',
       Cancelled: 'status-inactive',
     };
     return (
@@ -126,7 +251,7 @@ const ReservationDetails = () => {
       <div className="page-container">
         <div className="loading-container">
           <div className="spinner"></div>
-          <span className="loading-text">Loading reservation details...</span>
+          <span className="loading-text">Loading reservation intelligence...</span>
         </div>
       </div>
     );
@@ -136,11 +261,16 @@ const ReservationDetails = () => {
     return (
       <div className="page-container">
         <div className="empty-state">
-          <div className="empty-state-text">Reservation Not Found</div>
-          <div className="empty-state-subtext">The requested energy reservation does not exist.</div>
-          <Button variant="secondary" onClick={() => navigate('/reservations')} style={{ marginTop: 16 }}>
-            <ArrowLeft size={16} className="icon-mr" /> Back to Reservations
-          </Button>
+          <div className="empty-state-icon">
+            <AlertCircle size={48} color="var(--danger)" />
+          </div>
+          <div className="empty-state-text">Reservation Record Not Found</div>
+          <div className="empty-state-subtext">The requested reservation ID does not exist or has been removed.</div>
+          <div style={{ marginTop: 20 }}>
+            <Button variant="secondary" onClick={() => navigate('/reservations')}>
+              <ArrowLeft size={16} className="icon-mr" /> Back to Reservations
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -148,16 +278,16 @@ const ReservationDetails = () => {
 
   return (
     <div className="page-container">
-      {/* Page Header */}
-      <div className="page-header-actions" style={{ alignItems: 'flex-start' }}>
+      {/* Top Navigation & Action Controls */}
+      <div className="page-header-actions" style={{ alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
             <h1 className="page-title" style={{ margin: 0 }}>Reservation Details</h1>
             {getStatusBadge(details.status)}
           </div>
-          <p className="page-subtitle" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <p className="page-subtitle" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
             <span>ID:</span>
-            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color)' }}>{details.id}</span>
+            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-color, var(--primary))' }}>{details.id}</span>
           </p>
         </div>
 
@@ -167,23 +297,25 @@ const ReservationDetails = () => {
           </Button>
 
           {details.status === 'Pending' && (
-            <Button variant="success" onClick={handleConfirm}>
+            <Button variant="success" onClick={handleConfirm} disabled={actionLoading}>
               <CheckCircle size={16} className="icon-mr" /> Approve & Confirm
             </Button>
           )}
 
           {details.status === 'Confirmed' && (
-            <Button variant="primary" onClick={handleComplete}>
+            <Button variant="primary" onClick={handleComplete} disabled={actionLoading}>
               <CheckCheck size={16} className="icon-mr" /> Mark Completed
             </Button>
           )}
 
-          {details.canModifyOrCancel && (
+          {(details.status === 'Pending' || details.status === 'Confirmed') && (
             <>
-              <Button variant="secondary" onClick={() => setEditModal(true)}>
-                <Pencil size={16} className="icon-mr" /> Update
-              </Button>
-              <Button variant="danger" onClick={() => setCancelModal(true)}>
+              {noticeInfo?.canModify && (
+                <Button variant="secondary" onClick={() => setEditModal(true)}>
+                  <Pencil size={16} className="icon-mr" /> Update
+                </Button>
+              )}
+              <Button variant="danger" onClick={() => setCancelModalOpen(true)} disabled={actionLoading}>
                 <XCircle size={16} className="icon-mr" /> Cancel
               </Button>
             </>
@@ -191,136 +323,181 @@ const ReservationDetails = () => {
         </div>
       </div>
 
+      {/* Alert Messages */}
       {alert && (
         <div className={`alert alert-${alert.type}`} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-          {alert.type === 'success' ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
+          {alert.type === 'success' ? (
+            <CheckCircle size={18} color="var(--success)" />
+          ) : (
+            <AlertTriangle size={18} color="var(--danger)" />
+          )}
           <span>{alert.message}</span>
         </div>
       )}
 
       {/* 12-Hour Notice Status Banner */}
-      <div className="card" style={{ marginBottom: 24, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 42,
-            height: 42,
-            borderRadius: '50%',
-            background: details.canModifyOrCancel ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: details.canModifyOrCancel ? 'var(--success-color, #10b981)' : 'var(--danger-color, #ef4444)'
-          }}>
-            <Clock size={22} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
-              12-Hour Notice Window: {details.canModifyOrCancel ? 'Active & Modifiable' : 'Locked'}
+      {noticeInfo && (
+        <div className="card" style={{ marginBottom: 24, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 42,
+              height: 42,
+              borderRadius: '50%',
+              background: noticeInfo.eligible ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: noticeInfo.eligible ? 'var(--success)' : 'var(--danger)'
+            }}>
+              <Clock size={22} />
             </div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              {details.hoursUntilSlot > 0 ? (
-                <>Slot begins in <strong>{details.hoursUntilSlot} hours</strong>. (Requires at least 12h notice to update or cancel).</>
-              ) : (
-                <>Scheduled slot window has commenced or concluded.</>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                12-Hour Notice Window: {noticeInfo.eligible ? 'Active & Modifiable' : 'Locked'}
+              </div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                {noticeInfo.hours > 0 ? (
+                  <>Slot begins in <strong>{noticeInfo.hours} hours</strong>. (Requires at least 12h advance notice to modify or cancel).</>
+                ) : (
+                  <>Scheduled slot window has commenced or concluded.</>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            {noticeInfo.eligible ? (
+              <span className="status-badge status-active">Eligible for Changes</span>
+            ) : (
+              <span className="status-badge status-inactive">Changes Locked (&lt; 12h)</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 360 Information View Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
+        {/* Card 1: Prosumer Participants */}
+        <div className="card">
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <User size={18} color="var(--primary)" /> Trading Prosumers
+          </h3>
+          <div style={{ display: 'grid', gap: 16 }}>
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#60a5fa', fontWeight: 700 }}>Buyer (Purchaser)</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.buyerName || 'Unknown Buyer'}</div>
+              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.buyerProsumerId || '—'}</div>
+              {details.buyerEmail && (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <span>{details.buyerEmail}</span>
+                  {details.buyerPhone && <span>• {details.buyerPhone}</span>}
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#34d399', fontWeight: 700 }}>Seller (Generator)</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.sellerName || 'Unknown Seller'}</div>
+              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.sellerProsumerId || '—'}</div>
+              {details.sellerEmail && (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <span>{details.sellerEmail}</span>
+                  {details.sellerPhone && <span>• {details.sellerPhone}</span>}
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        <div>
-          {details.canModifyOrCancel ? (
-            <span className="status-badge status-active">Eligible for Changes</span>
-          ) : (
-            <span className="status-badge status-inactive">Changes Locked (&lt; 12h)</span>
-          )}
-        </div>
-      </div>
-
-      {/* Profile & Energy Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
-        
-        {/* Prosumer Participants */}
+        {/* Card 2: Microgrid Node & Energy Slot */}
         <div className="card">
           <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <User size={18} color="var(--primary-color)" /> Trading Prosumers
-          </h3>
-          <div style={{ display: 'grid', gap: 16 }}>
-            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 12, borderRadius: 8 }}>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#60a5fa', fontWeight: 700 }}>Buyer (Purchaser)</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.buyerName || 'Unknown'}</div>
-              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>NIC: {details.buyerProsumerId}</div>
-              {details.buyerEmail && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 2 }}>{details.buyerEmail} | {details.buyerPhone}</div>}
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 12, borderRadius: 8 }}>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#34d399', fontWeight: 700 }}>Seller (Generator)</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.sellerName || 'Unknown'}</div>
-              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>NIC: {details.sellerProsumerId}</div>
-              {details.sellerEmail && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 2 }}>{details.sellerEmail} | {details.sellerPhone}</div>}
-            </div>
-          </div>
-        </div>
-
-        {/* Microgrid Node & Slot Details */}
-        <div className="card">
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <MapPin size={18} color="var(--primary-color)" /> Microgrid Node & Energy Slot
+            <MapPin size={18} color="var(--accent)" /> Microgrid Node & Energy Slot
           </h3>
           <div style={{ display: 'grid', gap: 14 }}>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Microgrid Node</span>
-              <p style={{ margin: 0, fontWeight: 600 }}>{details.microgridNodeName} ({details.microgridLocation})</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>{details.microgridNodeName || 'Assigned Node'} {details.microgridLocation ? `(${details.microgridLocation})` : ''}</p>
             </div>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Slot Scheduled Date</span>
               <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Calendar size={14} color="var(--text-secondary)" /> {new Date(details.slotDate).toLocaleDateString()}
+                <Calendar size={14} color="var(--text-muted)" /> {details.slotDate ? new Date(details.slotDate).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Transfer Window</span>
               <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Clock size={14} color="var(--text-secondary)" /> {details.startTime} – {details.endTime}
+                <Clock size={14} color="var(--text-muted)" /> {details.startTime || '—'} – {details.endTime || '—'}
               </p>
             </div>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Tariff Rate</span>
-              <p style={{ margin: 0, fontWeight: 600 }}>${details.pricePerUnit} per kWh</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>${details.pricePerUnit || 0} per kWh</p>
             </div>
           </div>
         </div>
 
-        {/* Energy & Financial Summary */}
+        {/* Card 3: Energy & Financial Summary */}
         <div className="card">
           <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Zap size={18} color="var(--primary-color)" /> Financial & Energy Summary
+            <Zap size={18} color="var(--primary)" /> Financial & Energy Summary
           </h3>
           <div style={{ display: 'grid', gap: 14 }}>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Reserved Energy</span>
-              <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary-color)' }}>
+              <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--primary)' }}>
                 {details.energyAmount} kWh
               </p>
             </div>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Total Transaction Cost</span>
-              <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--success-color, #10b981)' }}>
-                ${details.totalPrice}
+              <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--success)' }}>
+                ${typeof details.totalPrice === 'number' ? details.totalPrice.toFixed(2) : details.totalPrice}
               </p>
             </div>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Reserved At</span>
-              <p style={{ margin: 0, fontSize: '0.85rem' }}>{new Date(details.reservedAt).toLocaleString()}</p>
+              <p style={{ margin: 0, fontSize: '0.85rem' }}>{details.reservedAt ? new Date(details.reservedAt).toLocaleString() : 'N/A'}</p>
             </div>
             {details.notes && (
               <div>
                 <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Reservation Notes</span>
-                <p style={{ margin: 0, fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--text-secondary)' }}>"{details.notes}"</p>
+                <p style={{ margin: 0, fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--text-muted)' }}>"{details.notes}"</p>
               </div>
             )}
           </div>
         </div>
+      </div>
 
+      {/* Operational Audit & Notes Card */}
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
+          <FileText size={20} color="var(--text-muted)" />
+          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Operational Audit & Metadata</h3>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 16 }}>
+          <div>
+            <span className="form-label">Reservation Record ID</span>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.id}</p>
+          </div>
+          <div>
+            <span className="form-label">Energy Slot Reference</span>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.energySlotId || '—'}</p>
+          </div>
+          <div>
+            <span className="form-label">Microgrid Node ID</span>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.microgridNodeId || '—'}</p>
+          </div>
+        </div>
+        <div>
+          <span className="form-label">Operational Notes</span>
+          <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: 14, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+            <p style={{ margin: 0, color: details.notes ? 'var(--text-primary)' : 'var(--text-muted)', fontStyle: details.notes ? 'normal' : 'italic' }}>
+              {details.notes || 'No special operational notes recorded for this transaction.'}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Edit Modal */}
@@ -343,7 +520,7 @@ const ReservationDetails = () => {
           <div className="form-group">
             <label className="form-label">Energy Amount (kWh) *</label>
             <input
-              className="form-input"
+              className="form-control"
               type="number"
               step="0.1"
               min="0.1"
@@ -354,7 +531,7 @@ const ReservationDetails = () => {
           <div className="form-group">
             <label className="form-label">Notes</label>
             <textarea
-              className="form-input"
+              className="form-control"
               rows="3"
               value={editNotes}
               onChange={(e) => setEditNotes(e.target.value)}
@@ -365,17 +542,37 @@ const ReservationDetails = () => {
 
       {/* Cancel Modal */}
       <Modal
-        isOpen={cancelModal}
-        onClose={() => setCancelModal(false)}
-        title="Cancel Reservation"
+        isOpen={cancelModalOpen}
+        onClose={() => setCancelModalOpen(false)}
+        title="Confirm Reservation Cancellation"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setCancelModal(false)}>Keep</Button>
-            <Button variant="danger" loading={cancelLoading} onClick={handleCancel}>Confirm Cancellation</Button>
+            <Button variant="secondary" onClick={() => setCancelModalOpen(false)}>
+              Keep Reservation
+            </Button>
+            <Button variant="danger" onClick={handleCancel} disabled={actionLoading}>
+              {actionLoading ? 'Cancelling...' : 'Confirm Cancellation'}
+            </Button>
           </>
         }
       >
-        <p>Are you sure you want to cancel this reservation? The energy slot will be released back to the market as Available.</p>
+        <p style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          Are you sure you want to cancel this reservation for <strong>{details.energyAmount} kWh</strong>?
+        </p>
+
+        {noticeInfo && !noticeInfo.eligible && (
+          <div style={{ marginTop: 12, padding: 12, background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 'var(--radius-sm)' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--warning)', margin: 0, fontWeight: 500 }}>
+              Warning: This reservation is within the 12-hour cutoff window ({noticeInfo.hours} hours remaining). Late cancellations may impact prosumer reliability scores.
+            </p>
+          </div>
+        )}
+
+        <div style={{ marginTop: 12, padding: 12, background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-sm)' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--danger)', margin: 0 }}>
+            Upon cancellation, the reserved slot will be released back to the market as Available.
+          </p>
+        </div>
       </Modal>
     </div>
   );

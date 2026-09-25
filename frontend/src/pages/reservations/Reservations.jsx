@@ -1,22 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, 
-  Eye, 
-  Pencil, 
-  Trash2, 
-  CheckCircle, 
-  CheckCheck, 
-  XCircle, 
-  AlertTriangle, 
-  Search, 
-  Filter, 
+import {
+  Plus,
+  Eye,
+  Pencil,
+  Trash2,
+  CheckCircle,
+  CheckCheck,
+  XCircle,
+  AlertTriangle,
+  Search,
+  Filter,
   RotateCcw,
+  RefreshCw,
   Zap,
   Bookmark,
-  Clock
+  Calendar,
+  Clock,
+  DollarSign,
+  User,
+  Shield
 } from 'lucide-react';
-import { reservationService, prosumerService, microgridService, energySlotService } from '../../services/api';
+import {
+  reservationService,
+  prosumerService,
+  microgridService,
+  energySlotService
+} from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
@@ -29,13 +39,14 @@ const Reservations = () => {
   const [nodes, setNodes] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  // Filters
+  // Filters & Search
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
-  // Create Modal
+  // Create Modal (Step 2 - 7-day scheduling window)
   const [showCreate, setShowCreate] = useState(false);
   const [createData, setCreateData] = useState({
     energySlotId: '',
@@ -73,18 +84,24 @@ const Reservations = () => {
       const [resRes, prosRes, nodesRes, slotsRes] = await Promise.all([
         reservationService.getAll(),
         prosumerService.getAll(),
-        microgridService.getAll(),
+        microgridService.getAll().catch(() => ({ data: [] })),
         energySlotService.getByStatus('Available').catch(() => ({ data: [] })),
       ]);
-      setReservations(resRes.data);
-      setProsumers(prosRes.data);
-      setNodes(nodesRes.data);
-      setAvailableSlots(slotsRes.data);
+      setReservations(resRes.data || []);
+      setProsumers(prosRes.data || []);
+      setNodes(nodesRes.data || []);
+      setAvailableSlots(slotsRes.data || []);
     } catch {
       setAlert({ type: 'error', message: 'Failed to load reservations and related records.' });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData();
   };
 
   const findProsumer = (nicOrId) => prosumers.find((p) => p.nic === nicOrId || p.id === nicOrId);
@@ -92,7 +109,7 @@ const Reservations = () => {
 
   // Step 2: Handle Create Reservation (Enforcing 7-day rule via API)
   const handleCreateReservation = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!createData.energySlotId || !createData.buyerProsumerId || !createData.energyAmount) {
       setAlert({ type: 'error', message: 'Please fill in all required fields.' });
       return;
@@ -144,7 +161,7 @@ const Reservations = () => {
 
   // Step 4: Submit Update (Enforces 12-hour rule)
   const handleUpdateReservation = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setEditLoading(true);
     try {
       await reservationService.update(editModal.id, {
@@ -198,13 +215,14 @@ const Reservations = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteModal.id) return;
     try {
       await reservationService.delete(deleteModal.id);
       setDeleteModal({ open: false, id: null });
       await fetchData();
-      setAlert({ type: 'success', message: 'Reservation deleted.' });
+      setAlert({ type: 'success', message: 'Reservation deleted successfully.' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to delete.' });
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to delete reservation.' });
     }
   };
 
@@ -212,30 +230,34 @@ const Reservations = () => {
     const map = {
       Pending: 'status-pending',
       Confirmed: 'status-active',
-      Completed: 'status-active',
+      Completed: 'status-completed',
       Cancelled: 'status-inactive',
     };
     return map[status] || '';
   };
 
   // Filter reservations
-  const filteredReservations = reservations.filter((r) => {
-    const buyer = findProsumer(r.buyerProsumerId);
-    const seller = findProsumer(r.sellerProsumerId);
-    const node = findNode(r.microgridNodeId);
+  const filteredReservations = useMemo(() => {
+    return reservations.filter((r) => {
+      const buyer = findProsumer(r.buyerProsumerId);
+      const seller = findProsumer(r.sellerProsumerId);
+      const node = findNode(r.microgridNodeId);
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      const matchBuyer = buyer && (buyer.name.toLowerCase().includes(term) || buyer.nic?.toLowerCase().includes(term));
-      const matchSeller = seller && (seller.name.toLowerCase().includes(term) || seller.nic?.toLowerCase().includes(term));
-      const matchNode = node && (node.nodeName.toLowerCase().includes(term) || node.location.toLowerCase().includes(term));
-      if (!matchBuyer && !matchSeller && !matchNode) return false;
-    }
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const matchBuyer = buyer && (buyer.name?.toLowerCase().includes(term) || buyer.nic?.toLowerCase().includes(term));
+        const matchSeller = seller && (seller.name?.toLowerCase().includes(term) || seller.nic?.toLowerCase().includes(term));
+        const matchNode = node && (node.nodeName?.toLowerCase().includes(term) || node.location?.toLowerCase().includes(term));
+        const matchId = (r.id || '').toLowerCase().includes(term);
+        const matchNotes = (r.notes || '').toLowerCase().includes(term);
+        if (!matchBuyer && !matchSeller && !matchNode && !matchId && !matchNotes) return false;
+      }
 
-    if (statusFilter !== 'All' && r.status !== statusFilter) return false;
+      if (statusFilter !== 'All' && r.status !== statusFilter) return false;
 
-    return true;
-  });
+      return true;
+    });
+  }, [reservations, searchTerm, statusFilter, prosumers, nodes]);
 
   const columns = [
     {
@@ -246,7 +268,7 @@ const Reservations = () => {
         return (
           <div>
             <div style={{ fontWeight: 600 }}>{p ? p.name : 'Unknown Buyer'}</div>
-            <div style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
               {row.buyerProsumerId}
             </div>
           </div>
@@ -261,7 +283,7 @@ const Reservations = () => {
         return (
           <div>
             <div style={{ fontWeight: 600 }}>{p ? p.name : 'Unknown Seller'}</div>
-            <div style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
               {row.sellerProsumerId}
             </div>
           </div>
@@ -280,15 +302,20 @@ const Reservations = () => {
       key: 'energyAmount',
       label: 'Energy (kWh)',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
-          <Zap size={14} color="var(--primary-color)" /> {row.energyAmount} kWh
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700, color: 'var(--accent-light, var(--accent))' }}>
+          <Zap size={14} color="var(--primary)" /> {row.energyAmount} kWh
         </span>
       ),
     },
     {
       key: 'totalPrice',
       label: 'Total Cost',
-      render: (row) => <span style={{ fontWeight: 700 }}>${row.totalPrice}</span>,
+      render: (row) => (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 700, color: 'var(--success)' }}>
+          <DollarSign size={14} />
+          {typeof row.totalPrice === 'number' ? row.totalPrice.toFixed(2) : row.totalPrice}
+        </span>
+      ),
     },
     {
       key: 'status',
@@ -302,13 +329,18 @@ const Reservations = () => {
     {
       key: 'reservedAt',
       label: 'Reserved On',
-      render: (row) => new Date(row.reservedAt).toLocaleDateString(),
+      render: (row) => (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
+          <Calendar size={13} color="var(--text-muted)" />
+          {row.reservedAt ? new Date(row.reservedAt).toLocaleDateString() : 'N/A'}
+        </span>
+      ),
     },
     {
       key: 'actions',
       label: 'Actions',
       render: (row) => (
-        <div className="btn-group">
+        <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           <Button
             variant="secondary"
             size="sm"
@@ -379,14 +411,24 @@ const Reservations = () => {
 
   return (
     <div className="page-container">
-      <div className="page-header-actions">
+      <div className="page-header-actions" style={{ marginBottom: 24 }}>
         <div>
           <h1 className="page-title">Energy Reservations</h1>
           <p className="page-subtitle">Schedule, verify, and manage microgrid energy transfer reservations</p>
         </div>
-        <Button variant="primary" onClick={() => setShowCreate(true)}>
-          <Plus size={16} className="icon-mr" /> Create Reservation
-        </Button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <Button
+            variant="secondary"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw size={14} className={refreshing ? 'icon-mr spin' : 'icon-mr'} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+          <Button variant="primary" onClick={() => setShowCreate(true)}>
+            <Plus size={16} className="icon-mr" /> Create Reservation
+          </Button>
+        </div>
       </div>
 
       {alert && (
@@ -405,27 +447,27 @@ const Reservations = () => {
             </label>
             <input
               type="text"
-              className="form-input"
-              placeholder="Search by buyer, seller, or node..."
+              className="form-control"
+              placeholder="Search by buyer, seller, ID, or node..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div style={{ flex: '0 1 180px' }}>
+          <div style={{ flex: '0 1 200px' }}>
             <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <Filter size={14} /> Status Filter
             </label>
             <select
-              className="form-select"
+              className="form-control"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="All">All Statuses</option>
-              <option value="Pending">Pending</option>
-              <option value="Confirmed">Confirmed</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="All">All Statuses ({reservations.length})</option>
+              <option value="Pending">Pending ({reservations.filter((r) => r.status === 'Pending').length})</option>
+              <option value="Confirmed">Confirmed ({reservations.filter((r) => r.status === 'Confirmed').length})</option>
+              <option value="Completed">Completed ({reservations.filter((r) => r.status === 'Completed').length})</option>
+              <option value="Cancelled">Cancelled ({reservations.filter((r) => r.status === 'Cancelled').length})</option>
             </select>
           </div>
 
@@ -447,7 +489,14 @@ const Reservations = () => {
         columns={columns}
         data={filteredReservations}
         loading={loading}
-        emptyMessage="No reservations match your criteria."
+        emptyMessage="No reservations match your criteria"
+        emptySubtext="Try adjusting your search terms or filter selection."
+        emptyIcon={<Bookmark size={44} strokeWidth={1.5} color="var(--text-secondary)" />}
+        emptyAction={
+          <Button variant="primary" size="sm" onClick={() => setShowCreate(true)}>
+            <Plus size={14} className="icon-mr" /> Create Reservation
+          </Button>
+        }
       />
 
       {/* Create Reservation Modal */}
@@ -474,7 +523,7 @@ const Reservations = () => {
           <div className="form-group">
             <label className="form-label">Available Energy Slot *</label>
             <select
-              className="form-select"
+              className="form-control"
               value={createData.energySlotId}
               onChange={(e) => {
                 const slot = availableSlots.find((s) => s.id === e.target.value);
@@ -501,7 +550,7 @@ const Reservations = () => {
           <div className="form-group">
             <label className="form-label">Buyer Prosumer *</label>
             <select
-              className="form-select"
+              className="form-control"
               value={createData.buyerProsumerId}
               onChange={(e) => setCreateData({ ...createData, buyerProsumerId: e.target.value })}
             >
@@ -520,7 +569,7 @@ const Reservations = () => {
             <div className="form-group">
               <label className="form-label">Energy Amount (kWh) *</label>
               <input
-                className="form-input"
+                className="form-control"
                 type="number"
                 step="0.1"
                 min="0.1"
@@ -529,7 +578,7 @@ const Reservations = () => {
                 onChange={(e) => setCreateData({ ...createData, energyAmount: e.target.value })}
               />
               {selectedSlot && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4, display: 'block' }}>
                   Max capacity: {selectedSlot.energyAmount} kWh
                 </span>
               )}
@@ -538,9 +587,10 @@ const Reservations = () => {
             <div className="form-group">
               <label className="form-label">Total Price ($)</label>
               <input
-                className="form-input"
+                className="form-control"
                 disabled
                 value={selectedSlot ? `$${((parseFloat(createData.energyAmount) || 0) * selectedSlot.pricePerUnit).toFixed(2)}` : '$0.00'}
+                style={{ background: 'var(--bg-input)', opacity: 0.8 }}
               />
             </div>
           </div>
@@ -548,7 +598,7 @@ const Reservations = () => {
           <div className="form-group">
             <label className="form-label">Notes (Optional)</label>
             <textarea
-              className="form-input"
+              className="form-control"
               rows="2"
               placeholder="e.g. Demand peak backup, commercial operations..."
               value={createData.notes}
@@ -592,7 +642,7 @@ const Reservations = () => {
           <div className="form-group">
             <label className="form-label">Energy Amount (kWh) *</label>
             <input
-              className="form-input"
+              className="form-control"
               type="number"
               step="0.1"
               min="0.1"
@@ -604,7 +654,7 @@ const Reservations = () => {
           <div className="form-group">
             <label className="form-label">Reservation Notes</label>
             <textarea
-              className="form-input"
+              className="form-control"
               rows="3"
               value={editModal.notes}
               onChange={(e) => setEditModal({ ...editModal, notes: e.target.value })}
@@ -630,7 +680,7 @@ const Reservations = () => {
         }
       >
         <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, color: '#ef4444', marginBottom: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, color: 'var(--danger)', marginBottom: 2 }}>
             <Clock size={16} /> 12-Hour Notice Rule
           </div>
           Cancellations require at least 12 hours' advance notice before the slot begins. The energy slot will be released back to the market as Available.
@@ -654,7 +704,7 @@ const Reservations = () => {
           </>
         }
       >
-        <p>Are you sure you want to permanently delete this reservation record?</p>
+        <p>Are you sure you want to permanently delete this reservation record? This action cannot be reversed.</p>
       </Modal>
     </div>
   );
