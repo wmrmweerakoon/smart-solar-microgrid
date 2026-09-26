@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.api.models;
 
+/**
+ * RegisterRequest — DTO for prosumer account registration submission.
+ * Component: Member 1 (Ruvishan) — Prosumer Registration Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class RegisterRequest {
     private String nic;
     private String name;

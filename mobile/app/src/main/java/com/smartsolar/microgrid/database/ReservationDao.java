@@ -8,6 +8,11 @@ import com.smartsolar.microgrid.api.models.ReservationDto;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ReservationDao — SQLite DAO for offline caching and querying of reservations.
+ * Component: Member 2 (Dilani) — Offline SQLite Reservation DAO
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class ReservationDao {
     private final DatabaseHelper dbHelper;
 

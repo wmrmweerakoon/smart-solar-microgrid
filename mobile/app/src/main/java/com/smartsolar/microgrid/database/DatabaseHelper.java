@@ -5,6 +5,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.smartsolar.microgrid.utils.Constants;
 
+/**
+ * DatabaseHelper — SQLite OpenHelper managing users, cached reservations, and cached nodes tables.
+ * Component: Phase 1 Foundation — Offline SQLite Database
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     public DatabaseHelper(Context context) {

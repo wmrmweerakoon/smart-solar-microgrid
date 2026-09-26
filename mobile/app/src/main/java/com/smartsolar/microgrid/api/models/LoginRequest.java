@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.api.models;
 
+/**
+ * LoginRequest — DTO for user credentials submitted during authentication.
+ * Component: Phase 1 Foundation — Auth API Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class LoginRequest {
     private String username;
     private String password;

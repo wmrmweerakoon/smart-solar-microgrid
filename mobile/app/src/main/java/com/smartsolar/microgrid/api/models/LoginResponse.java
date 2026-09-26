@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.api.models;
 
+/**
+ * LoginResponse — DTO for JWT authentication response containing token and user profile.
+ * Component: Phase 1 Foundation — Auth API Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class LoginResponse {
     private String token;
     private String username;

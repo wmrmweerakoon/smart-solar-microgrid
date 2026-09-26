@@ -2,6 +2,11 @@ package com.smartsolar.microgrid.api.models;
 
 import java.io.Serializable;
 
+/**
+ * ReservationDto — DTO representing basic energy reservation data transfer object.
+ * Component: Member 2 (Dilani) — Reservation Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class ReservationDto implements Serializable {
     private String id;
     private String energySlotId;

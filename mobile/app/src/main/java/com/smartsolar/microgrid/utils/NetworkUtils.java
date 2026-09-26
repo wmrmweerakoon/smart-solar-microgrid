@@ -4,6 +4,11 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 
+/**
+ * NetworkUtils — Network connectivity helper utility checking active internet access.
+ * Component: Phase 1 Foundation — Network Utility
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class NetworkUtils {
     public static boolean isNetworkAvailable(Context context) {
         if (context == null) return false;

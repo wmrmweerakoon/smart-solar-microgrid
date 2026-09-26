@@ -3,6 +3,11 @@ package com.smartsolar.microgrid.api.models;
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
+/**
+ * BookingDto — DTO representing energy booking record with scheduling and party information.
+ * Component: Member 3 (Nethum) — Booking Data Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class BookingDto implements Serializable {
     private String id;
     private String energySlotId;

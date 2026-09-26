@@ -5,6 +5,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+/**
+ * UserDao — SQLite Data Access Object for local user authentication and session caching.
+ * Component: Member 1 (Ruvishan) — SQLite User DAO
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class UserDao {
     private final DatabaseHelper dbHelper;
 

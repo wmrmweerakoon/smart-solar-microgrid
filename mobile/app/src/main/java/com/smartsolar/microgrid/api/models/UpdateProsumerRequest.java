@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.api.models;
 
+/**
+ * UpdateProsumerRequest — DTO containing editable prosumer contact and address fields.
+ * Component: Member 1 (Ruvishan) — Prosumer Update Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class UpdateProsumerRequest {
     private String name;
     private String email;

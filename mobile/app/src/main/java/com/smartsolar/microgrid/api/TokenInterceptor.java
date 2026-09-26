@@ -7,6 +7,11 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * TokenInterceptor — OkHttp Request Interceptor automatically injecting JWT Authorization Bearer header.
+ * Component: Phase 1 Foundation — JWT Auth Interceptor
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class TokenInterceptor implements Interceptor {
     private final SessionManager sessionManager;
 

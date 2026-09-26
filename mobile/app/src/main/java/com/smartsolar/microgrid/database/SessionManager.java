@@ -4,6 +4,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import com.smartsolar.microgrid.utils.Constants;
 
+/**
+ * SessionManager — SharedPreferences session store for JWT token, active role, and NIC persistence.
+ * Component: Phase 1 Foundation — User Session State
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class SessionManager {
     private final SharedPreferences prefs;
     private final SharedPreferences.Editor editor;

@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.api.models;
 
+/**
+ * ProsumerDto — DTO representing prosumer profile with NIC primary key and address.
+ * Component: Member 1 (Ruvishan) — Prosumer Data Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class ProsumerDto {
     private String nic;
     private String id;

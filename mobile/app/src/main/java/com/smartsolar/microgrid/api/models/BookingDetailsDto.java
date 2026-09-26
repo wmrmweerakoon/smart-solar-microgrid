@@ -2,6 +2,11 @@ package com.smartsolar.microgrid.api.models;
 
 import java.io.Serializable;
 
+/**
+ * BookingDetailsDto — DTO representing extended booking details including buyer and seller profiles.
+ * Component: Member 3 (Nethum) — Booking Extended Details Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class BookingDetailsDto extends BookingDto implements Serializable {
     private String sellerEmail;
     private String sellerPhone;

@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.api.models;
 
+/**
+ * UpdateReservationRequest — DTO payload for modifying an existing energy reservation.
+ * Component: Member 2 (Dilani) — Reservation Update API Request
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class UpdateReservationRequest {
     private double energyAmount;
     private String notes;

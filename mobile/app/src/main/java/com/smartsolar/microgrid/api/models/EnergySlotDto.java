@@ -3,6 +3,11 @@ package com.smartsolar.microgrid.api.models;
 import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
+/**
+ * EnergySlotDto — DTO representing solar energy generation slot with schedule times.
+ * Component: Member 2 (Dilani) — Energy Slot Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class EnergySlotDto implements Serializable {
     private String id;
     private String microgridNodeId;

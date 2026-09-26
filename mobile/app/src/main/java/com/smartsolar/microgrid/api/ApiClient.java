@@ -8,6 +8,11 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+/**
+ * ApiClient — Retrofit 2 client singleton configuring OkHttpClient, logging, and JWT interceptor.
+ * Component: Phase 1 Foundation — Networking Layer
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class ApiClient {
     private static Retrofit retrofit = null;
 

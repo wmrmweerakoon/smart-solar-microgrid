@@ -3,6 +3,11 @@ package com.smartsolar.microgrid.api.models;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * DashboardStatsDto — DTO containing aggregated statistics counters for microgrid operations.
+ * Component: Member 3 (Nethum) — Dashboard Telemetry Model
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class DashboardStatsDto implements Serializable {
     private long totalProsumers;
     private long pendingProsumers;

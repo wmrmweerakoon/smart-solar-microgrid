@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.utils;
 
+/**
+ * Constants — App-wide configuration constants, API base URLs, and role definitions.
+ * Component: Phase 1 Foundation — Application Constants
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class Constants {
     // 10.0.2.2 maps to localhost from Android Emulator.
     // If running on a physical Android device, change this to your laptop's Wi-Fi IP address.

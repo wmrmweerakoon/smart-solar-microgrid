@@ -1,5 +1,10 @@
 package com.smartsolar.microgrid.api.models;
 
+/**
+ * CreateReservationRequest — DTO payload for booking a new energy slot reservation.
+ * Component: Member 2 (Dilani) — Reservation API Request
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class CreateReservationRequest {
     private String energySlotId;
     private String buyerProsumerId;
