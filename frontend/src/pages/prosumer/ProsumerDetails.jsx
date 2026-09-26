@@ -174,7 +174,7 @@ const ProsumerDetails = () => {
       )}
 
       {/* Grid of Profile Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
+      <div className="details-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
         
         {/* Personal & Contact Details */}
         <div className="card">

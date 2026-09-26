@@ -405,7 +405,7 @@ const LocationPickerMap = ({
       </div>
 
       {/* Quick Regional Presets */}
-      <div style={{
+      <div className="map-presets-scroll" style={{
         display: 'flex',
         alignItems: 'center',
         gap: 8,
@@ -467,6 +467,7 @@ const LocationPickerMap = ({
       >
         <div
           ref={mapContainerRef}
+          className="location-map-canvas"
           style={{
             height: 380,
             width: '100%',
@@ -477,6 +478,7 @@ const LocationPickerMap = ({
 
         {/* Live Detected Info Overlay at Map Bottom */}
         <div
+          className="map-detected-overlay"
           style={{
             position: 'absolute',
             bottom: 14,
