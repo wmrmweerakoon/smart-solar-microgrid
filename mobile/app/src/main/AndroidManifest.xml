@@ -60,5 +60,28 @@
             android:name=".activities.OperatorHomeActivity"
             android:exported="false" />
 
+        <!-- Reservation Workflow (Phase 3 - Member 2) -->
+        <activity
+            android:name=".activities.AvailableSlotsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.CreateReservationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.UpdateReservationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.CancelReservationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.ReservationSummaryActivity"
+            android:exported="false" />
+
     </application>
 </manifest>

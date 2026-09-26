@@ -39,7 +39,8 @@ public class ProsumerHomeActivity extends AppCompatActivity {
         });
 
         btnViewSlots.setOnClickListener(v -> {
-            Toast.makeText(this, "Available Slots (Phase 3)", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ProsumerHomeActivity.this, AvailableSlotsActivity.class);
+            startActivity(intent);
         });
 
         btnMyReservations.setOnClickListener(v -> {
