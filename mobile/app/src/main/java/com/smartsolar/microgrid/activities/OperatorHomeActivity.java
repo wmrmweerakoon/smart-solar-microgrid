@@ -23,9 +23,26 @@ public class OperatorHomeActivity extends AppCompatActivity {
         TextView tvWelcome = findViewById(R.id.tvWelcome);
         TextView tvUserRole = findViewById(R.id.tvUserRole);
         Button btnLogout = findViewById(R.id.btnLogout);
+        Button btnScanQr = findViewById(R.id.btnScanQr);
+        Button btnPendingBookings = findViewById(R.id.btnPendingBookings);
+        Button btnMonitoring = findViewById(R.id.btnMonitoring);
 
         tvWelcome.setText("Operator: " + sessionManager.getFullName());
         tvUserRole.setText("Role: " + sessionManager.getRole());
+
+        btnScanQr.setOnClickListener(v -> {
+            Toast.makeText(this, "QR Scanner (Phase 5)", Toast.LENGTH_SHORT).show();
+        });
+
+        btnPendingBookings.setOnClickListener(v -> {
+            Intent intent = new Intent(OperatorHomeActivity.this, PendingBookingsActivity.class);
+            startActivity(intent);
+        });
+
+        btnMonitoring.setOnClickListener(v -> {
+            Intent intent = new Intent(OperatorHomeActivity.this, DashboardActivity.class);
+            startActivity(intent);
+        });
 
         btnLogout.setOnClickListener(v -> {
             sessionManager.clearSession();

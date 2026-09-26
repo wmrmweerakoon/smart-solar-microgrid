@@ -83,5 +83,35 @@
             android:name=".activities.ReservationSummaryActivity"
             android:exported="false" />
 
+        <!-- Dashboard & Booking Views (Phase 4 - Member 3) -->
+        <activity
+            android:name=".activities.DashboardActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.CurrentBookingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.PendingBookingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.BookingHistoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.SearchBookingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.BookingDetailsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.MyReservationsActivity"
+            android:exported="false" />
+
     </application>
 </manifest>

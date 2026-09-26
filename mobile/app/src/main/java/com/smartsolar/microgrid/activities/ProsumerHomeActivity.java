@@ -44,7 +44,8 @@ public class ProsumerHomeActivity extends AppCompatActivity {
         });
 
         btnMyReservations.setOnClickListener(v -> {
-            Toast.makeText(this, "My Reservations (Phase 4)", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ProsumerHomeActivity.this, MyReservationsActivity.class);
+            startActivity(intent);
         });
 
         btnNearbyNodes.setOnClickListener(v -> {
