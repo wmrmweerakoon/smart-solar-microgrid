@@ -9,6 +9,11 @@ import com.smartsolar.microgrid.R;
 import com.smartsolar.microgrid.database.SessionManager;
 import com.smartsolar.microgrid.utils.Constants;
 
+/**
+ * SplashActivity — Branded launch activity with automatic role-based session routing.
+ * Component: Phase 1 & 6 — App Entry & Splash
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class SplashActivity extends AppCompatActivity {
 
     @Override

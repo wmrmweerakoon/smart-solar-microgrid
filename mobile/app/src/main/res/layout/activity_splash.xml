@@ -2,43 +2,53 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient"
-    android:gravity="center">
+    android:background="@color/background_dark">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
         android:gravity="center"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="☀️"
-            android:textSize="64sp" />
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:contentDescription="Smart Solar Microgrid Logo"
+            android:src="@drawable/ic_solar_logo" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/app_name"
+            android:text="Smart Solar Microgrid"
             android:textColor="@color/text_primary"
-            android:textSize="26sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/tagline"
-            android:textColor="@color/text_secondary"
+            android:layout_marginTop="4dp"
+            android:text="Peer-to-Peer Clean Energy Trading"
+            android:textColor="@color/solar_gold"
             android:textSize="14sp" />
 
         <ProgressBar
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginTop="32dp"
-            android:indeterminateTint="@color/accent" />
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="28dp"
+            android:indeterminateTint="@color/solar_gold" />
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
+        android:text="SE4040 Advanced Mobile Application Development"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp" />
 
 </RelativeLayout>
