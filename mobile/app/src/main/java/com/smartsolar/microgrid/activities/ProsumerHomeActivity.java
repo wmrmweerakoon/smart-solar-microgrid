@@ -9,6 +9,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.smartsolar.microgrid.R;
 import com.smartsolar.microgrid.database.SessionManager;
 
+/**
+ * ProsumerHomeActivity — Dashboard home screen for registered solar energy prosumers.
+ * Provides direct access to energy slot trading, personal reservations, station maps, and profile.
+ */
 public class ProsumerHomeActivity extends AppCompatActivity {
 
     private SessionManager sessionManager;
@@ -48,8 +52,10 @@ public class ProsumerHomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Phase 5 (Member 4): Launch Google Maps nearby stations
         btnNearbyNodes.setOnClickListener(v -> {
-            Toast.makeText(this, "Nearby Stations Map (Phase 5)", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ProsumerHomeActivity.this, MapActivity.class);
+            startActivity(intent);
         });
 
         btnLogout.setOnClickListener(v -> {
