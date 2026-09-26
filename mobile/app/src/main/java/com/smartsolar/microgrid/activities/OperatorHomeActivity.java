@@ -9,6 +9,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.smartsolar.microgrid.R;
 import com.smartsolar.microgrid.database.SessionManager;
 
+/**
+ * OperatorHomeActivity — Operational console for Grid Operators.
+ * Provides controls for scanning prosumer QR tokens, reviewing pending bookings,
+ * viewing live station maps, and accessing microgrid telemetry dashboards.
+ */
 public class OperatorHomeActivity extends AppCompatActivity {
 
     private SessionManager sessionManager;
@@ -26,13 +31,24 @@ public class OperatorHomeActivity extends AppCompatActivity {
         Button btnScanQr = findViewById(R.id.btnScanQr);
         Button btnPendingBookings = findViewById(R.id.btnPendingBookings);
         Button btnMonitoring = findViewById(R.id.btnMonitoring);
+        Button btnNearbyStations = findViewById(R.id.btnNearbyStations);
 
         tvWelcome.setText("Operator: " + sessionManager.getFullName());
         tvUserRole.setText("Role: " + sessionManager.getRole());
 
+        // Phase 5 (Member 4): Launch ZXing QR Scanner
         btnScanQr.setOnClickListener(v -> {
-            Toast.makeText(this, "QR Scanner (Phase 5)", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(OperatorHomeActivity.this, QrScannerActivity.class);
+            startActivity(intent);
         });
+
+        // Phase 5 (Member 4): Launch Nearby Stations Map
+        if (btnNearbyStations != null) {
+            btnNearbyStations.setOnClickListener(v -> {
+                Intent intent = new Intent(OperatorHomeActivity.this, MapActivity.class);
+                startActivity(intent);
+            });
+        }
 
         btnPendingBookings.setOnClickListener(v -> {
             Intent intent = new Intent(OperatorHomeActivity.this, PendingBookingsActivity.class);

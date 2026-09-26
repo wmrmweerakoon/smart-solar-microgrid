@@ -6,6 +6,11 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.*;
 
+/**
+ * ApiService — Central Retrofit 2 interface for Smart Solar Microgrid REST API.
+ * Defines communication contracts for prosumers, energy slots, bookings, reservations,
+ * microgrid nodes, telemetry dashboards, and transaction verification.
+ */
 public interface ApiService {
 
     // ── Auth Endpoints ──
@@ -25,7 +30,7 @@ public interface ApiService {
     @PUT("prosumer/{nic}/deactivate")
     Call<ResponseBody> deactivateProsumer(@Path("nic") String nic, @Body DeactivateRequest body);
 
-    // ── Microgrid Nodes ──
+    // ── Microgrid Nodes (Phase 5 - Member 4) ──
     @GET("microgrid")
     Call<List<MicrogridNodeDto>> getAllNodes();
 
@@ -42,7 +47,7 @@ public interface ApiService {
     @GET("energyslot/prosumer/{prosumerId}")
     Call<List<EnergySlotDto>> getSlotsByProsumer(@Path("prosumerId") String prosumerId);
 
-    // ── Reservations ──
+    // ── Reservations (Phase 3 & 5) ──
     @GET("reservation")
     Call<List<ReservationDto>> getAllReservations();
 
@@ -64,7 +69,10 @@ public interface ApiService {
     @PUT("reservation/{id}/cancel")
     Call<ResponseBody> cancelReservation(@Path("id") String id);
 
-    // ── Bookings ──
+    @PUT("reservation/{id}/complete")
+    Call<ResponseBody> completeReservation(@Path("id") String id);
+
+    // ── Bookings (Phase 4 & 5) ──
     @GET("booking/current")
     Call<List<BookingDto>> getCurrentBookings();
 

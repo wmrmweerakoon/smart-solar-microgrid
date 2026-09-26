@@ -17,8 +17,10 @@ public class ReservationSummaryActivity extends AppCompatActivity {
 
     private TextView tvActionIcon, tvActionTitle, tvActionSubtitle, tvStatusBadge;
     private TextView tvSummaryId, tvSummaryEnergy, tvSummaryPrice, tvSummaryWindow, tvSummaryParties, tvSummaryTimestamp;
-    private Button btnBrowseMore, btnBackToHome;
+    private Button btnBrowseMore, btnBackToHome, btnViewQrToken;
     private SessionManager sessionManager;
+    private ReservationDto currentReservation;
+    private EnergySlotDto currentSlot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +41,27 @@ public class ReservationSummaryActivity extends AppCompatActivity {
         tvSummaryTimestamp = findViewById(R.id.tvSummaryTimestamp);
         btnBrowseMore = findViewById(R.id.btnBrowseMore);
         btnBackToHome = findViewById(R.id.btnBackToHome);
+        btnViewQrToken = findViewById(R.id.btnViewQrToken);
 
         populateSummary();
+
+        // Phase 5 (Member 4): Launch QR token viewer
+        btnViewQrToken.setOnClickListener(v -> {
+            if (currentReservation != null) {
+                Intent intent = new Intent(ReservationSummaryActivity.this, QrGeneratorActivity.class);
+                intent.putExtra("EXTRA_RESERVATION_ID", currentReservation.getId());
+                intent.putExtra("EXTRA_BUYER_NIC", sessionManager.getNic());
+                intent.putExtra("EXTRA_ENERGY_AMOUNT", currentReservation.getEnergyAmount());
+                intent.putExtra("EXTRA_TOTAL_PRICE", currentReservation.getTotalPrice());
+                if (currentSlot != null) {
+                    intent.putExtra("EXTRA_SLOT_DATE", currentSlot.getSlotDate());
+                    intent.putExtra("EXTRA_START_TIME", currentSlot.getStartTime());
+                    intent.putExtra("EXTRA_END_TIME", currentSlot.getEndTime());
+                    intent.putExtra("EXTRA_NODE_ID", currentSlot.getMicrogridNodeId());
+                }
+                startActivity(intent);
+            }
+        });
 
         btnBrowseMore.setOnClickListener(v -> {
             Intent intent = new Intent(ReservationSummaryActivity.this, AvailableSlotsActivity.class);
@@ -61,8 +82,10 @@ public class ReservationSummaryActivity extends AppCompatActivity {
         String action = getIntent().getStringExtra("EXTRA_ACTION");
         if (action == null) action = "CREATED";
 
-        ReservationDto res = (ReservationDto) getIntent().getSerializableExtra("EXTRA_RESERVATION");
-        EnergySlotDto slot = (EnergySlotDto) getIntent().getSerializableExtra("EXTRA_SLOT");
+        currentReservation = (ReservationDto) getIntent().getSerializableExtra("EXTRA_RESERVATION");
+        currentSlot = (EnergySlotDto) getIntent().getSerializableExtra("EXTRA_SLOT");
+        ReservationDto res = currentReservation;
+        EnergySlotDto slot = currentSlot;
 
         String loggedInNic = sessionManager.getNic();
         if (loggedInNic == null || loggedInNic.isEmpty()) loggedInNic = sessionManager.getUsername();
@@ -76,6 +99,7 @@ public class ReservationSummaryActivity extends AppCompatActivity {
             tvActionSubtitle.setText("Your energy booking request is registered and pending grid confirmation.");
             tvStatusBadge.setText("PENDING");
             tvStatusBadge.setBackgroundColor(getResources().getColor(R.color.accent));
+            btnViewQrToken.setVisibility(View.VISIBLE);
 
             if (res != null) {
                 String shortId = res.getId() != null && res.getId().length() > 8 ? res.getId().substring(0, 8) : res.getId();
@@ -96,6 +120,7 @@ public class ReservationSummaryActivity extends AppCompatActivity {
             tvActionSubtitle.setText("Your revised energy reservation details have been committed.");
             tvStatusBadge.setText("UPDATED");
             tvStatusBadge.setBackgroundColor(getResources().getColor(R.color.primary));
+            btnViewQrToken.setVisibility(View.VISIBLE);
 
             if (res != null) {
                 String shortId = res.getId() != null && res.getId().length() > 8 ? res.getId().substring(0, 8) : res.getId();
@@ -112,6 +137,7 @@ public class ReservationSummaryActivity extends AppCompatActivity {
             tvActionSubtitle.setText("The reservation has been voided and the energy slot released.");
             tvStatusBadge.setText("CANCELLED");
             tvStatusBadge.setBackgroundColor(getResources().getColor(R.color.danger));
+            btnViewQrToken.setVisibility(View.GONE);
 
             String resId = getIntent().getStringExtra("EXTRA_RESERVATION_ID");
             double amount = getIntent().getDoubleExtra("EXTRA_ENERGY_AMOUNT", 0.0);

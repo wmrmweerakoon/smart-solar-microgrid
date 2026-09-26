@@ -48,7 +48,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/card_bg"
         android:orientation="vertical"
         android:padding="16dp">
@@ -73,7 +73,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="20dp"
         android:text="Operations"
         android:textColor="@color/text_primary"
         android:textSize="16sp"
@@ -82,7 +82,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:orientation="vertical">
 
         <Button
@@ -93,6 +93,16 @@
             android:text="📷 Scan Prosumer QR Token"
             android:textAllCaps="false"
             android:textColor="@color/white"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btnNearbyStations"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="🗺️ Nearby Grid Stations Map"
+            android:textAllCaps="false"
             android:textSize="15sp" />
 
         <Button
@@ -111,7 +121,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="10dp"
-            android:text="📊 System Monitoring & Telemetry"
+            android:text="📊 System Monitoring &amp; Telemetry"
             android:textAllCaps="false"
             android:textSize="15sp" />
     </LinearLayout>
