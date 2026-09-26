@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
   Pencil,
@@ -23,6 +23,7 @@ import Modal from '../../components/Modal';
  */
 const MicrogridList = () => {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const [nodes, setNodes] = useState([]);
   const [filteredNodes, setFilteredNodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +35,12 @@ const MicrogridList = () => {
   const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
+    if (routerLocation.state?.message) {
+      setAlert({ type: 'success', message: routerLocation.state.message });
+      window.history.replaceState({}, document.title);
+    }
     fetchNodes();
-  }, []);
+  }, [routerLocation.state]);
 
   useEffect(() => {
     applyFilters();
@@ -45,7 +50,10 @@ const MicrogridList = () => {
     setLoading(true);
     try {
       const response = await microgridService.getAll();
-      setNodes(response.data);
+      const list = response.data || [];
+      // Sort newest first
+      list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      setNodes(list);
     } catch (error) {
       setAlert({ type: 'error', message: 'Failed to load microgrid nodes.' });
     } finally {

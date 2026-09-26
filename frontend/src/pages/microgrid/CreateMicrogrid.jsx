@@ -52,23 +52,47 @@ const CreateMicrogrid = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.nodeName || !formData.location) {
-      setError('Node name and location are required.');
+    setError('');
+
+    if (!formData.nodeName.trim()) {
+      setError('Node name is required.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+
+    if (!formData.location.trim()) {
+      setError('Location is required. Please choose a location from the map or type a city.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const capacityVal = parseFloat(formData.capacity);
+    if (isNaN(capacityVal) || capacityVal <= 0) {
+      setError('Capacity is required and must be greater than 0 kW.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setLoading(true);
     try {
       await microgridService.create({
-        ...formData,
-        capacity: parseFloat(formData.capacity) || 0,
+        nodeName: formData.nodeName.trim(),
+        location: formData.location.trim(),
+        capacity: capacityVal,
         batteryStorageSlots: parseInt(formData.batteryStorageSlots) || 0,
         latitude: parseFloat(formData.latitude) || 0,
         longitude: parseFloat(formData.longitude) || 0,
+        status: formData.status || 'Active',
         schedules
       });
-      navigate('/microgrid');
+
+      navigate('/microgrid', {
+        state: { message: `Microgrid node "${formData.nodeName.trim()}" created successfully!` }
+      });
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create node.');
+      const msg = err.response?.data?.message || err.message || 'Failed to create node.';
+      setError(msg);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -86,7 +110,7 @@ const CreateMicrogrid = () => {
         </Button>
       </div>
 
-      <div className="card" style={{ maxWidth: 840, margin: '0 auto' }}>
+      <div className="card" style={{ maxWidth: 880, margin: '0 auto' }}>
         {error && (
           <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
             <AlertTriangle size={18} color="var(--danger)" />
@@ -128,16 +152,17 @@ const CreateMicrogrid = () => {
 
           <div className="form-row-3">
             <div className="form-group">
-              <label className="form-label">Capacity (kW)</label>
+              <label className="form-label">Capacity (kW) *</label>
               <input
                 className="form-input"
                 name="capacity"
                 type="number"
                 step="0.1"
-                min="0"
+                min="0.1"
                 value={formData.capacity}
                 onChange={handleChange}
                 placeholder="e.g. 500"
+                required
               />
             </div>
             <div className="form-group">
@@ -216,7 +241,7 @@ const CreateMicrogrid = () => {
                 <div className="form-group">
                   <label className="form-label">Day</label>
                   <select
-                    className="form-control"
+                    className="form-select"
                     value={schedule.dayOfWeek}
                     onChange={(e) => handleScheduleChange(i, 'dayOfWeek', e.target.value)}
                   >
@@ -235,7 +260,7 @@ const CreateMicrogrid = () => {
                   <label className="form-label">Start Time</label>
                   <input
                     type="time"
-                    className="form-control"
+                    className="form-input"
                     value={schedule.startTime}
                     onChange={(e) => handleScheduleChange(i, 'startTime', e.target.value)}
                   />
@@ -244,7 +269,7 @@ const CreateMicrogrid = () => {
                   <label className="form-label">End Time</label>
                   <input
                     type="time"
-                    className="form-control"
+                    className="form-input"
                     value={schedule.endTime}
                     onChange={(e) => handleScheduleChange(i, 'endTime', e.target.value)}
                   />
@@ -258,7 +283,14 @@ const CreateMicrogrid = () => {
             ))}
           </div>
 
-          <div className="btn-group" style={{ marginTop: 28, display: 'flex', gap: 12 }}>
+          {error && (
+            <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 20 }}>
+              <AlertTriangle size={18} color="var(--danger)" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="btn-group" style={{ marginTop: 24, display: 'flex', gap: 12 }}>
             <Button type="submit" variant="primary" loading={loading}>
               <Save size={16} className="icon-mr" /> Create Node
             </Button>

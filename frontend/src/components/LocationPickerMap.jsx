@@ -136,7 +136,26 @@ const LocationPickerMap = ({
     }
   }, []);
 
-  // Update marker position and emit values to parent form
+  const onLocationSelectRef = useRef(onLocationSelect);
+  useEffect(() => {
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
+
+  // Helper to quickly find nearest major Sri Lankan city
+  const getNearestPresetName = useCallback((lat, lng) => {
+    let nearestCity = 'Sri Lanka';
+    let minDistance = Infinity;
+    for (const preset of SRI_LANKA_PRESETS) {
+      const d = Math.hypot(preset.lat - lat, preset.lng - lng);
+      if (d < minDistance) {
+        minDistance = d;
+        nearestCity = preset.name;
+      }
+    }
+    return nearestCity;
+  }, []);
+
+  // Update marker position and emit values to parent form instantly
   const setPosition = useCallback(
     async (lat, lng, overrideLocationName = null) => {
       const roundedLat = parseFloat(lat.toFixed(6));
@@ -144,26 +163,34 @@ const LocationPickerMap = ({
 
       setSelectedCoords({ lat: roundedLat, lng: roundedLng });
 
-      // Move marker
+      // Move marker on map
       if (markerRef.current) {
         markerRef.current.setLatLng([roundedLat, roundedLng]);
       }
 
-      // Determine location name
-      let locName = overrideLocationName;
-      if (!locName) {
-        locName = await reverseGeocode(roundedLat, roundedLng);
-      }
-
-      if (onLocationSelect) {
-        onLocationSelect({
+      // 1. Immediately emit coordinates and fallback location so form has values instantly (0ms delay)
+      const instantLocation = overrideLocationName || getNearestPresetName(roundedLat, roundedLng);
+      if (onLocationSelectRef.current) {
+        onLocationSelectRef.current({
           latitude: roundedLat.toString(),
           longitude: roundedLng.toString(),
-          location: locName,
+          location: instantLocation,
         });
       }
+
+      // 2. If no override provided, asynchronously refine with high-detail Nominatim town name
+      if (!overrideLocationName) {
+        const refinedName = await reverseGeocode(roundedLat, roundedLng);
+        if (refinedName && refinedName !== instantLocation && onLocationSelectRef.current) {
+          onLocationSelectRef.current({
+            latitude: roundedLat.toString(),
+            longitude: roundedLng.toString(),
+            location: refinedName,
+          });
+        }
+      }
     },
-    [onLocationSelect, reverseGeocode]
+    [reverseGeocode, getNearestPresetName]
   );
 
   // Initialize Leaflet Map
