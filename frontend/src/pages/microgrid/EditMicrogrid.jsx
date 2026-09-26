@@ -42,7 +42,9 @@ const EditMicrogrid = () => {
   }, [id]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const field = name === 'gridNodeName' ? 'nodeName' : name;
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setError('');
     setSuccess('');
   };
@@ -161,7 +163,7 @@ const EditMicrogrid = () => {
               <label className="form-label">Node Name *</label>
               <input
                 className="form-input"
-                name="nodeName"
+                name="gridNodeName"
                 value={formData.nodeName}
                 onChange={handleChange}
                 placeholder="e.g. Node Silver Moon"

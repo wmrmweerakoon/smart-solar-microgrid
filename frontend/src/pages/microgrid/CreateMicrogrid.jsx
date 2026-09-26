@@ -21,7 +21,9 @@ const CreateMicrogrid = () => {
   const [schedules, setSchedules] = useState([]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const field = name === 'gridNodeName' ? 'nodeName' : name;
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setError('');
   };
 
@@ -124,7 +126,7 @@ const CreateMicrogrid = () => {
               <label className="form-label">Node Name *</label>
               <input
                 className="form-input"
-                name="nodeName"
+                name="gridNodeName"
                 value={formData.nodeName}
                 onChange={handleChange}
                 placeholder="e.g. Node Silver Moon"
