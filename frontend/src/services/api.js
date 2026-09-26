@@ -41,6 +41,8 @@ api.interceptors.response.use(
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   getUsers: () => api.get('/auth/users'),
+  createUser: (userData) => api.post('/auth/users', userData),
+  updateUserStatus: (id, isActive) => api.put(`/auth/users/${id}/status`, { isActive }),
 };
 
 // ═══════════════ Dashboard Service ═══════════════

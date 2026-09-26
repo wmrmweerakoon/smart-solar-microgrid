@@ -7,6 +7,7 @@ namespace SmartSolarMicrogrid.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class EnergySlotController : ControllerBase
     {
         private readonly EnergySlotService _service;
@@ -53,6 +54,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Create([FromBody] EnergySlotDto dto)
         {
             var result = await _service.CreateSlotAsync(dto);
@@ -60,6 +62,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Update(string id, [FromBody] EnergySlotDto dto)
         {
             var result = await _service.UpdateSlotAsync(id, dto);
@@ -68,6 +71,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _service.DeleteSlotAsync(id);

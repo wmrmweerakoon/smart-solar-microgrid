@@ -73,6 +73,69 @@ namespace SmartSolarMicrogrid.API.Services
         }
 
         /// <summary>
+        /// Create a new web application user (Backoffice only).
+        /// Role must be "Backoffice" or "GridOperator".
+        /// </summary>
+        public async Task<UserDto> CreateUserAsync(CreateUserRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Username))
+                throw new InvalidOperationException("Username is required.");
+
+            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
+                throw new InvalidOperationException("Password must be at least 6 characters long.");
+
+            var cleanRole = request.Role?.Trim();
+            if (cleanRole != "Backoffice" && cleanRole != "GridOperator")
+                throw new InvalidOperationException("Invalid role. Role must be either 'Backoffice' or 'GridOperator'.");
+
+            var cleanUsername = request.Username.Trim();
+            var existing = await _context.Users
+                .Find(u => u.Username.ToLower() == cleanUsername.ToLower())
+                .FirstOrDefaultAsync();
+
+            if (existing != null)
+                throw new InvalidOperationException($"Username '{cleanUsername}' is already taken.");
+
+            var newUser = new User
+            {
+                Username = cleanUsername,
+                Email = request.Email?.Trim() ?? string.Empty,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Role = cleanRole,
+                FullName = string.IsNullOrWhiteSpace(request.FullName) ? cleanUsername : request.FullName.Trim(),
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _context.Users.InsertOneAsync(newUser);
+
+            return new UserDto
+            {
+                Id = newUser.Id,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                Role = newUser.Role,
+                FullName = newUser.FullName,
+                IsActive = newUser.IsActive,
+                CreatedAt = newUser.CreatedAt
+            };
+        }
+
+        /// <summary>
+        /// Toggle user active status.
+        /// </summary>
+        public async Task<bool> SetUserStatusAsync(string id, bool isActive)
+        {
+            var update = Builders<User>.Update
+                .Set(u => u.IsActive, isActive)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+
+            var res = await _context.Users.UpdateOneAsync(u => u.Id == id, update);
+            return res.ModifiedCount > 0;
+        }
+
+        /// <summary>
         /// Seed default admin and operator users if missing or reset their passwords.
         /// Called during application startup.
         /// </summary>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Services;
@@ -34,13 +35,52 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         /// <summary>
-        /// Get all users (admin only).
+        /// Get all web application users (Backoffice only).
         /// </summary>
         [HttpGet("users")]
+        [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> GetUsers()
         {
             var users = await _authService.GetAllUsersAsync();
             return Ok(users);
         }
+
+        /// <summary>
+        /// Create a new web application user (Backoffice only).
+        /// Roles supported: "Backoffice", "GridOperator".
+        /// </summary>
+        [HttpPost("users")]
+        [Authorize(Roles = "Backoffice")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+        {
+            try
+            {
+                var newUser = await _authService.CreateUserAsync(request);
+                return CreatedAtAction(nameof(GetUsers), new { id = newUser.Id }, newUser);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update user active status (Backoffice only).
+        /// </summary>
+        [HttpPut("users/{id}/status")]
+        [Authorize(Roles = "Backoffice")]
+        public async Task<IActionResult> UpdateUserStatus(string id, [FromBody] UpdateUserStatusRequest request)
+        {
+            var success = await _authService.SetUserStatusAsync(id, request.IsActive);
+            if (!success)
+                return NotFound(new { message = "User not found." });
+
+            return Ok(new { message = $"User status updated to {(request.IsActive ? "Active" : "Inactive")}." });
+        }
+    }
+
+    public class UpdateUserStatusRequest
+    {
+        public bool IsActive { get; set; }
     }
 }

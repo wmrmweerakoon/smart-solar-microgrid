@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Services;
@@ -6,6 +7,7 @@ namespace SmartSolarMicrogrid.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BookingController : ControllerBase
     {
         private readonly BookingService _service;
@@ -56,7 +58,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         /// <summary>
-        /// Get booking summary by slot ID.
+        /// Get booking by ID.
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
@@ -81,6 +83,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         /// Approve/confirm a pending booking.
         /// </summary>
         [HttpPut("{id}/confirm")]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Confirm(string id)
         {
             var result = await _service.ConfirmBookingAsync(id);
@@ -92,6 +95,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         /// Mark a current booking as completed.
         /// </summary>
         [HttpPut("{id}/complete")]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Complete(string id)
         {
             var result = await _service.CompleteBookingAsync(id);
@@ -103,6 +107,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         /// Cancel a current or pending booking.
         /// </summary>
         [HttpPut("{id}/cancel")]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Cancel(string id)
         {
             var result = await _service.CancelBookingAsync(id);
