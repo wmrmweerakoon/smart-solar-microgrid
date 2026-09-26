@@ -1,6 +1,8 @@
 package com.smartsolar.microgrid.api.models;
 
-public class ReservationDto {
+import java.io.Serializable;
+
+public class ReservationDto implements Serializable {
     private String id;
     private String energySlotId;
     private String buyerProsumerId;
@@ -10,6 +12,7 @@ public class ReservationDto {
     private double totalPrice;
     private String status;
     private String reservedAt;
+    private String updatedAt;
     private String notes;
 
     public String getId() { return id; }
@@ -21,5 +24,6 @@ public class ReservationDto {
     public double getTotalPrice() { return totalPrice; }
     public String getStatus() { return status; }
     public String getReservedAt() { return reservedAt; }
+    public String getUpdatedAt() { return updatedAt; }
     public String getNotes() { return notes; }
 }
