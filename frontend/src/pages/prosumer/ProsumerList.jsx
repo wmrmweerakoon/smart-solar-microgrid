@@ -42,8 +42,8 @@ const ProsumerList = () => {
   const [nodeFilter, setNodeFilter] = useState('All');
 
   // Modals State
-  const [deleteModal, setDeleteModal] = useState({ open: false, nic: '', name: '' });
-  const [deactivateModal, setDeactivateModal] = useState({ open: false, nic: '', name: '', reason: '' });
+  const [deleteModal, setDeleteModal] = useState({ open: false, nic: '', name: '', error: '' });
+  const [deactivateModal, setDeactivateModal] = useState({ open: false, nic: '', name: '', reason: '', error: '' });
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -116,10 +116,12 @@ const ProsumerList = () => {
     try {
       await prosumerService.deactivate(deactivateModal.nic, deactivateModal.reason);
       setAlert({ type: 'success', message: `Prosumer (${deactivateModal.nic}) deactivated successfully.` });
-      setDeactivateModal({ open: false, nic: '', name: '', reason: '' });
+      setDeactivateModal({ open: false, nic: '', name: '', reason: '', error: '' });
       await handleSearch();
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to deactivate prosumer.' });
+      const msg = error.response?.data?.message || 'Failed to deactivate prosumer.';
+      setDeactivateModal((prev) => ({ ...prev, error: msg }));
+      setAlert({ type: 'error', message: msg });
     } finally {
       setActionLoading(false);
     }
@@ -130,10 +132,12 @@ const ProsumerList = () => {
     try {
       await prosumerService.delete(deleteModal.nic);
       setAlert({ type: 'success', message: `Prosumer (${deleteModal.nic}) removed successfully.` });
-      setDeleteModal({ open: false, nic: '', name: '' });
+      setDeleteModal({ open: false, nic: '', name: '', error: '' });
       await handleSearch();
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to delete prosumer.' });
+      const msg = error.response?.data?.message || 'Failed to delete prosumer.';
+      setDeleteModal((prev) => ({ ...prev, error: msg }));
+      setAlert({ type: 'error', message: msg });
     } finally {
       setActionLoading(false);
     }
@@ -222,7 +226,7 @@ const ProsumerList = () => {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setDeactivateModal({ open: true, nic, name: row.name, reason: '' })}
+                onClick={() => setDeactivateModal({ open: true, nic, name: row.name, reason: '', error: '' })}
                 title="Deactivate Account"
                 style={{ color: 'var(--danger-color, var(--danger))' }}
               >
@@ -245,7 +249,7 @@ const ProsumerList = () => {
                 variant="danger"
                 size="sm"
                 disabled={actionLoading}
-                onClick={() => setDeleteModal({ open: true, nic, name: row.name })}
+                onClick={() => setDeleteModal({ open: true, nic, name: row.name, error: '' })}
                 title="Delete Profile"
               >
                 <Trash2 size={14} />
@@ -357,13 +361,13 @@ const ProsumerList = () => {
       {/* Deactivate Modal */}
       <Modal
         isOpen={deactivateModal.open}
-        onClose={() => setDeactivateModal({ open: false, nic: '', name: '', reason: '' })}
+        onClose={() => setDeactivateModal({ open: false, nic: '', name: '', reason: '', error: '' })}
         title="Confirm Account Deactivation"
         footer={
           <>
             <Button
               variant="secondary"
-              onClick={() => setDeactivateModal({ open: false, nic: '', name: '', reason: '' })}
+              onClick={() => setDeactivateModal({ open: false, nic: '', name: '', reason: '', error: '' })}
             >
               Cancel
             </Button>
@@ -380,6 +384,17 @@ const ProsumerList = () => {
         <p style={{ marginBottom: 16 }}>
           Are you sure you want to deactivate the account for <strong>{deactivateModal.name}</strong> (NIC: {deactivateModal.nic})?
         </p>
+
+        {deactivateModal.error && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 8, padding: 12, marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10, color: '#fca5a5' }}>
+            <AlertTriangle size={18} color="var(--danger)" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <strong style={{ display: 'block', color: '#f87171', marginBottom: 2 }}>Deactivation Blocked</strong>
+              <span style={{ fontSize: '0.88rem' }}>{deactivateModal.error}</span>
+            </div>
+          </div>
+        )}
+
         <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '0.85rem' }}>
           Deactivation will temporarily suspend their energy trading capabilities. Accounts with active pending or confirmed reservations cannot be deactivated until reservations are completed.
         </div>
@@ -390,7 +405,7 @@ const ProsumerList = () => {
             rows="3"
             placeholder="e.g. Inverter maintenance, user request, grid inspection..."
             value={deactivateModal.reason}
-            onChange={(e) => setDeactivateModal({ ...deactivateModal, reason: e.target.value })}
+            onChange={(e) => setDeactivateModal({ ...deactivateModal, reason: e.target.value, error: '' })}
           />
         </div>
       </Modal>
@@ -398,13 +413,13 @@ const ProsumerList = () => {
       {/* Delete Modal */}
       <Modal
         isOpen={deleteModal.open}
-        onClose={() => setDeleteModal({ open: false, nic: '', name: '' })}
+        onClose={() => setDeleteModal({ open: false, nic: '', name: '', error: '' })}
         title="Delete Prosumer Profile"
         footer={
           <>
             <Button
               variant="secondary"
-              onClick={() => setDeleteModal({ open: false, nic: '', name: '' })}
+              onClick={() => setDeleteModal({ open: false, nic: '', name: '', error: '' })}
             >
               Cancel
             </Button>
@@ -421,6 +436,17 @@ const ProsumerList = () => {
         <p>
           Are you sure you want to permanently delete prosumer <strong>{deleteModal.name}</strong> (NIC: {deleteModal.nic})?
         </p>
+
+        {deleteModal.error && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 8, padding: 12, marginTop: 12, marginBottom: 12, display: 'flex', alignItems: 'flex-start', gap: 10, color: '#fca5a5' }}>
+            <AlertTriangle size={18} color="var(--danger)" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <strong style={{ display: 'block', color: '#f87171', marginBottom: 2 }}>Delete Blocked</strong>
+              <span style={{ fontSize: '0.88rem' }}>{deleteModal.error}</span>
+            </div>
+          </div>
+        )}
+
         <p style={{ color: 'var(--danger-color, var(--danger))', fontSize: '0.85rem', marginTop: 8 }}>
           This operation cannot be reversed.
         </p>
