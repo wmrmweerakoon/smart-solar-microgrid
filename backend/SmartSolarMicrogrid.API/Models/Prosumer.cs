@@ -34,6 +34,9 @@ namespace SmartSolarMicrogrid.API.Models
         [BsonElement("solarCapacity")]
         public double SolarCapacity { get; set; } // in kW
 
+        [BsonElement("passwordHash")]
+        public string PasswordHash { get; set; } = string.Empty;
+
         [BsonElement("activatedBy")]
         public string ActivatedBy { get; set; } = string.Empty;
 
@@ -88,6 +91,21 @@ namespace SmartSolarMicrogrid.API.Models
         public string Address { get; set; } = string.Empty;
         public string MicrogridNodeId { get; set; } = string.Empty;
         public double SolarCapacity { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for prosumer self-registration from mobile app.
+    /// </summary>
+    public class RegisterProsumerDto
+    {
+        public string Nic { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string MicrogridNodeId { get; set; } = string.Empty;
+        public double SolarCapacity { get; set; }
+        public string Password { get; set; } = string.Empty;
     }
 
     /// <summary>
