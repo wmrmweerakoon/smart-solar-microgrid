@@ -9,6 +9,7 @@ import {
   History,
   Bookmark,
   CheckSquare,
+  UserCheck,
   Sun,
   X
 } from 'lucide-react';
@@ -61,6 +62,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     {
       title: 'Administration',
       items: [
+        { path: '/users', icon: <UserCheck size={18} />, label: 'User Management', roles: ['Backoffice'] },
         { path: '/prosumers/pending', icon: <CheckSquare size={18} />, label: 'Pending Activations', roles: ['Backoffice'] },
       ],
     },

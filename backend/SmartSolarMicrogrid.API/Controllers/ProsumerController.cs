@@ -86,7 +86,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpPut("{nic}")]
-        [Authorize(Roles = "Backoffice,GridOperator")]
+        [Authorize(Roles = "Backoffice,GridOperator,Prosumer")]
         public async Task<IActionResult> Update(string nic, [FromBody] UpdateProsumerDto dto)
         {
             try
@@ -127,7 +127,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         /// Requires confirmation and checks for active reservations.
         /// </summary>
         [HttpPut("{nic}/deactivate")]
-        [Authorize(Roles = "Backoffice,GridOperator")]
+        [Authorize(Roles = "Backoffice,GridOperator,Prosumer")]
         public async Task<IActionResult> Deactivate(string nic, [FromBody] DeactivateProsumerDto? dto)
         {
             try

@@ -37,6 +37,9 @@ import BookingDetails from './pages/bookings/BookingDetails';
 import Reservations from './pages/reservations/Reservations';
 import ReservationDetails from './pages/reservations/ReservationDetails';
 
+// Administration Pages
+import UserManagement from './pages/admin/UserManagement';
+
 /**
  * Protected Route wrapper – redirects to login if not authenticated.
  * Optionally restricts access by role.
@@ -252,6 +255,9 @@ const App = () => {
       {/* Reservation Routes */}
       <Route path="/reservations" element={<ProtectedRoute><AuthenticatedLayout><Reservations /></AuthenticatedLayout></ProtectedRoute>} />
       <Route path="/reservations/:id" element={<ProtectedRoute><AuthenticatedLayout><ReservationDetails /></AuthenticatedLayout></ProtectedRoute>} />
+
+      {/* Administration Routes */}
+      <Route path="/users" element={<ProtectedRoute allowedRoles={['Backoffice']}><AuthenticatedLayout><UserManagement /></AuthenticatedLayout></ProtectedRoute>} />
 
       {/* Catch-all redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />

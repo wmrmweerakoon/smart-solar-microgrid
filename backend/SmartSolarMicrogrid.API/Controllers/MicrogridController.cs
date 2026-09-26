@@ -7,6 +7,7 @@ namespace SmartSolarMicrogrid.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class MicrogridController : ControllerBase
     {
         private readonly MicrogridService _service;
@@ -39,21 +40,38 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Create([FromBody] MicrogridNodeDto dto)
         {
-            var result = await _service.CreateNodeAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            try
+            {
+                var result = await _service.CreateNodeAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Update(string id, [FromBody] MicrogridNodeDto dto)
         {
-            var result = await _service.UpdateNodeAsync(id, dto);
-            if (result == null) return NotFound(new { message = "Microgrid node not found." });
-            return Ok(result);
+            try
+            {
+                var result = await _service.UpdateNodeAsync(id, dto);
+                if (result == null) return NotFound(new { message = "Microgrid node not found." });
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> Delete(string id)
         {
             var success = await _service.DeleteNodeAsync(id);
@@ -65,9 +83,16 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Deactivate(string id)
         {
-            var updatedNode = await _service.DeactivateNodeAsync(id);
-            if (updatedNode == null) return NotFound(new { message = "Node not found." });
-            return Ok(updatedNode);
+            try
+            {
+                var updatedNode = await _service.DeactivateNodeAsync(id);
+                if (updatedNode == null) return NotFound(new { message = "Node not found." });
+                return Ok(updatedNode);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

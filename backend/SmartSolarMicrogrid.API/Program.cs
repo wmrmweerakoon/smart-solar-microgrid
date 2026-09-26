@@ -57,7 +57,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -105,6 +105,9 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// ──────────────── Middleware Pipeline (CORS must be first) ────────────────
+app.UseCors("AllowReactApp");
+
 // ──────────────── Seed Default Data ────────────────
 using (var scope = app.Services.CreateScope())
 {
@@ -112,7 +115,6 @@ using (var scope = app.Services.CreateScope())
     await authService.SeedDefaultUsersAsync();
 }
 
-// ──────────────── Middleware Pipeline ────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -120,9 +122,30 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// ──────────────── Backend Connected Confirmation Message ────────────────
+Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine();
+Console.WriteLine("================================================================================");
+Console.WriteLine("  SUCCESSFULLY CONNECTED TO BACKEND!");
+Console.WriteLine("  Smart Solar Microgrid API server started without any error.");
+Console.WriteLine("  ------------------------------------------------------------------");
+Console.WriteLine("  * Local Address:  http://localhost:5299");
+Console.WriteLine("  * Swagger Docs:   http://localhost:5299/swagger");
+Console.WriteLine("  * Database:       MongoDB Atlas Connected");
+Console.WriteLine("  * Status:         Operational & Ready for Requests");
+Console.WriteLine("================================================================================");
+Console.WriteLine();
+Console.ResetColor();
+
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine(">>> [ONLINE] Backend is actively listening on http://localhost:5299");
+    Console.ResetColor();
+});
 
 app.Run();

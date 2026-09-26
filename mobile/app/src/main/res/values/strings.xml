@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Smart Solar Microgrid</string>
+    <string name="tagline">Peer-to-Peer Clean Energy Trading</string>
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Sign in to trade solar energy or manage your grid node</string>
+    <string name="username_or_nic_hint">Username or NIC</string>
+    <string name="password_hint">Password</string>
+    <string name="sign_in_btn">Sign In</string>
+    <string name="no_account_text">Don't have an account?</string>
+    <string name="register_as_prosumer_btn">Register as Prosumer</string>
+    <string name="prosumer_home_title">Prosumer Dashboard</string>
+    <string name="operator_home_title">Grid Operator Console</string>
+    <string name="logout_btn">Sign Out</string>
+    <string name="refresh_btn">Refresh</string>
+</resources>

@@ -33,6 +33,7 @@ const ProsumerDetails = () => {
   // Deactivate modal
   const [deactivateModal, setDeactivateModal] = useState(false);
   const [deactivateReason, setDeactivateReason] = useState('');
+  const [deactivateError, setDeactivateError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -71,9 +72,12 @@ const ProsumerDetails = () => {
       setAlert({ type: 'success', message: 'Prosumer account deactivated.' });
       setDeactivateModal(false);
       setDeactivateReason('');
+      setDeactivateError('');
       await fetchDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to deactivate prosumer.' });
+      const msg = err.response?.data?.message || 'Failed to deactivate prosumer.';
+      setDeactivateError(msg);
+      setAlert({ type: 'error', message: msg });
     } finally {
       setActionLoading(false);
     }
@@ -170,7 +174,7 @@ const ProsumerDetails = () => {
       )}
 
       {/* Grid of Profile Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
+      <div className="details-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 24 }}>
         
         {/* Personal & Contact Details */}
         <div className="card">
@@ -339,11 +343,11 @@ const ProsumerDetails = () => {
       {/* Deactivate Modal */}
       <Modal
         isOpen={deactivateModal}
-        onClose={() => setDeactivateModal(false)}
+        onClose={() => { setDeactivateModal(false); setDeactivateError(''); }}
         title="Confirm Account Deactivation"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setDeactivateModal(false)}>
+            <Button variant="secondary" onClick={() => { setDeactivateModal(false); setDeactivateError(''); }}>
               Cancel
             </Button>
             <Button variant="danger" loading={actionLoading} onClick={handleDeactivate}>
@@ -355,6 +359,17 @@ const ProsumerDetails = () => {
         <p style={{ marginBottom: 12 }}>
           Are you sure you want to deactivate the account for <strong>{prosumer.name}</strong> (NIC: {nic})?
         </p>
+
+        {deactivateError && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 8, padding: 12, marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10, color: '#fca5a5' }}>
+            <AlertTriangle size={18} color="var(--danger)" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <strong style={{ display: 'block', color: '#f87171', marginBottom: 2 }}>Deactivation Blocked</strong>
+              <span style={{ fontSize: '0.88rem' }}>{deactivateError}</span>
+            </div>
+          </div>
+        )}
+
         <div className="form-group">
           <label className="form-label">Deactivation Reason</label>
           <textarea
@@ -362,7 +377,7 @@ const ProsumerDetails = () => {
             rows="3"
             placeholder="State the reason for deactivation..."
             value={deactivateReason}
-            onChange={(e) => setDeactivateReason(e.target.value)}
+            onChange={(e) => { setDeactivateReason(e.target.value); setDeactivateError(''); }}
           />
         </div>
       </Modal>
