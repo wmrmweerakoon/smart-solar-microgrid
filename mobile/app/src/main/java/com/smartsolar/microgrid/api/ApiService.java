@@ -49,11 +49,17 @@ public interface ApiService {
     @GET("reservation/{id}")
     Call<ReservationDto> getReservationById(@Path("id") String id);
 
+    @GET("reservation/{id}/details")
+    Call<ReservationDetailsDto> getReservationDetails(@Path("id") String id);
+
+    @GET("reservation/status/{status}")
+    Call<List<ReservationDto>> getReservationsByStatus(@Path("status") String status);
+
     @POST("reservation")
-    Call<ReservationDto> createReservation(@Body Object request);
+    Call<ReservationDto> createReservation(@Body CreateReservationRequest request);
 
     @PUT("reservation/{id}")
-    Call<ReservationDto> updateReservation(@Path("id") String id, @Body Object request);
+    Call<ReservationDto> updateReservation(@Path("id") String id, @Body UpdateReservationRequest request);
 
     @PUT("reservation/{id}/cancel")
     Call<ResponseBody> cancelReservation(@Path("id") String id);

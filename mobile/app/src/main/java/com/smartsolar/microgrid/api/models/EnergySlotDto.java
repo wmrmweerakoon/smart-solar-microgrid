@@ -1,6 +1,9 @@
 package com.smartsolar.microgrid.api.models;
 
-public class EnergySlotDto {
+import com.google.gson.annotations.SerializedName;
+import java.io.Serializable;
+
+public class EnergySlotDto implements Serializable {
     private String id;
     private String microgridNodeId;
     private String prosumerId;
@@ -8,7 +11,10 @@ public class EnergySlotDto {
     private String startTime;
     private String endTime;
     private double energyAmount;
-    private double pricePerKWh;
+
+    @SerializedName(value = "pricePerUnit", alternate = {"pricePerKWh"})
+    private double pricePerUnit;
+
     private String status;
 
     public String getId() { return id; }
@@ -18,6 +24,7 @@ public class EnergySlotDto {
     public String getStartTime() { return startTime; }
     public String getEndTime() { return endTime; }
     public double getEnergyAmount() { return energyAmount; }
-    public double getPricePerKWh() { return pricePerKWh; }
+    public double getPricePerUnit() { return pricePerUnit; }
+    public double getPricePerKWh() { return pricePerUnit; }
     public String getStatus() { return status; }
 }
