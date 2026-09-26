@@ -37,3 +37,14 @@ pnpm-debug.log*
 Thumbs.db
 [Dd]esktop.ini
 .DS_Store
+
+# Android / Gradle
+.gradle/
+**/build/
+*.iml
+local.properties
+.navigation/
+captures/
+output.json
+*.apk
+*.aab
