@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Google Maps API Key for Smart Solar Microgrid.
+      Provides access to Google Maps Android SDK and Places API.
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDemoMicrogridKeyForGoogleMaps_SE4040</string>
+</resources>
