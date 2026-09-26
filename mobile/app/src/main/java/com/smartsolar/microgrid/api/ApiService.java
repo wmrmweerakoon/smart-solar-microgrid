@@ -82,6 +82,9 @@ public interface ApiService {
         @Query("prosumerId") String prosumerId
     );
 
+    @GET("booking/{id}/details")
+    Call<BookingDetailsDto> getBookingDetails(@Path("id") String id);
+
     @PUT("booking/{id}/confirm")
     Call<ResponseBody> confirmBooking(@Path("id") String id);
 

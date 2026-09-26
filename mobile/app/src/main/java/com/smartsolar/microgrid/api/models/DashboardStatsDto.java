@@ -1,37 +1,45 @@
 package com.smartsolar.microgrid.api.models;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class DashboardStatsDto {
-    private int totalProsumers;
-    private int activeProsumers;
-    private int totalMicrogridNodes;
-    private int activeMicrogridNodes;
-    private int totalEnergySlots;
-    private int availableEnergySlots;
-    private int totalReservations;
-    private int pendingReservations;
-    private int approvedFutureReservations;
-    private int currentBookings;
-    private int pendingBookings;
-    private int completedBookings;
+public class DashboardStatsDto implements Serializable {
+    private long totalProsumers;
+    private long pendingProsumers;
+    private long activeProsumers;
+
+    private long totalNodes;
+    private long activeNodes;
+
+    private long totalEnergySlots;
+    private long availableSlots;
+
+    private long currentBookings;
+    private long pendingBookings;
+    private long completedBookings;
+
+    private long totalReservations;
+    private long pendingReservations;
+    private long approvedFutureReservations;
+
     private double totalEnergyTradedKWh;
-    private double totalRevenueUSD;
+    private double totalRevenueTraded;
     private List<BookingDto> recentBookings;
 
-    public int getTotalProsumers() { return totalProsumers; }
-    public int getActiveProsumers() { return activeProsumers; }
-    public int getTotalMicrogridNodes() { return totalMicrogridNodes; }
-    public int getActiveMicrogridNodes() { return activeMicrogridNodes; }
-    public int getTotalEnergySlots() { return totalEnergySlots; }
-    public int getAvailableEnergySlots() { return availableEnergySlots; }
-    public int getTotalReservations() { return totalReservations; }
-    public int getPendingReservations() { return pendingReservations; }
-    public int getApprovedFutureReservations() { return approvedFutureReservations; }
-    public int getCurrentBookings() { return currentBookings; }
-    public int getPendingBookings() { return pendingBookings; }
-    public int getCompletedBookings() { return completedBookings; }
+    public long getTotalProsumers() { return totalProsumers; }
+    public long getPendingProsumers() { return pendingProsumers; }
+    public long getActiveProsumers() { return activeProsumers; }
+    public long getTotalNodes() { return totalNodes; }
+    public long getActiveNodes() { return activeNodes; }
+    public long getTotalEnergySlots() { return totalEnergySlots; }
+    public long getAvailableSlots() { return availableSlots; }
+    public long getCurrentBookings() { return currentBookings; }
+    public long getPendingBookings() { return pendingBookings; }
+    public long getCompletedBookings() { return completedBookings; }
+    public long getTotalReservations() { return totalReservations; }
+    public long getPendingReservations() { return pendingReservations; }
+    public long getApprovedFutureReservations() { return approvedFutureReservations; }
     public double getTotalEnergyTradedKWh() { return totalEnergyTradedKWh; }
-    public double getTotalRevenueUSD() { return totalRevenueUSD; }
+    public double getTotalRevenueTraded() { return totalRevenueTraded; }
     public List<BookingDto> getRecentBookings() { return recentBookings; }
 }
