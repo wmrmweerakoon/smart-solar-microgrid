@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * BookingAdapter — RecyclerView adapter for rendering booking items across current, pending, and history lists.
+ * Component: Member 3 (Nethum) — Booking RecyclerView Adapter
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingViewHolder> {
 
     public interface OnBookingClickListener {

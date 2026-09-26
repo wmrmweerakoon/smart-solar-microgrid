@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * EnergySlotAdapter — RecyclerView adapter for displaying available energy slots in card views.
+ * Component: Member 2 (Dilani) — Energy Slot UI Adapter
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class EnergySlotAdapter extends RecyclerView.Adapter<EnergySlotAdapter.SlotViewHolder> {
 
     public interface OnSlotClickListener {

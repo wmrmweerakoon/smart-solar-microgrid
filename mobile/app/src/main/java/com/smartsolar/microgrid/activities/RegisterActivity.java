@@ -18,6 +18,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * RegisterActivity — Prosumer self-registration interface with NIC and capacity input.
+ * Component: Member 1 (Ruvishan) — Account Registration
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText etNic, etFullName, etEmail, etPhone, etAddress, etSolarCapacity, etPassword, etConfirmPassword;

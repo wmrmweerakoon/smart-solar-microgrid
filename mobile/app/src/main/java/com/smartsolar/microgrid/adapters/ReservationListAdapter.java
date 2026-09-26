@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * ReservationListAdapter — RecyclerView adapter for prosumer personal reservation list with status badges.
+ * Component: Member 2 (Dilani) — Reservation List UI Adapter
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class ReservationListAdapter extends RecyclerView.Adapter<ReservationListAdapter.ReservationViewHolder> {
 
     public interface OnReservationActionListener {

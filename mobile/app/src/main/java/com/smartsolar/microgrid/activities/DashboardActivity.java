@@ -18,6 +18,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * DashboardActivity — Microgrid telemetry dashboard displaying approved future and pending reservation counters.
+ * Component: Member 3 (Nethum) — Microgrid Telemetry Dashboard
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class DashboardActivity extends AppCompatActivity implements BookingAdapter.OnBookingClickListener {
 
     private TextView tvApprovedFuture, tvPendingReservations, tvCurrentBookings, tvPendingBookings, tvCompletedBookings, tvTotalEnergy;

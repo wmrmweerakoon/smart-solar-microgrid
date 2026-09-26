@@ -19,6 +19,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * BookingHistoryActivity — Historical log view of completed and cancelled energy bookings with chip filters.
+ * Component: Member 3 (Nethum) — Booking History Audit
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class BookingHistoryActivity extends AppCompatActivity implements BookingAdapter.OnBookingClickListener {
 
     private RecyclerView rvBookings;

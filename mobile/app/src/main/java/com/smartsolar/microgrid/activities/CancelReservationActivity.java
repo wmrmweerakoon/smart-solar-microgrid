@@ -17,6 +17,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * CancelReservationActivity — Reservation cancellation workflow with advance notice check and confirmation.
+ * Component: Member 2 (Dilani) — Cancel Reservation Workflow
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class CancelReservationActivity extends AppCompatActivity {
 
     private TextView tvReservationId, tvDetails, tvNoticeText;

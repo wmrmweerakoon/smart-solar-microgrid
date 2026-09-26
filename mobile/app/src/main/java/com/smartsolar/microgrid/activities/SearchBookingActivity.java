@@ -19,6 +19,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * SearchBookingActivity — Multi-criteria booking search activity with query, status, station, and prosumer filters.
+ * Component: Member 3 (Nethum) — Multi-criteria Search & Filter
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class SearchBookingActivity extends AppCompatActivity implements BookingAdapter.OnBookingClickListener {
 
     private EditText etKeyword, etProsumerId;

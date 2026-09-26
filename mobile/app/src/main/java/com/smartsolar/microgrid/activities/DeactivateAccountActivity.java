@@ -17,6 +17,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * DeactivateAccountActivity — Prosumer account deactivation workflow with active reservation blocking checks.
+ * Component: Member 1 (Ruvishan) — Account Deactivation
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class DeactivateAccountActivity extends AppCompatActivity {
 
     private EditText etDeactivateReason;

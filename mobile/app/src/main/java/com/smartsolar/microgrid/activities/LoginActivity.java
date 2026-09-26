@@ -20,6 +20,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * LoginActivity — Authentication screen for Prosumers and Grid Operators.
+ * Component: Member 1 (Ruvishan) — Authentication & Session Management
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername;

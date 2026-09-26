@@ -22,6 +22,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * AvailableSlotsActivity — Browsing interface for available energy slots with station filter.
+ * Component: Member 2 (Dilani) — Energy Slot Reservation
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class AvailableSlotsActivity extends AppCompatActivity implements EnergySlotAdapter.OnSlotClickListener {
 
     private EditText etSearchSlot;

@@ -17,6 +17,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * UpdateReservationActivity — Reservation update screen with 12-hour notice lockout validation.
+ * Component: Member 2 (Dilani) — Update Reservation Workflow
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class UpdateReservationActivity extends AppCompatActivity {
 
     private TextView tvNoticeText, tvReservationId, tvSlotSchedule, tvCurrentAmount;

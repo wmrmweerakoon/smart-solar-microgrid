@@ -20,6 +20,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * MyReservationsActivity — Prosumer personal energy reservation management screen with status tabs.
+ * Component: Member 3 (Nethum) — My Reservations Management
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class MyReservationsActivity extends AppCompatActivity implements ReservationListAdapter.OnReservationActionListener {
 
     private RecyclerView rvReservations;

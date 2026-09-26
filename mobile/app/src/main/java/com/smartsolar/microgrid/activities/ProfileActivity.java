@@ -19,6 +19,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * ProfileActivity — Prosumer profile viewing and profile update interface.
+ * Component: Member 1 (Ruvishan) — Account Management
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class ProfileActivity extends AppCompatActivity {
 
     private TextView tvDisplayName, tvDisplayNic, tvStatusBadge;

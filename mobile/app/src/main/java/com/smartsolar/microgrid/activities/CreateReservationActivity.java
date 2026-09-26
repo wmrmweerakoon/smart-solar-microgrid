@@ -20,6 +20,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * CreateReservationActivity — Reservation creation workflow enforcing 7-day rule and anti-self-trading checks.
+ * Component: Member 2 (Dilani) — Create Reservation Workflow
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class CreateReservationActivity extends AppCompatActivity {
 
     private TextView tvSellerInfo, tvNodeInfo, tvTimeWindow, tvMaxCapacity, tvRate, tvEstimatedTotal;

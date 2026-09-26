@@ -13,6 +13,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * ReservationSummaryActivity — Transaction summary receipt screen displaying booking reference and QR shortcut.
+ * Component: Member 2 (Dilani) — Transaction Summary Receipt
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class ReservationSummaryActivity extends AppCompatActivity {
 
     private TextView tvActionIcon, tvActionTitle, tvActionSubtitle, tvStatusBadge;

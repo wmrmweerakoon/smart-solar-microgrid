@@ -18,6 +18,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * CurrentBookingsActivity — Operator view of active ongoing energy transfers in real-time.
+ * Component: Member 3 (Nethum) — Current Active Bookings
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class CurrentBookingsActivity extends AppCompatActivity implements BookingAdapter.OnBookingClickListener {
 
     private RecyclerView rvBookings;

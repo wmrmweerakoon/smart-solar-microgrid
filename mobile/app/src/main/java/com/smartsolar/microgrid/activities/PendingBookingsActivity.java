@@ -18,6 +18,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * PendingBookingsActivity — Operator view for reviewing and confirming pending energy reservations.
+ * Component: Member 3 (Nethum) — Pending Bookings Workflow
+ * Aligned with SE4040 Native Android Microgrid Architecture.
+ */
 public class PendingBookingsActivity extends AppCompatActivity implements BookingAdapter.OnBookingClickListener {
 
     private RecyclerView rvBookings;
