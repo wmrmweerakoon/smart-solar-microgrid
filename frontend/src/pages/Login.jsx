@@ -1,9 +1,10 @@
-import { AlertTriangle, LogIn, Sun, Shield, Lock, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, LogIn, Shield, Lock, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
 import { setAuth } from '../utils/auth';
 import Button from '../components/Button';
+import logo from '../assets/logo.png';
 
 /**
  * Login page with premium glassmorphism card design.
@@ -57,8 +58,8 @@ const Login = () => {
 
       <div className="login-glass-card">
         <div className="login-header">
-          <div className="login-logo-icon">
-            <Sun size={28} color="var(--primary)" />
+          <div className="login-logo-icon" style={{ background: 'transparent' }}>
+            <img src={logo} alt="Smart Solar Microgrid" style={{ width: 64, height: 64, objectFit: 'contain' }} />
           </div>
           <h1>Smart Solar Microgrid</h1>
           <p>Secure System Access</p>

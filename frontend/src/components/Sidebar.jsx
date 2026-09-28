@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { getRole } from '../utils/auth';
+import logo from '../assets/logo.png';
 
 /**
  * Sidebar navigation component with role-based menu items and mobile responsiveness.
@@ -82,7 +83,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="sidebar-logo"><Sun size={24} color="var(--primary)" /></div>
+            <div className="sidebar-logo">
+              <img src={logo} alt="Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+            </div>
             <div>
               <div className="sidebar-title">Smart Solar</div>
               <div className="sidebar-subtitle">Microgrid System</div>

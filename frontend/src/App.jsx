@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Sun, LogIn, Shield, Zap, Globe, ArrowRight, Activity, Battery, Server } from 'lucide-react';
+import { LogIn, Shield, Zap, Globe, ArrowRight, Activity, Battery, Server } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { isAuthenticated, getRole } from './utils/auth';
+import logo from './assets/logo.png';
 
 // Layout Components
 import Navbar from './components/Navbar';
@@ -92,7 +93,7 @@ const LandingPage = () => {
       {/* Floating Navbar */}
       <nav className="landing-navbar">
         <div className="landing-brand">
-          <Sun size={24} color="var(--primary)" />
+          <img src={logo} alt="Smart Solar Microgrid" style={{ width: 34, height: 34, objectFit: 'contain' }} />
           <span>Smart Solar</span>
         </div>
         

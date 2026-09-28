@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { Sun, LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import { getUser, getRole, logout } from '../utils/auth';
+import logo from '../assets/logo.png';
 
 /**
  * Top navigation bar with user info, role badge, mobile sidebar toggle, and logout.
@@ -31,7 +32,9 @@ const Navbar = ({ onToggleSidebar }) => {
         </button>
 
         <div className="navbar-brand">
-          <span className="brand-icon"><Sun size={20} color="var(--primary)" /></span>
+          <span className="brand-icon">
+            <img src={logo} alt="Smart Solar Microgrid" style={{ width: 28, height: 28, objectFit: 'contain', verticalAlign: 'middle' }} />
+          </span>
           <span className="brand-text">Smart Solar Microgrid</span>
         </div>
       </div>

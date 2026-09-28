@@ -35,7 +35,8 @@ if (-not (Test-Path $apkPath)) {
 
 # 4. Install & Launch
 Write-Host "[3/3] Installing and launching app on your phone..." -ForegroundColor Yellow
-adb -d install -r "$apkPath"
+adb -d push "$apkPath" /data/local/tmp/app.apk
+adb -d shell cmd package install -r /data/local/tmp/app.apk
 adb -d shell monkey -p com.smartsolar.microgrid -c android.intent.category.LAUNCHER 1
 
 Write-Host ""

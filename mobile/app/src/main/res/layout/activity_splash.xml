@@ -12,33 +12,42 @@
         android:orientation="vertical">
 
         <ImageView
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:id="@+id/ivSplashLogo"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
             android:contentDescription="Smart Solar Microgrid Logo"
             android:src="@drawable/ic_solar_logo" />
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/llSplashText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Smart Solar Microgrid"
-            android:textColor="@color/text_primary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:gravity="center"
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Peer-to-Peer Clean Energy Trading"
-            android:textColor="@color/solar_gold"
-            android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Smart Solar Microgrid"
+                android:textColor="@color/text_primary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
-        <ProgressBar
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginTop="28dp"
-            android:indeterminateTint="@color/solar_gold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Peer-to-Peer Clean Energy Trading"
+                android:textColor="@color/solar_gold"
+                android:textSize="14sp" />
+
+            <ProgressBar
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="28dp"
+                android:indeterminateTint="@color/solar_gold" />
+        </LinearLayout>
     </LinearLayout>
 
     <TextView
