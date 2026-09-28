@@ -113,12 +113,10 @@ public class BookingDetailsActivity extends AppCompatActivity {
         tvSchedule.setText(String.format("📅 Delivery: %s (%s - %s)", date, b.getStartTime(), b.getEndTime()));
         tvStation.setText(String.format("Station: %s (%s)", b.getMicrogridNodeName(), b.getMicrogridLocation()));
 
-        tvSellerDetails.setText(String.format("Seller: %s (%s)
-Email: %s | Phone: %s",
+        tvSellerDetails.setText(String.format("Seller: %s (%s)\nEmail: %s | Phone: %s",
                 b.getSellerName(), b.getSellerProsumerId(), b.getSellerEmail(), b.getSellerPhone()));
 
-        tvBuyerDetails.setText(String.format("Buyer: %s (%s)
-Email: %s | Phone: %s",
+        tvBuyerDetails.setText(String.format("Buyer: %s (%s)\nEmail: %s | Phone: %s",
                 b.getBuyerName(), b.getBuyerProsumerId(), b.getBuyerEmail(), b.getBuyerPhone()));
 
         tvNotes.setText("Notes: " + (b.getNotes() != null && !b.getNotes().isEmpty() ? b.getNotes() : "Standard Microgrid Delivery"));

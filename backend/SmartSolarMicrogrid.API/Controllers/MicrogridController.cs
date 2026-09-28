@@ -18,6 +18,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var nodes = await _service.GetAllNodesAsync();
@@ -25,6 +26,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(string id)
         {
             var node = await _service.GetNodeByIdAsync(id);

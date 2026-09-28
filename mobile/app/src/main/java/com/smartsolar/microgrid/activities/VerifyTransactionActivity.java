@@ -179,8 +179,8 @@ public class VerifyTransactionActivity extends AppCompatActivity {
     private void handleReservationSuccess(ReservationDetailsDto res) {
         serverCurrentStatus = res.getStatus() != null ? res.getStatus() : "";
 
-        String buyerName = res.getBuyerProsumer() != null ? res.getBuyerProsumer().getFullName() : res.getBuyerProsumerId();
-        String contact = res.getBuyerProsumer() != null ? res.getBuyerProsumer().getPhone() : "--";
+        String buyerName = res.getBuyerName() != null ? res.getBuyerName() : res.getBuyerProsumerId();
+        String contact = res.getBuyerPhone() != null ? res.getBuyerPhone() : "--";
 
         tvServerBuyerName.setText("Buyer: " + (buyerName != null ? buyerName : res.getBuyerProsumerId()));
         tvServerContact.setText("Contact: " + contact);
