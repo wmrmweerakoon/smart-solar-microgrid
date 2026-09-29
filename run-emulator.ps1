@@ -3,20 +3,35 @@ Write-Host "==========================================================" -Foregro
 Write-Host "  SMART SOLAR MICROGRID - LAUNCH ON EMULATOR             " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-# 1. Check if an emulator is already running and online
+# 1. Check if an emulator is already running with a visible GUI window
 $onlineDevice = adb devices | Select-String -Pattern "emulator-.*?\bdevice\b"
+$qemu = Get-Process -Name *qemu* -ErrorAction SilentlyContinue
+
+# If an emulator is running headless/invisible in the background, terminate it so it can start with GUI
+if ($qemu -and ($qemu.MainWindowHandle -eq 0 -or -not $onlineDevice)) {
+    Write-Host "      Detected background/invisible emulator. Restarting with GUI window..." -ForegroundColor Yellow
+    Stop-Process -Name *emulator*, *qemu* -Force -ErrorAction SilentlyContinue
+    adb kill-server
+    Start-Sleep -Seconds 1
+    $onlineDevice = $null
+}
+
 if (-not $onlineDevice) {
     # If there is a frozen/offline emulator process, terminate it first
     $stuck = adb devices | Select-String -Pattern "emulator-.*?\boffline\b"
     if ($stuck) {
-        Write-Host "      Detected frozen/offline emulator. Restarting adb and cleaning up..." -ForegroundColor Yellow
+        Write-Host "      Detected frozen/offline emulator. Cleaning up..." -ForegroundColor Yellow
         Stop-Process -Name *emulator*, *qemu* -Force -ErrorAction SilentlyContinue
         adb kill-server
         Start-Sleep -Seconds 1
     }
 
+    $emuExe = "emulator"
+    $sdkEmu = "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe"
+    if (Test-Path $sdkEmu) { $emuExe = $sdkEmu }
+
     Write-Host "[1/4] Starting Android Emulator (Medium_Phone_API_36)..." -ForegroundColor Yellow
-    Start-Process -FilePath "emulator" -ArgumentList "-avd", "Medium_Phone_API_36" -WindowStyle Normal
+    Start-Process -FilePath $emuExe -ArgumentList "-avd", "Medium_Phone_API_36" -WindowStyle Normal
 
     Write-Host "      Waiting for emulator to boot up (this may take ~20-30s)..." -ForegroundColor Yellow
     adb wait-for-device

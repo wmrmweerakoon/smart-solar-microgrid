@@ -72,10 +72,9 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <!-- Google Map Container -->
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/mapFragment"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <!-- Google Map Container (Dynamically attached) -->
+    <FrameLayout
+        android:id="@+id/mapContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/tvOfflineBanner" />

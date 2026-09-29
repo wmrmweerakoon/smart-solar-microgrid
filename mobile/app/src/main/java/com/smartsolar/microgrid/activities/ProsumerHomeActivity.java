@@ -58,15 +58,21 @@ public class ProsumerHomeActivity extends AppCompatActivity {
         String nic = sessionManager.getNic();
         tvNic.setText(nic != null && !nic.trim().isEmpty() ? "NIC: " + nic : "NIC: Verified");
 
-        btnProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
-        btnViewSlots.setOnClickListener(v -> startActivity(new Intent(this, AvailableSlotsActivity.class)));
-        btnMyReservations.setOnClickListener(v -> startActivity(new Intent(this, MyReservationsActivity.class)));
-        btnNearbyNodes.setOnClickListener(v -> startActivity(new Intent(this, MapActivity.class)));
+        btnProfile.setOnClickListener(v -> navigateTo(ProfileActivity.class));
+        btnViewSlots.setOnClickListener(v -> navigateTo(AvailableSlotsActivity.class));
+        btnMyReservations.setOnClickListener(v -> navigateTo(MyReservationsActivity.class));
+        btnNearbyNodes.setOnClickListener(v -> navigateTo(MapActivity.class));
         if (btnDashboard != null) {
-            btnDashboard.setOnClickListener(v -> startActivity(new Intent(this, DashboardActivity.class)));
+            btnDashboard.setOnClickListener(v -> navigateTo(DashboardActivity.class));
         }
 
         btnLogout.setOnClickListener(v -> executeLogout());
+    }
+
+    private void navigateTo(Class<?> targetActivity) {
+        Intent intent = new Intent(this, targetActivity);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
     }
 
     /**
@@ -76,19 +82,19 @@ public class ProsumerHomeActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_dashboard) {
-                startActivity(new Intent(this, DashboardActivity.class));
+                navigateTo(DashboardActivity.class);
                 return true;
             } else if (id == R.id.nav_slots) {
-                startActivity(new Intent(this, AvailableSlotsActivity.class));
+                navigateTo(AvailableSlotsActivity.class);
                 return true;
             } else if (id == R.id.nav_reservations) {
-                startActivity(new Intent(this, MyReservationsActivity.class));
+                navigateTo(MyReservationsActivity.class);
                 return true;
             } else if (id == R.id.nav_map) {
-                startActivity(new Intent(this, MapActivity.class));
+                navigateTo(MapActivity.class);
                 return true;
             } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, ProfileActivity.class));
+                navigateTo(ProfileActivity.class);
                 return true;
             }
             return false;

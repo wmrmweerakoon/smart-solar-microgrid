@@ -13,6 +13,7 @@
         android:required="false" />
 
     <application
+        android:name=".SmartSolarApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -20,7 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartSolarMicrogrid"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:largeHeap="true"
+        android:hardwareAccelerated="true">
 
         <!-- Google Maps API Key Meta-data (Phase 5 - Member 4) -->
         <meta-data
@@ -62,16 +65,19 @@
         <!-- Role-based Home Activities -->
         <activity
             android:name=".activities.ProsumerHomeActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
 
         <activity
             android:name=".activities.OperatorHomeActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
 
         <!-- Reservation Workflow (Phase 3 - Member 2) -->
         <activity
             android:name=".activities.AvailableSlotsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
 
         <activity
             android:name=".activities.CreateReservationActivity"
@@ -94,7 +100,8 @@
         <!-- Dashboard & Booking Views (Phase 4 - Member 3) -->
         <activity
             android:name=".activities.DashboardActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
 
         <activity
             android:name=".activities.CurrentBookingsActivity"
@@ -119,12 +126,14 @@
 
         <activity
             android:name=".activities.MyReservationsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
 
         <!-- QR Code & Google Maps Integration (Phase 5 - Member 4) -->
         <activity
             android:name=".activities.MapActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
 
         <activity
             android:name=".activities.QrGeneratorActivity"

@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.*;
 import androidx.annotation.NonNull;
@@ -17,6 +19,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -34,6 +37,8 @@ import com.smartsolar.microgrid.utils.NetworkUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -55,6 +60,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // Default microgrid coordinates (Sri Lanka - Western Province Microgrid Cluster)
     private static final double DEFAULT_LAT = 6.9271;
     private static final double DEFAULT_LNG = 79.8612;
+
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationClient;
@@ -156,10 +163,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
      * Obtains the SupportMapFragment and requests Google Map instance asynchronously.
      */
     private void setupMapFragment() {
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapFragment);
-        if (mapFragment != null) {
+        // Pre-initialize with LEGACY renderer to avoid runtime dynamic bytecode verification delays
+        try {
+            MapsInitializer.initialize(getApplicationContext(), MapsInitializer.Renderer.LEGACY, null);
+        } catch (Exception ignored) {}
+
+        // Post dynamically so the activity transition and window focus complete instantly without ANR
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapContainer);
+            if (mapFragment == null) {
+                mapFragment = SupportMapFragment.newInstance();
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.mapContainer, mapFragment)
+                        .commitAllowingStateLoss();
+            }
             mapFragment.getMapAsync(this);
-        }
+        });
     }
 
     @Override
@@ -203,12 +223,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-            if (location != null) {
-                currentUserLocation = location;
-                recalculateDistances();
-            }
-        });
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        currentUserLocation = location;
+                        recalculateDistances();
+                    }
+                })
+                .addOnFailureListener(this, e -> {
+                    // Fail silently to prevent ANR/freeze if Google Play Services is slow
+                });
     }
 
     /**
@@ -232,8 +256,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 if (response.isSuccessful() && response.body() != null) {
                     stationList.clear();
                     stationList.addAll(response.body());
-                    // Cache to SQLite
-                    nodeDao.saveAll(stationList);
+                    // Cache to SQLite in background thread
+                    List<MicrogridNodeDto> copy = new ArrayList<>(stationList);
+                    dbExecutor.execute(() -> nodeDao.saveAll(copy));
                     plotStationsOnMap();
                 } else {
                     loadStationsFromCache();
@@ -252,20 +277,24 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
      * Offline fallback: reads cached nodes from SQLite and renders them on map.
      */
     private void loadStationsFromCache() {
-        progressBar.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
         tvOfflineBanner.setVisibility(View.VISIBLE);
 
-        List<MicrogridNodeDto> cached = nodeDao.getAllNodes();
-        if (!cached.isEmpty()) {
-            stationList.clear();
-            stationList.addAll(cached);
-            plotStationsOnMap();
-            Toast.makeText(this, "Loaded " + cached.size() + " stations from local cache", Toast.LENGTH_SHORT).show();
-        } else {
-            // If cache is empty as well, add default microgrid demo stations
-            populateDefaultDemoStations();
-            plotStationsOnMap();
-        }
+        dbExecutor.execute(() -> {
+            List<MicrogridNodeDto> cached = nodeDao.getAllNodes();
+            runOnUiThread(() -> {
+                progressBar.setVisibility(View.GONE);
+                if (!cached.isEmpty()) {
+                    stationList.clear();
+                    stationList.addAll(cached);
+                    plotStationsOnMap();
+                    Toast.makeText(MapActivity.this, "Loaded " + cached.size() + " stations from local cache", Toast.LENGTH_SHORT).show();
+                } else {
+                    // If cache is empty as well, add default microgrid demo stations
+                    populateDefaultDemoStations();
+                }
+            });
+        });
     }
 
     /**
@@ -278,7 +307,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         stationList.add(new MicrogridNodeDto("node_dehiwala", "Dehiwala Renewable Grid Node", "Dehiwala", 60.0, 6.8511, 79.8659, 4, "Maintenance"));
         stationList.add(new MicrogridNodeDto("node_kaduwela", "Kaduwela Solar Battery Park", "Kaduwela", 150.0, 6.9328, 79.9836, 8, "Active"));
         stationList.add(new MicrogridNodeDto("node_moratuwa", "Moratuwa University Solar Station", "Moratuwa", 95.0, 6.7969, 79.9018, 5, "Active"));
-        nodeDao.saveAll(stationList);
+        
+        List<MicrogridNodeDto> copy = new ArrayList<>(stationList);
+        dbExecutor.execute(() -> nodeDao.saveAll(copy));
+        plotStationsOnMap();
     }
 
     /**
@@ -355,13 +387,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
 
-        if (hasValidCoordinates) {
-            try {
-                LatLngBounds bounds = boundsBuilder.build();
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120));
-            } catch (Exception e) {
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LNG), 12f));
-            }
+        if (hasValidCoordinates && googleMap != null) {
+            googleMap.setOnMapLoadedCallback(() -> {
+                try {
+                    LatLngBounds bounds = boundsBuilder.build();
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+                } catch (Exception e) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LNG), 12f));
+                }
+            });
         }
     }
 
@@ -429,5 +463,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 Toast.makeText(this, "Location permission helps show station distance", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            dbExecutor.shutdown();
+        } catch (Exception ignored) {}
     }
 }

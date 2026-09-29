@@ -1,4 +1,4 @@
-package com.smartsolar.microgrid.activities;
+-package com.smartsolar.microgrid.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -58,15 +58,21 @@ public class OperatorHomeActivity extends AppCompatActivity {
         btnScanQr.setOnClickListener(v -> startActivity(new Intent(this, QrScannerActivity.class)));
         btnPendingBookings.setOnClickListener(v -> startActivity(new Intent(this, PendingBookingsActivity.class)));
         if (btnCurrentBookings != null) {
-            btnCurrentBookings.setOnClickListener(v -> startActivity(new Intent(this, CurrentBookingsActivity.class)));
+            btnCurrentBookings.setOnClickListener(v -> navigateTo(CurrentBookingsActivity.class));
         }
-        btnMonitoring.setOnClickListener(v -> startActivity(new Intent(this, DashboardActivity.class)));
+        btnMonitoring.setOnClickListener(v -> navigateTo(DashboardActivity.class));
 
         if (btnNearbyStations != null) {
-            btnNearbyStations.setOnClickListener(v -> startActivity(new Intent(this, MapActivity.class)));
+            btnNearbyStations.setOnClickListener(v -> navigateTo(MapActivity.class));
         }
 
         btnLogout.setOnClickListener(v -> executeLogout());
+    }
+
+    private void navigateTo(Class<?> targetActivity) {
+        Intent intent = new Intent(this, targetActivity);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(intent);
     }
 
     /**
@@ -76,19 +82,19 @@ public class OperatorHomeActivity extends AppCompatActivity {
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_dashboard) {
-                startActivity(new Intent(this, DashboardActivity.class));
+                navigateTo(DashboardActivity.class);
                 return true;
             } else if (id == R.id.nav_bookings) {
-                startActivity(new Intent(this, CurrentBookingsActivity.class));
+                navigateTo(CurrentBookingsActivity.class);
                 return true;
             } else if (id == R.id.nav_scan) {
-                startActivity(new Intent(this, QrScannerActivity.class));
+                navigateTo(QrScannerActivity.class);
                 return true;
             } else if (id == R.id.nav_map) {
-                startActivity(new Intent(this, MapActivity.class));
+                navigateTo(MapActivity.class);
                 return true;
             } else if (id == R.id.nav_history) {
-                startActivity(new Intent(this, BookingHistoryActivity.class));
+                navigateTo(BookingHistoryActivity.class);
                 return true;
             }
             return false;
