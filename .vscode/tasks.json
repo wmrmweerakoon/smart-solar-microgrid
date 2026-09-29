@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Mobile App on Phone (1-Click)",
+            "label": "Run Mobile App on Emulator (1-Click)",
             "type": "shell",
-            "command": "powershell -ExecutionPolicy Bypass -File .\\run-phone.ps1",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\run-emulator.ps1",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -12,15 +12,21 @@
             "problemMatcher": []
         },
         {
-            "label": "Connect Phone to Backend (adb reverse)",
+            "label": "Run Mobile App on Phone (1-Click)",
             "type": "shell",
-            "command": "adb -d reverse tcp:5299 tcp:5299",
+            "command": "powershell -ExecutionPolicy Bypass -File .\\run-phone.ps1",
             "problemMatcher": []
         },
         {
-            "label": "Run Mobile App on Emulator",
+            "label": "Connect Emulator to Backend (adb reverse)",
             "type": "shell",
-            "command": "adb -e install -r mobile\\app\\build\\outputs\\apk\\debug\\app-debug.apk; adb -e shell monkey -p com.smartsolar.microgrid -c android.intent.category.LAUNCHER 1",
+            "command": "adb -e reverse tcp:5299 tcp:5299",
+            "problemMatcher": []
+        },
+        {
+            "label": "Connect Phone to Backend (adb reverse)",
+            "type": "shell",
+            "command": "adb -d reverse tcp:5299 tcp:5299",
             "problemMatcher": []
         },
         {

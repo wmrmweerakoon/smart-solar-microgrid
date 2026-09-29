@@ -17,6 +17,7 @@ import { prosumerService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 /**
  * Pending Activation Management Page (Member 2).
@@ -24,6 +25,7 @@ import Modal from '../../components/Modal';
  */
 const PendingActivation = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [pendingProsumers, setPendingProsumers] = useState([]);
   const [filteredProsumers, setFilteredProsumers] = useState([]);
@@ -78,9 +80,12 @@ const PendingActivation = () => {
     try {
       await prosumerService.activate(nic);
       setPendingProsumers((prev) => prev.filter((p) => (p.nic || p.id) !== nic));
+      toast.confirm(`Prosumer "${name}" (NIC: ${nic}) account activated successfully!`, 'Account Activated');
       setAlert({ type: 'success', message: `Prosumer "${name}" (NIC: ${nic}) has been activated successfully!` });
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to activate prosumer account.' });
+      const errMsg = error.response?.data?.message || 'Failed to activate prosumer account.';
+      toast.error(errMsg, 'Activation Failed');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }
@@ -91,10 +96,13 @@ const PendingActivation = () => {
     try {
       await prosumerService.deactivate(rejectModal.nic, rejectModal.reason || 'Rejected by Backoffice operator');
       setPendingProsumers((prev) => prev.filter((p) => (p.nic || p.id) !== rejectModal.nic));
+      toast.warning(`Application for "${rejectModal.name}" rejected and marked Inactive.`, 'Application Rejected');
       setAlert({ type: 'success', message: `Prosumer "${rejectModal.name}" was rejected and marked Inactive.` });
       setRejectModal({ open: false, nic: '', name: '', reason: '' });
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to reject application.' });
+      const errMsg = error.response?.data?.message || 'Failed to reject application.';
+      toast.error(errMsg, 'Rejection Failed');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }

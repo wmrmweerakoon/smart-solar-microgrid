@@ -19,6 +19,7 @@ import { energySlotService, prosumerService, microgridService, reservationServic
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 /**
  * Energy Slot Management Page (Member 1).
@@ -26,6 +27,7 @@ import Modal from '../../components/Modal';
  */
 const EnergySlots = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [slots, setSlots] = useState([]);
   const [prosumers, setProsumers] = useState([]);
@@ -96,6 +98,29 @@ const EnergySlots = () => {
     e.preventDefault();
     if (!formData.prosumerId || !formData.microgridNodeId || !formData.energyAmount || !formData.pricePerUnit || !formData.slotDate || !formData.startTime || !formData.endTime) {
       setFormError('Please fill in all required slot parameters.');
+      toast.warning('Please fill in all required energy slot parameters.', 'Validation Error');
+      return;
+    }
+
+    // Seven-day scheduling rule validation
+    const selectedDate = new Date(formData.slotDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 7);
+    maxDate.setHours(23, 59, 59, 999);
+
+    if (selectedDate < today) {
+      const msg = 'Energy slots cannot be scheduled for past dates.';
+      setFormError(msg);
+      toast.sevenDayRule(msg);
+      return;
+    }
+
+    if (selectedDate > maxDate) {
+      const msg = 'Seven-Day Rule Violation: Energy slots must be scheduled within 7 days from today.';
+      setFormError(msg);
+      toast.sevenDayRule(msg);
       return;
     }
 
@@ -107,6 +132,7 @@ const EnergySlots = () => {
         pricePerUnit: parseFloat(formData.pricePerUnit),
       });
       setShowCreate(false);
+      const createdKwh = formData.energyAmount;
       setFormData({
         microgridNodeId: '',
         prosumerId: '',
@@ -117,9 +143,15 @@ const EnergySlots = () => {
         endTime: '12:00',
       });
       await fetchData();
-      setAlert({ type: 'success', message: 'New energy slot published successfully!' });
+      toast.confirm(`New energy slot of ${createdKwh} kWh published to microgrid market!`, 'Slot Published');
     } catch (err) {
-      setFormError(err.response?.data?.message || 'Failed to create energy slot.');
+      const errMsg = err.response?.data?.message || 'Failed to create energy slot.';
+      setFormError(errMsg);
+      if (errMsg.toLowerCase().includes('seven') || errMsg.toLowerCase().includes('7 day') || errMsg.toLowerCase().includes('seven-day')) {
+        toast.sevenDayRule(errMsg);
+      } else {
+        toast.error(errMsg, 'Publication Failed');
+      }
     } finally {
       setCreateLoading(false);
     }
@@ -130,13 +162,21 @@ const EnergySlots = () => {
     try {
       await energySlotService.delete(id);
       setSlots((prev) => prev.filter((s) => s.id !== id));
-      setAlert({ type: 'success', message: 'Energy slot deleted successfully.' });
+      toast.cancellation(`Energy slot #${id.slice(-8)} deleted from the market.`, 'Slot Removed');
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to delete slot.' });
+      toast.error(err.response?.data?.message || 'Failed to delete slot.', 'Deletion Error');
     }
   };
 
   const openReserveModal = (slot) => {
+    // Check 7-day rule when opening reserve modal
+    const slotDate = new Date(slot.slotDate);
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 7);
+    if (slotDate > maxDate) {
+      toast.sevenDayRule('Notice: This energy slot falls outside the recommended 7-day trading window.');
+    }
+
     setReserveModal({
       open: true,
       slot,
@@ -149,13 +189,23 @@ const EnergySlots = () => {
   const handleReserveSubmit = async (e) => {
     e.preventDefault();
     if (!reserveModal.buyerProsumerId) {
-      setAlert({ type: 'error', message: 'Please select a buyer prosumer to claim this energy slot.' });
+      toast.warning('Please select a verified buyer prosumer to claim this energy slot.', 'Buyer Required');
       return;
     }
 
     const requestedAmount = parseFloat(reserveModal.energyAmount);
     if (!requestedAmount || requestedAmount <= 0 || requestedAmount > reserveModal.slot.energyAmount) {
-      setAlert({ type: 'error', message: `Energy amount must be between 0.1 and ${reserveModal.slot.energyAmount} kWh.` });
+      toast.warning(`Energy amount must be between 0.1 and ${reserveModal.slot.energyAmount} kWh.`, 'Invalid Capacity');
+      return;
+    }
+
+    // Seven-day scheduling rule check before reservation request
+    const slotDate = new Date(reserveModal.slot.slotDate);
+    const maxAllowed = new Date();
+    maxAllowed.setDate(maxAllowed.getDate() + 7);
+    maxAllowed.setHours(23, 59, 59, 999);
+    if (slotDate > maxAllowed) {
+      toast.sevenDayRule('Seven-Day Rule Violation: Reservations must be scheduled within 7 days from today.');
       return;
     }
 
@@ -174,10 +224,18 @@ const EnergySlots = () => {
 
       setReserveModal({ open: false, slot: null, buyerProsumerId: '', energyAmount: '', notes: '' });
       await fetchData();
-      setAlert({ type: 'success', message: 'Energy reservation created successfully!' });
+      toast.confirm(
+        `Reserved ${requestedAmount} kWh at $${reserveModal.slot.pricePerUnit}/kWh ($${calculatedTotal.toFixed(2)} total). Slot marked as Booked.`,
+        'Reservation Confirmed'
+      );
       navigate('/reservations');
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to reserve energy slot.' });
+      const errMsg = err.response?.data?.message || 'Failed to reserve energy slot.';
+      if (errMsg.toLowerCase().includes('seven') || errMsg.toLowerCase().includes('7 day') || errMsg.toLowerCase().includes('seven-day')) {
+        toast.sevenDayRule(errMsg);
+      } else {
+        toast.error(errMsg, 'Reservation Failed');
+      }
     } finally {
       setReserveLoading(false);
     }
@@ -234,6 +292,7 @@ const EnergySlots = () => {
     {
       key: 'id',
       label: 'Slot ID',
+      minWidth: '100px',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
           {row.id ? `#${row.id.slice(-8)}` : '—'}
@@ -243,6 +302,7 @@ const EnergySlots = () => {
     {
       key: 'prosumerId',
       label: 'Seller Prosumer',
+      minWidth: '150px',
       render: (row) => {
         const p = findProsumer(row.prosumerId);
         return (
@@ -258,6 +318,7 @@ const EnergySlots = () => {
     {
       key: 'microgridNodeId',
       label: 'Microgrid Node',
+      minWidth: '170px',
       render: (row) => {
         const n = findNode(row.microgridNodeId);
         return n ? `${n.nodeName} (${n.location})` : '—';
@@ -266,8 +327,9 @@ const EnergySlots = () => {
     {
       key: 'energyAmount',
       label: 'Capacity (kWh)',
+      minWidth: '130px',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 700, color: 'var(--accent-light)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--accent-light)', whiteSpace: 'nowrap' }}>
           <Zap size={14} /> {row.energyAmount} kWh
         </span>
       ),
@@ -275,18 +337,22 @@ const EnergySlots = () => {
     {
       key: 'pricePerUnit',
       label: 'Price/kWh',
-      render: (row) => <span style={{ fontWeight: 600, color: 'var(--primary-light)' }}>${row.pricePerUnit}</span>,
+      minWidth: '100px',
+      render: (row) => <span style={{ fontWeight: 700, color: 'var(--primary-light)' }}>${row.pricePerUnit}</span>,
     },
     {
       key: 'slotDate',
       label: 'Date & Time',
+      minWidth: '160px',
       render: (row) => (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Calendar size={13} color="var(--text-secondary)" /> {new Date(row.slotDate).toLocaleDateString()}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.85rem' }}>
+            <Calendar size={14} color="var(--primary-light)" style={{ flexShrink: 0 }} />
+            <span>{new Date(row.slotDate).toLocaleDateString()}</span>
           </div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Clock size={13} /> {row.startTime} – {row.endTime}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+            <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
+            <span>{row.startTime} – {row.endTime}</span>
           </div>
         </div>
       ),
@@ -294,6 +360,7 @@ const EnergySlots = () => {
     {
       key: 'status',
       label: 'Status',
+      minWidth: '110px',
       render: (row) => (
         <span className={`status-badge ${getStatusClass(row.status)}`}>
           {row.status}
@@ -303,6 +370,7 @@ const EnergySlots = () => {
     {
       key: 'actions',
       label: 'Actions',
+      minWidth: '130px',
       render: (row) => (
         <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           {row.status === 'Available' && (

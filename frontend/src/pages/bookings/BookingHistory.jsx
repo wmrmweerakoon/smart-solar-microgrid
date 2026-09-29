@@ -4,7 +4,9 @@ import {
   Eye,
   Search,
   RotateCcw,
-  History
+  History,
+  Calendar,
+  Clock
 } from 'lucide-react';
 import { bookingService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
@@ -169,11 +171,16 @@ const BookingHistory = () => {
     {
       key: 'slotDate',
       label: 'Schedule',
+      minWidth: '160px',
       render: (row) => (
-        <div>
-          <div>{new Date(row.slotDate).toLocaleDateString()}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-            {row.startTime} – {row.endTime}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.85rem' }}>
+            <Calendar size={14} color="var(--primary-light)" style={{ flexShrink: 0 }} />
+            <span>{new Date(row.slotDate).toLocaleDateString()}</span>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+            <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
+            <span>{row.startTime} – {row.endTime}</span>
           </div>
         </div>
       ),

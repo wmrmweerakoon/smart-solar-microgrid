@@ -21,6 +21,7 @@ import { getRole } from '../../utils/auth';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 /**
  * Prosumer Management Page (Member 2).
@@ -28,6 +29,7 @@ import Modal from '../../components/Modal';
  */
 const ProsumerList = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const userRole = getRole();
   const isBackoffice = userRole === 'Backoffice';
 
@@ -102,10 +104,13 @@ const ProsumerList = () => {
     setActionLoading(true);
     try {
       await prosumerService.activate(nic);
+      toast.confirm(`Prosumer (${nic}) activated successfully!`, 'Account Activated');
       setAlert({ type: 'success', message: `Prosumer (${nic}) activated successfully!` });
       await handleSearch();
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to activate prosumer.' });
+      const errMsg = error.response?.data?.message || 'Failed to activate prosumer.';
+      toast.error(errMsg, 'Activation Failed');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }
@@ -115,12 +120,14 @@ const ProsumerList = () => {
     setActionLoading(true);
     try {
       await prosumerService.deactivate(deactivateModal.nic, deactivateModal.reason);
+      toast.warning(`Prosumer (${deactivateModal.nic}) has been deactivated.`, 'Account Deactivated');
       setAlert({ type: 'success', message: `Prosumer (${deactivateModal.nic}) deactivated successfully.` });
       setDeactivateModal({ open: false, nic: '', name: '', reason: '', error: '' });
       await handleSearch();
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to deactivate prosumer.';
       setDeactivateModal((prev) => ({ ...prev, error: msg }));
+      toast.error(msg, 'Deactivation Error');
       setAlert({ type: 'error', message: msg });
     } finally {
       setActionLoading(false);
@@ -131,12 +138,14 @@ const ProsumerList = () => {
     setActionLoading(true);
     try {
       await prosumerService.delete(deleteModal.nic);
+      toast.cancellation(`Prosumer profile (${deleteModal.nic}) deleted.`, 'Profile Removed');
       setAlert({ type: 'success', message: `Prosumer (${deleteModal.nic}) removed successfully.` });
       setDeleteModal({ open: false, nic: '', name: '', error: '' });
       await handleSearch();
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to delete prosumer.';
       setDeleteModal((prev) => ({ ...prev, error: msg }));
+      toast.error(msg, 'Deletion Error');
       setAlert({ type: 'error', message: msg });
     } finally {
       setActionLoading(false);

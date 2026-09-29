@@ -1,15 +1,54 @@
 <resources>
+    <!-- Brand Primary (Teal & Cyan) -->
     <color name="primary">#0D9488</color>
-    <color name="primary_dark">#0F766E</color>
+    <color name="primary_dark">#0A4D46</color>
+    <color name="primary_light">#14B8A6</color>
+    <color name="primary_glow">#2DD4BF</color>
+
+    <!-- Solar Accents (Gold & Amber) -->
     <color name="accent">#F59E0B</color>
-    <color name="solar_gold">#EAB308</color>
-    <color name="background_dark">#0F172A</color>
-    <color name="card_dark">#1E293B</color>
-    <color name="card_border">#334155</color>
+    <color name="accent_light">#FBBF24</color>
+    <color name="solar_gold">#F59E0B</color>
+
+    <!-- Accent Highlights -->
+    <color name="electric_blue">#38BDF8</color>
+    <color name="electric_purple">#A78BFA</color>
+    <color name="electric_cyan">#06B6D4</color>
+
+    <!-- Surface & Backgrounds (Obsidian & Glass) -->
+    <color name="background_dark">#090D16</color>
+    <color name="background_darker">#06080F</color>
+    <color name="card_dark">#111827</color>
+    <color name="card_surface">#162032</color>
+    <color name="card_surface_elevated">#1C2A44</color>
+    <color name="card_border">#1F2E4A</color>
+    <color name="card_border_glow">#2D4268</color>
+    <color name="card_border_subtle">#1A263D</color>
+
+    <!-- Glowing Icon Circle Backgrounds -->
+    <color name="glow_teal_bg">#112933</color>
+    <color name="glow_amber_bg">#2C210E</color>
+    <color name="glow_blue_bg">#11243D</color>
+    <color name="glow_purple_bg">#241938</color>
+    <color name="glow_emerald_bg">#0E2A22</color>
+
+    <!-- Typography -->
     <color name="text_primary">#F8FAFC</color>
     <color name="text_secondary">#94A3B8</color>
+    <color name="text_muted">#64748B</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Status & Feedback -->
     <color name="success">#10B981</color>
+    <color name="success_light">#34D399</color>
+    <color name="success_bg">#0E2A22</color>
     <color name="warning">#F59E0B</color>
     <color name="danger">#EF4444</color>
-    <color name="white">#FFFFFF</color>
+    <color name="danger_light">#F87171</color>
+    <color name="danger_bg">#2D151B</color>
+
+    <!-- Nav & Indicators -->
+    <color name="nav_active">#2DD4BF</color>
+    <color name="nav_inactive">#64748B</color>
+    <color name="nav_indicator_bg">#132E2C</color>
 </resources>

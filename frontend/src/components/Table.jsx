@@ -52,7 +52,16 @@ const Table = ({
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.key} scope="col">
+              <th
+                key={col.key}
+                scope="col"
+                style={{
+                  ...(col.width ? { width: col.width } : {}),
+                  ...(col.minWidth ? { minWidth: col.minWidth } : {}),
+                  ...(col.align ? { textAlign: col.align } : {}),
+                  ...(col.style || {})
+                }}
+              >
                 {col.label}
               </th>
             ))}
@@ -62,7 +71,15 @@ const Table = ({
           {data.map((row, index) => (
             <tr key={row.id || row.nic || index}>
               {columns.map((col) => (
-                <td key={col.key}>
+                <td
+                  key={col.key}
+                  style={{
+                    ...(col.width ? { width: col.width } : {}),
+                    ...(col.minWidth ? { minWidth: col.minWidth } : {}),
+                    ...(col.align ? { textAlign: col.align } : {}),
+                    ...(col.style || {})
+                  }}
+                >
                   {col.render ? col.render(row) : (row[col.key] ?? '—')}
                 </td>
               ))}

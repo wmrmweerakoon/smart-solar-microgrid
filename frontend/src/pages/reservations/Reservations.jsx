@@ -30,9 +30,11 @@ import {
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 const Reservations = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [reservations, setReservations] = useState([]);
   const [prosumers, setProsumers] = useState([]);
@@ -111,8 +113,22 @@ const Reservations = () => {
   const handleCreateReservation = async (e) => {
     if (e) e.preventDefault();
     if (!createData.energySlotId || !createData.buyerProsumerId || !createData.energyAmount) {
+      toast.warning('Please fill in all required fields.', 'Validation Error');
       setAlert({ type: 'error', message: 'Please fill in all required fields.' });
       return;
+    }
+
+    // Client-side 7-day rule check on chosen slot if found
+    const targetSlot = availableSlots.find((s) => s.id === createData.energySlotId);
+    if (targetSlot && targetSlot.slotDate) {
+      const slotDate = new Date(targetSlot.slotDate);
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() + 7);
+      maxDate.setHours(23, 59, 59, 999);
+      if (slotDate > maxDate) {
+        toast.sevenDayRule('Seven-Day Scheduling Rule: Reservations must be scheduled within 7 days from today.');
+        return;
+      }
     }
 
     setCreateLoading(true);
@@ -127,9 +143,16 @@ const Reservations = () => {
       setShowCreate(false);
       setCreateData({ energySlotId: '', buyerProsumerId: '', energyAmount: '', notes: '' });
       await fetchData();
+      toast.confirm('Energy reservation request created and slot reserved!', 'Reservation Placed');
       setAlert({ type: 'success', message: 'Energy reservation request created successfully!' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to create reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to create reservation.';
+      if (errMsg.toLowerCase().includes('seven') || errMsg.toLowerCase().includes('7 day') || errMsg.toLowerCase().includes('seven-day')) {
+        toast.sevenDayRule(errMsg);
+      } else {
+        toast.error(errMsg, 'Reservation Failed');
+      }
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setCreateLoading(false);
     }
@@ -159,7 +182,7 @@ const Reservations = () => {
     }
   };
 
-  // Step 4: Submit Update (Enforces 12-hour rule)
+  // Step 4: Submit Update (Enforces 12-hour / 24-hour notice)
   const handleUpdateReservation = async (e) => {
     if (e) e.preventDefault();
     setEditLoading(true);
@@ -170,24 +193,38 @@ const Reservations = () => {
       });
       setEditModal({ open: false, id: null, energyAmount: '', notes: '', maxCapacity: 0, pricePerUnit: 0 });
       await fetchData();
+      toast.confirm('Reservation updated successfully!', 'Reservation Updated');
       setAlert({ type: 'success', message: 'Reservation updated successfully!' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to update reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to update reservation.';
+      if (errMsg.toLowerCase().includes('notice') || errMsg.toLowerCase().includes('hour') || errMsg.toLowerCase().includes('12')) {
+        toast.cancellationNotice(errMsg);
+      } else {
+        toast.error(errMsg, 'Update Failed');
+      }
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setEditLoading(false);
     }
   };
 
-  // Step 5: Cancel Reservation (Enforces 12-hour rule)
+  // Step 5: Cancel Reservation (Enforces 12-hour notice requirement)
   const handleCancelReservation = async () => {
     setCancelLoading(true);
     try {
       await reservationService.cancel(cancelModal.id);
       setCancelModal({ open: false, id: null });
       await fetchData();
+      toast.cancellation('Reservation cancelled and energy slot released back to Available.', 'Reservation Cancelled');
       setAlert({ type: 'success', message: 'Reservation cancelled and slot released back to Available.' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Cancellation rejected.' });
+      const errMsg = err.response?.data?.message || 'Cancellation rejected.';
+      if (errMsg.toLowerCase().includes('notice') || errMsg.toLowerCase().includes('hour') || errMsg.toLowerCase().includes('12')) {
+        toast.cancellationNotice(errMsg);
+      } else {
+        toast.error(errMsg, 'Cancellation Denied');
+      }
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setCancelLoading(false);
     }
@@ -198,9 +235,12 @@ const Reservations = () => {
     try {
       await reservationService.confirm(id);
       await fetchData();
+      toast.confirm('Reservation approved and confirmed!', 'Reservation Confirmed');
       setAlert({ type: 'success', message: 'Reservation approved and confirmed!' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to confirm reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to confirm reservation.';
+      toast.error(errMsg, 'Confirmation Error');
+      setAlert({ type: 'error', message: errMsg });
     }
   };
 
@@ -208,9 +248,12 @@ const Reservations = () => {
     try {
       await reservationService.complete(id);
       await fetchData();
+      toast.success('Reservation marked as Completed. Energy transfer verified.', 'Transfer Completed');
       setAlert({ type: 'success', message: 'Reservation marked as Completed!' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to complete reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to complete reservation.';
+      toast.error(errMsg, 'Completion Error');
+      setAlert({ type: 'error', message: errMsg });
     }
   };
 
@@ -220,9 +263,12 @@ const Reservations = () => {
       await reservationService.delete(deleteModal.id);
       setDeleteModal({ open: false, id: null });
       await fetchData();
+      toast.cancellation('Reservation deleted successfully.', 'Reservation Removed');
       setAlert({ type: 'success', message: 'Reservation deleted successfully.' });
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to delete reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to delete reservation.';
+      toast.error(errMsg, 'Deletion Error');
+      setAlert({ type: 'error', message: errMsg });
     }
   };
 
@@ -329,10 +375,11 @@ const Reservations = () => {
     {
       key: 'reservedAt',
       label: 'Reserved On',
+      minWidth: '130px',
       render: (row) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-          <Calendar size={13} color="var(--text-muted)" />
-          {row.reservedAt ? new Date(row.reservedAt).toLocaleDateString() : 'N/A'}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+          <Calendar size={14} color="var(--primary-light)" style={{ flexShrink: 0 }} />
+          <span>{row.reservedAt ? new Date(row.reservedAt).toLocaleDateString() : 'N/A'}</span>
         </span>
       ),
     },

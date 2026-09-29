@@ -17,6 +17,7 @@ import {
 import { bookingService } from '../../services/api';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 /**
  * Booking Details operational view.
@@ -26,6 +27,7 @@ import Modal from '../../components/Modal';
 const BookingDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,10 +61,13 @@ const BookingDetails = () => {
     setActionLoading(true);
     try {
       await bookingService.confirm(id);
+      toast.confirm('Booking confirmed and approved successfully.', 'Booking Confirmed');
       setAlert({ type: 'success', message: 'Booking confirmed and approved successfully.' });
       fetchDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to confirm booking.' });
+      const errMsg = err.response?.data?.message || 'Failed to confirm booking.';
+      toast.error(errMsg, 'Confirmation Error');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }
@@ -72,10 +77,13 @@ const BookingDetails = () => {
     setActionLoading(true);
     try {
       await bookingService.complete(id);
+      toast.success('Energy transfer finalized and booking marked as completed.', 'Transfer Completed');
       setAlert({ type: 'success', message: 'Booking marked as completed.' });
       fetchDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to complete booking.' });
+      const errMsg = err.response?.data?.message || 'Failed to complete booking.';
+      toast.error(errMsg, 'Completion Error');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }
@@ -86,10 +94,17 @@ const BookingDetails = () => {
     try {
       await bookingService.cancel(id);
       setCancelModalOpen(false);
+      toast.cancellation('Booking cancelled and allocated energy slot restored.', 'Booking Cancelled');
       setAlert({ type: 'success', message: 'Booking cancelled successfully.' });
       fetchDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to cancel booking.' });
+      const errMsg = err.response?.data?.message || 'Failed to cancel booking.';
+      if (errMsg.toLowerCase().includes('notice') || errMsg.toLowerCase().includes('hour') || errMsg.toLowerCase().includes('24') || errMsg.toLowerCase().includes('12')) {
+        toast.cancellationNotice(errMsg);
+      } else {
+        toast.error(errMsg, 'Cancellation Rejected');
+      }
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }

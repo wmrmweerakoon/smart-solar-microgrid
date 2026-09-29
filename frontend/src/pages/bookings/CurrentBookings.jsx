@@ -7,12 +7,15 @@ import {
   Search,
   RotateCcw,
   AlertTriangle,
-  ClipboardList
+  ClipboardList,
+  Calendar,
+  Clock
 } from 'lucide-react';
 import { bookingService, microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 /**
  * Current Bookings management page.
@@ -20,6 +23,7 @@ import Modal from '../../components/Modal';
  */
 const CurrentBookings = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [nodes, setNodes] = useState([]);
@@ -96,13 +100,13 @@ const CurrentBookings = () => {
     setActionLoading(id);
     try {
       await bookingService.complete(id);
+      toast.success(`Booking #${id.slice(-6)} energy transfer marked as Completed.`, 'Transfer Finalized');
       setAlert({ type: 'success', message: `Booking #${id.slice(-6)} marked as Completed.` });
       await fetchData();
     } catch (err) {
-      setAlert({
-        type: 'error',
-        message: err.response?.data?.message || 'Failed to complete booking.'
-      });
+      const errMsg = err.response?.data?.message || 'Failed to complete booking.';
+      toast.error(errMsg, 'Completion Error');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(null);
     }
@@ -115,13 +119,17 @@ const CurrentBookings = () => {
     try {
       await bookingService.cancel(id);
       setCancelModal({ open: false, id: null });
+      toast.cancellation(`Booking #${id.slice(-6)} has been cancelled and slot restored.`, 'Booking Cancelled');
       setAlert({ type: 'success', message: `Booking #${id.slice(-6)} has been cancelled.` });
       await fetchData();
     } catch (err) {
-      setAlert({
-        type: 'error',
-        message: err.response?.data?.message || 'Failed to cancel booking.'
-      });
+      const errMsg = err.response?.data?.message || 'Failed to cancel booking.';
+      if (errMsg.toLowerCase().includes('notice') || errMsg.toLowerCase().includes('hour') || errMsg.toLowerCase().includes('24') || errMsg.toLowerCase().includes('12')) {
+        toast.cancellationNotice(errMsg);
+      } else {
+        toast.error(errMsg, 'Cancellation Rejected');
+      }
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(null);
     }
@@ -193,11 +201,16 @@ const CurrentBookings = () => {
     {
       key: 'slotDate',
       label: 'Schedule',
+      minWidth: '160px',
       render: (row) => (
-        <div>
-          <div>{new Date(row.slotDate).toLocaleDateString()}</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-            {row.startTime} – {row.endTime}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.85rem' }}>
+            <Calendar size={14} color="var(--primary-light)" style={{ flexShrink: 0 }} />
+            <span>{new Date(row.slotDate).toLocaleDateString()}</span>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+            <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
+            <span>{row.startTime} – {row.endTime}</span>
           </div>
         </div>
       ),

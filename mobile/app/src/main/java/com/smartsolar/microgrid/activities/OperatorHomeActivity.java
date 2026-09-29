@@ -42,16 +42,18 @@ public class OperatorHomeActivity extends AppCompatActivity {
     private void initViews() {
         TextView tvWelcome = findViewById(R.id.tvWelcome);
         TextView tvUserRole = findViewById(R.id.tvUserRole);
-        Button btnLogout = findViewById(R.id.btnLogout);
-        Button btnScanQr = findViewById(R.id.btnScanQr);
-        Button btnPendingBookings = findViewById(R.id.btnPendingBookings);
-        Button btnCurrentBookings = findViewById(R.id.btnCurrentBookings);
-        Button btnMonitoring = findViewById(R.id.btnMonitoring);
-        Button btnNearbyStations = findViewById(R.id.btnNearbyStations);
+        android.view.View btnLogout = findViewById(R.id.btnLogout);
+        android.view.View btnScanQr = findViewById(R.id.btnScanQr);
+        android.view.View btnPendingBookings = findViewById(R.id.btnPendingBookings);
+        android.view.View btnCurrentBookings = findViewById(R.id.btnCurrentBookings);
+        android.view.View btnMonitoring = findViewById(R.id.btnMonitoring);
+        android.view.View btnNearbyStations = findViewById(R.id.btnNearbyStations);
         bottomNav = findViewById(R.id.bottomNav);
 
-        tvWelcome.setText("Operator: " + sessionManager.getFullName());
-        tvUserRole.setText("Role: " + sessionManager.getRole());
+        String name = sessionManager.getFullName();
+        tvWelcome.setText(name != null && !name.trim().isEmpty() ? name : "Grid Station Operator");
+        String role = sessionManager.getRole();
+        tvUserRole.setText(role != null && !role.trim().isEmpty() ? role : "Grid Operator");
 
         btnScanQr.setOnClickListener(v -> startActivity(new Intent(this, QrScannerActivity.class)));
         btnPendingBookings.setOnClickListener(v -> startActivity(new Intent(this, PendingBookingsActivity.class)));

@@ -29,10 +29,12 @@ import {
 } from '../../services/api';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 const ReservationDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -178,10 +180,13 @@ const ReservationDetails = () => {
     setActionLoading(true);
     try {
       await reservationService.confirm(id);
+      toast.confirm('Reservation confirmed and approved successfully!', 'Confirmed');
       setAlert({ type: 'success', message: 'Reservation confirmed successfully!' });
       await fetchReservationDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to confirm reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to confirm reservation.';
+      toast.error(errMsg, 'Confirmation Error');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }
@@ -191,10 +196,13 @@ const ReservationDetails = () => {
     setActionLoading(true);
     try {
       await reservationService.complete(id);
+      toast.success('Reservation marked as Completed. Energy transfer finalized.', 'Transfer Completed');
       setAlert({ type: 'success', message: 'Reservation marked as Completed!' });
       await fetchReservationDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to complete reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to complete reservation.';
+      toast.error(errMsg, 'Completion Error');
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }
@@ -209,10 +217,17 @@ const ReservationDetails = () => {
         notes: editNotes,
       });
       setEditModal(false);
+      toast.confirm('Reservation parameters updated successfully!', 'Updated');
       setAlert({ type: 'success', message: 'Reservation updated successfully!' });
       await fetchReservationDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to update reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to update reservation.';
+      if (errMsg.toLowerCase().includes('notice') || errMsg.toLowerCase().includes('hour') || errMsg.toLowerCase().includes('12')) {
+        toast.cancellationNotice(errMsg);
+      } else {
+        toast.error(errMsg, 'Update Failed');
+      }
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setEditLoading(false);
     }
@@ -223,10 +238,17 @@ const ReservationDetails = () => {
     try {
       await reservationService.cancel(id);
       setCancelModalOpen(false);
+      toast.cancellation('Reservation cancelled successfully. Allocated slot released back to market.', 'Reservation Cancelled');
       setAlert({ type: 'success', message: 'Reservation cancelled successfully. Allocated slot released.' });
       await fetchReservationDetails();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to cancel reservation.' });
+      const errMsg = err.response?.data?.message || 'Failed to cancel reservation.';
+      if (errMsg.toLowerCase().includes('notice') || errMsg.toLowerCase().includes('hour') || errMsg.toLowerCase().includes('12')) {
+        toast.cancellationNotice(errMsg);
+      } else {
+        toast.error(errMsg, 'Cancellation Rejected');
+      }
+      setAlert({ type: 'error', message: errMsg });
     } finally {
       setActionLoading(false);
     }

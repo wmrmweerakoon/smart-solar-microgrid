@@ -43,17 +43,20 @@ public class ProsumerHomeActivity extends AppCompatActivity {
         TextView tvWelcome = findViewById(R.id.tvWelcome);
         TextView tvUserRole = findViewById(R.id.tvUserRole);
         TextView tvNic = findViewById(R.id.tvNic);
-        Button btnLogout = findViewById(R.id.btnLogout);
-        Button btnProfile = findViewById(R.id.btnProfile);
-        Button btnViewSlots = findViewById(R.id.btnViewSlots);
-        Button btnMyReservations = findViewById(R.id.btnMyReservations);
-        Button btnNearbyNodes = findViewById(R.id.btnNearbyNodes);
-        Button btnDashboard = findViewById(R.id.btnDashboard);
+        android.view.View btnLogout = findViewById(R.id.btnLogout);
+        android.view.View btnProfile = findViewById(R.id.btnProfile);
+        android.view.View btnViewSlots = findViewById(R.id.btnViewSlots);
+        android.view.View btnMyReservations = findViewById(R.id.btnMyReservations);
+        android.view.View btnNearbyNodes = findViewById(R.id.btnNearbyNodes);
+        android.view.View btnDashboard = findViewById(R.id.btnDashboard);
         bottomNav = findViewById(R.id.bottomNav);
 
-        tvWelcome.setText("Hello, " + sessionManager.getFullName());
-        tvUserRole.setText("Role: " + sessionManager.getRole());
-        tvNic.setText("NIC: " + sessionManager.getNic());
+        String name = sessionManager.getFullName();
+        tvWelcome.setText(name != null && !name.trim().isEmpty() ? name : "Solar Prosumer");
+        String role = sessionManager.getRole();
+        tvUserRole.setText(role != null && !role.trim().isEmpty() ? role : "Prosumer");
+        String nic = sessionManager.getNic();
+        tvNic.setText(nic != null && !nic.trim().isEmpty() ? "NIC: " + nic : "NIC: Verified");
 
         btnProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
         btnViewSlots.setOnClickListener(v -> startActivity(new Intent(this, AvailableSlotsActivity.class)));

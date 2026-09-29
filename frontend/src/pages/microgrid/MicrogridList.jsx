@@ -16,6 +16,7 @@ import { microgridService } from '../../services/api';
 import Table from '../../components/Table';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { useToast } from '../../context/ToastContext';
 
 /**
  * Microgrid Node Directory Page (Member 1).
@@ -24,6 +25,7 @@ import Modal from '../../components/Modal';
 const MicrogridList = () => {
   const navigate = useNavigate();
   const routerLocation = useLocation();
+  const { toast } = useToast();
   const [nodes, setNodes] = useState([]);
   const [filteredNodes, setFilteredNodes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,7 @@ const MicrogridList = () => {
 
   useEffect(() => {
     if (routerLocation.state?.message) {
+      toast.success(routerLocation.state.message);
       setAlert({ type: 'success', message: routerLocation.state.message });
       window.history.replaceState({}, document.title);
     }
@@ -85,9 +88,11 @@ const MicrogridList = () => {
     try {
       await microgridService.delete(deleteModal.id);
       setNodes(nodes.filter((n) => n.id !== deleteModal.id));
+      toast.cancellation(`Microgrid node "${deleteModal.name}" deleted.`, 'Node Deleted');
       setDeleteModal({ open: false, id: null, name: '' });
       setAlert({ type: 'success', message: 'Microgrid node deleted successfully.' });
     } catch (error) {
+      toast.error('Failed to delete microgrid node.', 'Deletion Failed');
       setAlert({ type: 'error', message: 'Failed to delete node.' });
     }
   };
@@ -96,9 +101,11 @@ const MicrogridList = () => {
     try {
       const res = await microgridService.deactivate(id);
       setNodes(nodes.map((n) => (n.id === id ? res.data : n)));
+      toast.warning('Microgrid node status changed to Inactive.', 'Node Deactivated');
       setAlert({ type: 'success', message: 'Microgrid node deactivated.' });
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to deactivate node.';
+      toast.error(msg, 'Deactivation Failed');
       setAlert({ type: 'error', message: msg });
     }
   };
