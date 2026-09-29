@@ -1,4 +1,4 @@
--package com.smartsolar.microgrid.activities;
+package com.smartsolar.microgrid.activities;
 
 import android.content.Intent;
 import android.os.Bundle;

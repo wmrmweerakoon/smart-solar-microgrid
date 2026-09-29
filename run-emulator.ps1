@@ -60,14 +60,12 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "      Warning: adb reverse encountered an issue." -ForegroundColor Yellow
 }
 
-# 3. Check / Build APK
+# 3. Compile APK (Incremental build)
 $apkPath = "$PSScriptRoot\mobile\app\build\outputs\apk\debug\app-debug.apk"
-if (-not (Test-Path $apkPath)) {
-    Write-Host "[3/4] Building debug APK..." -ForegroundColor Yellow
-    Set-Location "$PSScriptRoot\mobile"
-    & ".\gradlew.bat" assembleDebug
-    Set-Location "$PSScriptRoot"
-}
+Write-Host "[3/4] Building debug APK..." -ForegroundColor Yellow
+Set-Location "$PSScriptRoot\mobile"
+& ".\gradlew.bat" assembleDebug
+Set-Location "$PSScriptRoot"
 
 # 4. Install & Launch
 Write-Host "[4/4] Installing and launching app on emulator..." -ForegroundColor Yellow
