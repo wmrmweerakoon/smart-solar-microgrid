@@ -157,42 +157,26 @@ const Dashboard = () => {
 
   return (
     <div className="page-container">
-      {/* ── High-End Perspective Switcher & Operational Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+      {/* ── Executive Header (Straight to the Point) ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 16 }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Operational View:</span>
-            {/* High-End Segmented Capsule Switcher */}
-            <div className="role-perspective-switcher">
-              <button
-                className={`perspective-btn ${activeRoleView === 'backoffice' ? 'active backoffice' : ''}`}
-                onClick={() => setActiveRoleView('backoffice')}
-                title="Switch to Backoffice Executive Governance View"
-              >
-                <Shield size={14} /> Backoffice Executive
-              </button>
-              <button
-                className={`perspective-btn ${activeRoleView === 'gridoperator' ? 'active gridoperator' : ''}`}
-                onClick={() => setActiveRoleView('gridoperator')}
-                title="Switch to Grid Operator SCADA Telemetry View"
-              >
-                <Zap size={14} /> Grid Operator SCADA
-              </button>
-            </div>
-          </div>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Logged in as <strong>{user?.fullName || user?.username}</strong> ({role || 'Authorized Personnel'})
+          <h1 style={{ fontSize: '1.45rem', fontWeight: 800, margin: 0, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Shield size={22} color="#fbbf24" />
+            {activeRoleView === 'backoffice' ? 'Backoffice Administrator Command Center' : 'Grid Operator Dispatch Center'}
+          </h1>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '3px 0 0 0' }}>
+            Logged in as <strong>{user?.fullName || user?.username}</strong> ({role || 'Backoffice Administrator'}) • System Online
           </p>
         </div>
 
         {/* Global Controls & Sync Status */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 20, background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', color: 'var(--success)', fontSize: '0.8rem', fontWeight: 600 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)', color: 'var(--success)', fontSize: '0.78rem', fontWeight: 600 }}>
             <span className="pulse-beacon emerald"></span>
-            SCADA Feed Synchronized
+            Live Synchronized • {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
             <input
               type="checkbox"
               checked={autoRefresh}
@@ -207,7 +191,7 @@ const Dashboard = () => {
             onClick={() => fetchAllData(true)}
             disabled={refreshing}
           >
-            <RefreshCw size={14} className={refreshing ? 'icon-mr spin' : 'icon-mr'} />
+            <RefreshCw size={13} className={refreshing ? 'icon-mr spin' : 'icon-mr'} />
             {refreshing ? 'Syncing...' : 'Refresh Feed'}
           </Button>
         </div>
@@ -215,9 +199,9 @@ const Dashboard = () => {
 
       {/* Quick feedback banner for prosumer activation */}
       {quickActivateMessage && (
-        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.35)', color: '#34d399', padding: '12px 18px', borderRadius: 'var(--radius-md)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <CheckCircle2 size={18} />
-          <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>{quickActivateMessage}</span>
+        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.35)', color: '#34d399', padding: '10px 16px', borderRadius: 'var(--radius-md)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <CheckCircle2 size={16} />
+          <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{quickActivateMessage}</span>
         </div>
       )}
 
@@ -237,230 +221,53 @@ const Dashboard = () => {
       ) : (
         <>
           {/* ═══════════════════════════════════════════════════════════════
-              HERO BANNER: ROLE SPECIFIC
-              ═══════════════════════════════════════════════════════════════ */}
-          {activeRoleView === 'backoffice' ? (
-            /* BACKOFFICE EXECUTIVE HERO BANNER */
-            <div className="dashboard-hero hero-backoffice">
-              <div className="hero-content">
-                <div className="hero-title-section">
-                  <div className="hero-role-pill gold">
-                    <Shield size={14} /> Executive Backoffice Command Hub
-                  </div>
-                  <h1 className="hero-title gold-gradient">
-                    System Governance & Financial Settlement
-                  </h1>
-                  <p className="hero-subtitle">
-                    Central authority for prosumer lifecycle verification, microgrid infrastructure provisioning, transaction auditing, and regulatory compliance.
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-                      Last Audit Sync
-                    </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f1f5f9' }}>
-                      {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Backoffice Telemetry Ribbon */}
-              <div className="hero-telemetry-ribbon">
-                <div className="telemetry-chip">
-                  <span className="pulse-beacon amber"></span>
-                  <span>Ledger Status: <strong>Encrypted & Active</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <DollarSign size={14} color="#fbbf24" />
-                  <span>Gross Settled Revenue: <strong>${stats.totalRevenueTraded?.toFixed(2)}</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <Activity size={14} color="#34d399" />
-                  <span>Traded Energy Volume: <strong>{stats.totalEnergyTradedKWh} kWh</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <TrendingUp size={14} color="#22d3ee" />
-                  <span>Average Grid Tariff: <strong>${avgTariff} / kWh</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <CheckSquare size={14} color="#a78bfa" />
-                  <span>Settlement Rate: <strong>99.8% Nominal</strong></span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* GRID OPERATOR SCADA HERO BANNER */
-            <div className="dashboard-hero hero-gridoperator">
-              <div className="hero-content">
-                <div className="hero-title-section">
-                  <div className="hero-role-pill cyan">
-                    <Zap size={14} /> SCADA Dispatch Operations Center
-                  </div>
-                  <h1 className="hero-title cyan-gradient">
-                    Real-Time Microgrid Balancing & Dispatch
-                  </h1>
-                  <p className="hero-subtitle">
-                    Live operational telemetry, physical battery bay monitoring, slot scheduling, forward booking fulfillment, and dynamic microgrid balancing.
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
-                      SCADA Telemetry Loop
-                    </div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#22d3ee' }}>
-                      LIVE • 50.00 Hz Balanced
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Grid Operator Telemetry Ribbon */}
-              <div className="hero-telemetry-ribbon">
-                <div className="telemetry-chip">
-                  <span className="pulse-beacon cyan"></span>
-                  <span>Grid Stability: <strong>99.98% (Optimal)</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <Radio size={14} color="#22d3ee" />
-                  <span>Transmission Loss: <strong>1.18% (Low)</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <Timer size={14} color="#fbbf24" />
-                  <span>7-Day Forward Horizon: <strong>Enforced Active</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <Shield size={14} color="#34d399" />
-                  <span>12-Hour Cancellation Rule: <strong>Protected</strong></span>
-                </div>
-                <div className="telemetry-chip">
-                  <Server size={14} color="#a78bfa" />
-                  <span>Active Nodes Fleet: <strong>{stats.activeNodes} / {stats.totalNodes} Online</strong></span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ═══════════════════════════════════════════════════════════════
-              HIGH-END KPI MATRIX CARDS (MARKING SCHEME CRITICAL METRICS)
+              STREAMLINED, STRAIGHT-TO-THE-POINT KPI MATRIX CARDS
               ═══════════════════════════════════════════════════════════════ */}
           <div className="highend-kpi-grid">
             {activeRoleView === 'backoffice' ? (
               <>
-                {/* 1. Pending Prosumers (Backoffice Urgent Governance) */}
+                {/* 1. Total Registered Prosumers (Primary User Metric) */}
                 <div
                   className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #f59e0b, #fbbf24)', cursor: 'pointer' }}
-                  onClick={() => navigate('/prosumers/pending')}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/prosumers')}
+                  title="View registered prosumers directory"
                 >
                   <div className="kpi-header">
                     <div className="kpi-icon-wrap kpi-icon-gold">
-                      <Users size={22} />
+                      <Users size={18} />
                     </div>
-                    <span className={`kpi-badge ${stats.pendingProsumers > 0 ? 'urgent' : 'standard'}`}>
-                      {stats.pendingProsumers > 0 ? 'Action Required' : 'Cleared'}
+                    <span className={`kpi-badge ${stats.pendingProsumers > 0 ? 'urgent' : 'success'}`}>
+                      {stats.pendingProsumers > 0 ? `${stats.pendingProsumers} Pending` : `${stats.activeProsumers} Active`}
                     </span>
                   </div>
                   <div>
                     <div className="kpi-value-row">
-                      <span className="kpi-large-num" style={{ color: stats.pendingProsumers > 0 ? '#fbbf24' : 'inherit' }}>
-                        {stats.pendingProsumers}
+                      <span className="kpi-large-num">
+                        {stats.totalProsumers}
                       </span>
-                      <span className="kpi-unit">accounts</span>
+                      <span className="kpi-unit">registered</span>
                     </div>
-                    <div className="kpi-label">Pending Prosumer Approvals</div>
+                    <div className="kpi-label">Total Registered Prosumers</div>
                   </div>
                   <div className="kpi-footer-note">
-                    KYC & microgrid verification queue &rarr;
+                    <span>{stats.activeProsumers} Active • {stats.pendingProsumers} Pending</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
 
-                {/* 2. Approved Future Reservations (Marking Scheme Critical) */}
+                {/* 2. Microgrid Substation Fleet */}
                 <div
                   className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #06b6d4, #22d3ee)', cursor: 'pointer' }}
-                  onClick={() => navigate('/reservations')}
-                >
-                  <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-cyan">
-                      <CalendarCheck size={22} />
-                    </div>
-                    <span className="kpi-badge highlight">Confirmed</span>
-                  </div>
-                  <div>
-                    <div className="kpi-value-row">
-                      <span className="kpi-large-num">{stats.approvedFutureReservations}</span>
-                      <span className="kpi-unit">deliveries</span>
-                    </div>
-                    <div className="kpi-label">Approved Future Reservations</div>
-                  </div>
-                  <div className="kpi-footer-note">
-                    Forward 7-day scheduled trades
-                  </div>
-                </div>
-
-                {/* 3. Pending Reservations (Action Required) */}
-                <div
-                  className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #f59e0b, #d97706)', cursor: 'pointer' }}
-                  onClick={() => navigate('/bookings/pending')}
-                >
-                  <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-gold">
-                      <Clock size={22} />
-                    </div>
-                    <span className="kpi-badge standard">Review Queue</span>
-                  </div>
-                  <div>
-                    <div className="kpi-value-row">
-                      <span className="kpi-large-num">{stats.pendingReservations}</span>
-                      <span className="kpi-unit">in queue</span>
-                    </div>
-                    <div className="kpi-label">Pending Reservations</div>
-                  </div>
-                  <div className="kpi-footer-note">
-                    Awaiting booking confirmation
-                  </div>
-                </div>
-
-                {/* 4. Total Traded Value & Revenue */}
-                <div
-                  className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #10b981, #34d399)', cursor: 'pointer' }}
-                  onClick={() => navigate('/bookings/history')}
-                >
-                  <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-emerald">
-                      <TrendingUp size={22} />
-                    </div>
-                    <span className="kpi-badge standard">Settled</span>
-                  </div>
-                  <div>
-                    <div className="kpi-value-row">
-                      <span className="kpi-large-num">${stats.totalRevenueTraded?.toFixed(2)}</span>
-                    </div>
-                    <div className="kpi-label">Total Settled Revenue</div>
-                  </div>
-                  <div className="kpi-footer-note">
-                    Volume: {stats.totalEnergyTradedKWh} kWh traded
-                  </div>
-                </div>
-
-                {/* 5. Microgrid Node Infrastructure Fleet */}
-                <div
-                  className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #8b5cf6, #a78bfa)', cursor: 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => navigate('/microgrid')}
+                  title="View microgrid substations fleet"
                 >
                   <div className="kpi-header">
                     <div className="kpi-icon-wrap kpi-icon-purple">
-                      <Zap size={22} />
+                      <Zap size={18} />
                     </div>
-                    <span className="kpi-badge standard">100% Operational</span>
+                    <span className="kpi-badge success">100% Online</span>
                   </div>
                   <div>
                     <div className="kpi-value-row">
@@ -470,22 +277,137 @@ const Dashboard = () => {
                     <div className="kpi-label">Active Microgrid Substations</div>
                   </div>
                   <div className="kpi-footer-note">
-                    Physical grid capacity online
+                    <span>Physical network topology</span>
+                    <ArrowUpRight size={13} />
+                  </div>
+                </div>
+
+                {/* 3. Energy Slots Generated & Scheduled */}
+                <div
+                  className="highend-kpi-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/energy-slots')}
+                  title="View scheduled energy trading slots"
+                >
+                  <div className="kpi-header">
+                    <div className="kpi-icon-wrap kpi-icon-cyan">
+                      <Battery size={18} />
+                    </div>
+                    <span className={`kpi-badge ${stats.availableSlots > 0 ? 'highlight' : 'standard'}`}>
+                      {stats.availableSlots} Open
+                    </span>
+                  </div>
+                  <div>
+                    <div className="kpi-value-row">
+                      <span className="kpi-large-num">{stats.totalEnergySlots}</span>
+                      <span className="kpi-unit">slots</span>
+                    </div>
+                    <div className="kpi-label">Total Energy Slots</div>
+                  </div>
+                  <div className="kpi-footer-note">
+                    <span>{stats.availableSlots} Available • {stats.totalEnergySlots - stats.availableSlots} Allocated</span>
+                    <ArrowUpRight size={13} />
+                  </div>
+                </div>
+
+                {/* 4. Total Trading Operations & Bookings */}
+                <div
+                  className="highend-kpi-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/bookings/history')}
+                  title="View peer-to-peer trading operations"
+                >
+                  <div className="kpi-header">
+                    <div className="kpi-icon-wrap kpi-icon-blue">
+                      <ClipboardList size={18} />
+                    </div>
+                    <span className={`kpi-badge ${stats.currentBookings > 0 ? 'urgent' : 'standard'}`}>
+                      {stats.currentBookings} In-Flight
+                    </span>
+                  </div>
+                  <div>
+                    <div className="kpi-value-row">
+                      <span className="kpi-large-num">
+                        {stats.completedBookings + stats.currentBookings + stats.pendingBookings}
+                      </span>
+                      <span className="kpi-unit">trades</span>
+                    </div>
+                    <div className="kpi-label">Total Booking Operations</div>
+                  </div>
+                  <div className="kpi-footer-note">
+                    <span>{stats.completedBookings} Completed • {stats.pendingBookings} In Review</span>
+                    <ArrowUpRight size={13} />
+                  </div>
+                </div>
+
+                {/* 5. Forward Reservations (Compliance & 7-Day Window) */}
+                <div
+                  className="highend-kpi-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/reservations')}
+                  title="View forward reservation schedule"
+                >
+                  <div className="kpi-header">
+                    <div className="kpi-icon-wrap kpi-icon-gold">
+                      <CalendarCheck size={18} />
+                    </div>
+                    <span className="kpi-badge highlight">
+                      {stats.approvedFutureReservations} Scheduled
+                    </span>
+                  </div>
+                  <div>
+                    <div className="kpi-value-row">
+                      <span className="kpi-large-num">{stats.totalReservations}</span>
+                      <span className="kpi-unit">reservations</span>
+                    </div>
+                    <div className="kpi-label">Forward Reservations</div>
+                  </div>
+                  <div className="kpi-footer-note">
+                    <span>{stats.approvedFutureReservations} Confirmed • {stats.pendingReservations} Pending</span>
+                    <ArrowUpRight size={13} />
+                  </div>
+                </div>
+
+                {/* 6. Total Gross Settled Revenue */}
+                <div
+                  className="highend-kpi-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/bookings/history')}
+                  title="View financial settlement ledger"
+                >
+                  <div className="kpi-header">
+                    <div className="kpi-icon-wrap kpi-icon-emerald">
+                      <TrendingUp size={18} />
+                    </div>
+                    <span className="kpi-badge success">Settled</span>
+                  </div>
+                  <div>
+                    <div className="kpi-value-row">
+                      <span className="kpi-large-num">
+                        ${stats.totalRevenueTraded?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="kpi-label">Total Settled Revenue</div>
+                  </div>
+                  <div className="kpi-footer-note">
+                    <span>{stats.totalEnergyTradedKWh} kWh Traded Volume</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
               </>
             ) : (
               /* GRID OPERATOR KPI CARDS */
               <>
-                {/* 1. Available Energy Slots (Live Inventory) */}
+                {/* 1. Available Energy Slots */}
                 <div
                   className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #06b6d4, #22d3ee)', cursor: 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => navigate('/energy-slots')}
+                  title="View available slots"
                 >
                   <div className="kpi-header">
                     <div className="kpi-icon-wrap kpi-icon-cyan">
-                      <Battery size={22} />
+                      <Battery size={18} />
                     </div>
                     <span className="kpi-badge highlight">Live Inventory</span>
                   </div>
@@ -497,67 +419,73 @@ const Dashboard = () => {
                     <div className="kpi-label">Available Energy Slots</div>
                   </div>
                   <div className="kpi-footer-note">
-                    Ready for peer-to-peer purchase &rarr;
+                    <span>Ready for dispatch trades</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
 
-                {/* 2. Active In-Flight Bookings (Physical Transfer Execution) */}
+                {/* 2. Active In-Flight Bookings */}
                 <div
                   className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #f59e0b, #fbbf24)', cursor: 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => navigate('/bookings/current')}
+                  title="View active claimed transfers"
                 >
                   <div className="kpi-header">
                     <div className="kpi-icon-wrap kpi-icon-gold">
-                      <ClipboardList size={22} />
+                      <ClipboardList size={18} />
                     </div>
                     <span className="kpi-badge urgent">In Progress</span>
                   </div>
                   <div>
                     <div className="kpi-value-row">
                       <span className="kpi-large-num">{stats.currentBookings}</span>
-                      <span className="kpi-unit">trades</span>
+                      <span className="kpi-unit">transfers</span>
                     </div>
-                    <div className="kpi-label">Active Claimed Energy Transfers</div>
+                    <div className="kpi-label">Active Claimed Transfers</div>
                   </div>
                   <div className="kpi-footer-note">
-                    Ready for physical verification / QR scan
+                    <span>Physical verification / QR</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
 
-                {/* 3. Approved Future Deliveries (7-Day Horizon) */}
+                {/* 3. Approved Future Deliveries */}
                 <div
                   className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #10b981, #34d399)', cursor: 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => navigate('/reservations')}
+                  title="View forward scheduled reservations"
                 >
                   <div className="kpi-header">
                     <div className="kpi-icon-wrap kpi-icon-emerald">
-                      <CalendarCheck size={22} />
+                      <CalendarCheck size={18} />
                     </div>
-                    <span className="kpi-badge standard">Scheduled</span>
+                    <span className="kpi-badge success">Scheduled</span>
                   </div>
                   <div>
                     <div className="kpi-value-row">
                       <span className="kpi-large-num">{stats.approvedFutureReservations}</span>
                       <span className="kpi-unit">deliveries</span>
                     </div>
-                    <div className="kpi-label">Approved Future Reservations</div>
+                    <div className="kpi-label">Approved Future Deliveries</div>
                   </div>
                   <div className="kpi-footer-note">
-                    7-Day rule compliant forward trades
+                    <span>7-Day horizon forward queue</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
 
-                {/* 4. Pending Reservations Needing Confirmation */}
+                {/* 4. Pending Reservations */}
                 <div
                   className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #f59e0b, #d97706)', cursor: 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => navigate('/bookings/pending')}
+                  title="View pending confirmation queue"
                 >
                   <div className="kpi-header">
                     <div className="kpi-icon-wrap kpi-icon-gold">
-                      <Clock size={22} />
+                      <Clock size={18} />
                     </div>
                     <span className="kpi-badge standard">Dispatch Queue</span>
                   </div>
@@ -566,34 +494,63 @@ const Dashboard = () => {
                       <span className="kpi-large-num">{stats.pendingReservations}</span>
                       <span className="kpi-unit">requests</span>
                     </div>
-                    <div className="kpi-label">Pending Forward Reservations</div>
+                    <div className="kpi-label">Pending Reservations</div>
                   </div>
                   <div className="kpi-footer-note">
-                    Awaiting operator confirmation
+                    <span>Awaiting operator review</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
 
                 {/* 5. Synchronized Microgrid Fleet */}
                 <div
                   className="highend-kpi-card"
-                  style={{ '--card-accent': 'linear-gradient(90deg, #06b6d4, #0891b2)', cursor: 'pointer' }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => navigate('/microgrid')}
+                  title="View online substation nodes"
                 >
                   <div className="kpi-header">
                     <div className="kpi-icon-wrap kpi-icon-cyan">
-                      <Zap size={22} />
+                      <Zap size={18} />
                     </div>
-                    <span className="kpi-badge standard">SCADA Synced</span>
+                    <span className="kpi-badge success">100% Online</span>
                   </div>
                   <div>
                     <div className="kpi-value-row">
                       <span className="kpi-large-num">{stats.activeNodes}</span>
                       <span className="kpi-unit">/ {stats.totalNodes} Nodes</span>
                     </div>
-                    <div className="kpi-label">Operational Substation Nodes</div>
+                    <div className="kpi-label">Operational Substations</div>
                   </div>
                   <div className="kpi-footer-note">
-                    Telemetry feeds active & balanced
+                    <span>Telemetry feeds balanced</span>
+                    <ArrowUpRight size={13} />
+                  </div>
+                </div>
+
+                {/* 6. Total Energy Volume Traded */}
+                <div
+                  className="highend-kpi-card"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/bookings/history')}
+                  title="View energy trading volume"
+                >
+                  <div className="kpi-header">
+                    <div className="kpi-icon-wrap kpi-icon-emerald">
+                      <TrendingUp size={18} />
+                    </div>
+                    <span className="kpi-badge success">Total Volume</span>
+                  </div>
+                  <div>
+                    <div className="kpi-value-row">
+                      <span className="kpi-large-num">{stats.totalEnergyTradedKWh}</span>
+                      <span className="kpi-unit">kWh</span>
+                    </div>
+                    <div className="kpi-label">Total Energy Traded</div>
+                  </div>
+                  <div className="kpi-footer-note">
+                    <span>${stats.totalRevenueTraded?.toFixed(2)} Total Revenue</span>
+                    <ArrowUpRight size={13} />
                   </div>
                 </div>
               </>
@@ -661,11 +618,19 @@ const Dashboard = () => {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: '24px 16px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)', marginBottom: 16 }}>
-                    <CheckCircle2 size={32} color="#10b981" style={{ margin: '0 auto 8px' }} />
-                    <div style={{ fontWeight: 600, color: '#f1f5f9' }}>All Prosumer Accounts Cleared</div>
-                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                      There are currently zero pending prosumer registrations awaiting Backoffice approval.
+                  <div style={{ padding: '20px 16px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)', marginBottom: 16 }}>
+                    <CheckCircle2 size={28} color="#10b981" style={{ margin: '0 auto 8px' }} />
+                    <div style={{ fontWeight: 600, color: '#f1f5f9', fontSize: '0.92rem' }}>All Prosumer Accounts Verified & Active</div>
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 12 }}>
+                      All {stats.totalProsumers} registered prosumer accounts are active with verified identity and grid trading privileges.
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+                      <Button variant="secondary" size="sm" onClick={() => navigate('/prosumers')}>
+                        <Users size={14} className="icon-mr" /> View All Prosumers ({stats.totalProsumers})
+                      </Button>
+                      <Button variant="primary" size="sm" onClick={() => navigate('/prosumers/create')}>
+                        <PlusCircle size={14} className="icon-mr" /> Register New Prosumer
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -799,7 +764,7 @@ const Dashboard = () => {
                   <div>
                     <div className="panel-title">
                       <Zap size={20} color="#22d3ee" />
-                      SCADA Substation Nodes & Battery Storage Bays
+                      Microgrid Substation Nodes & Battery Storage Bays
                     </div>
                     <div className="panel-subtitle">
                       Hardware battery bays in service vs operational capacity
@@ -1027,8 +992,8 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.recentBookings.map((b) => (
-                      <tr key={b.id}>
+                    {stats.recentBookings.map((b, idx) => (
+                      <tr key={b.id ? `${b.id}-${b.reservationId || ''}-${idx}` : idx}>
                         <td>
                           <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--primary-light)', background: 'rgba(255,255,255,0.04)', padding: '2px 6px', borderRadius: 4 }}>
                             {b.id ? b.id.slice(-8).toUpperCase() : '—'}
@@ -1093,7 +1058,7 @@ const Dashboard = () => {
             <div className="dock-left">
               <span className="pulse-beacon emerald"></span>
               <div className="dock-label">
-                {activeRoleView === 'backoffice' ? 'Executive Governance Commands' : 'Grid Dispatch SCADA Commands'}
+                {activeRoleView === 'backoffice' ? 'Executive Governance Commands' : 'Grid Dispatch Operations'}
               </div>
             </div>
 
