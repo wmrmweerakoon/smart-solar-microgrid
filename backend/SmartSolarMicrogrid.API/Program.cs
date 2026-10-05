@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -6,19 +12,23 @@ using SmartSolarMicrogrid.API.Middleware;
 using SmartSolarMicrogrid.API.Repositories;
 using SmartSolarMicrogrid.API.Services;
 
+// Initializes the web application builder
 var builder = WebApplication.CreateBuilder(args);
 
-// ──────────────── MongoDB ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ MongoDB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Registers the MongoDB context as a Singleton (one instance for the whole app's lifecycle)
 builder.Services.AddSingleton<MongoDbContext>();
 
-// ──────────────── Repositories ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Repositories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Registers repositories as Scoped (one instance per HTTP request)
 builder.Services.AddScoped<ProsumerRepository>();
 builder.Services.AddScoped<MicrogridRepository>();
 builder.Services.AddScoped<EnergySlotRepository>();
 builder.Services.AddScoped<BookingRepository>();
 builder.Services.AddScoped<ReservationRepository>();
 
-// ──────────────── Services ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Services â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Registers business logic services to handle core application logic
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProsumerService>();
 builder.Services.AddScoped<MicrogridService>();
@@ -27,10 +37,12 @@ builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<ReservationService>();
 builder.Services.AddScoped<DashboardService>();
 
-// ──────────────── JWT Authentication ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ JWT Authentication â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Retrieves the JWT settings from appsettings.json
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"]!;
 
+// Configures the default authentication scheme to use JWT Bearer
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -38,6 +50,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    // Defines the token validation rules (checking issuer, audience, and expiration)
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -46,27 +59,33 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
+        // Signs the token using the secret key
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
     };
 });
 
+// Enables role-based authorization in the app
 builder.Services.AddAuthorization();
 
-// ──────────────── CORS ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ CORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Configures Cross-Origin Resource Sharing so the React frontend can talk to this API
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy.SetIsOriginAllowed(origin => true) // Allows any origin (for dev purposes)
+              .AllowAnyHeader() // Allows any HTTP headers
+              .AllowAnyMethod() // Allows any HTTP methods (GET, POST, PUT, DELETE)
+              .AllowCredentials(); // Allows sending cookies/auth tokens
     });
 });
 
-// ──────────────── Controllers & Swagger ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Controllers & Swagger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Registers all the API controllers
 builder.Services.AddControllers();
+// Allows Swagger to explore the API endpoints
 builder.Services.AddEndpointsApiExplorer();
+// Configures Swagger UI for testing the API interactively
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -76,7 +95,7 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API for the Smart Solar Microgrid Trading System"
     });
 
-    // Add JWT auth to Swagger UI
+    // Add JWT auth text box to Swagger UI
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -103,19 +122,23 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Builds the web application pipeline
 var app = builder.Build();
 
-// ──────────────── Middleware Pipeline (CORS must be first) ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Middleware Pipeline (CORS must be first) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Applies the CORS policy to all incoming requests
 app.UseCors("AllowReactApp");
 
-// ──────────────── Seed Default Data ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Seed Default Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Seeds initial data (like the admin user) into the database on startup
 using (var scope = app.Services.CreateScope())
 {
     var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
     await authService.SeedDefaultUsersAsync();
 }
 
-// ──────────────── Swagger UI (Always enabled for IIS hosting & assessment demo) ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Swagger UI (Always enabled for IIS hosting & assessment demo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Serves the Swagger UI webpage
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -123,12 +146,18 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
+// Plugs in our custom global exception handler middleware
 app.UseMiddleware<ExceptionMiddleware>();
+
+// Enables authentication and authorization checks for requests
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Maps incoming HTTP requests to their respective controller endpoints
 app.MapControllers();
 
-// ──────────────── Backend Connected Confirmation Message ────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Backend Connected Confirmation Message â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Prints a friendly console message showing the server status and URLs
 Console.ForegroundColor = ConsoleColor.Green;
 Console.WriteLine();
 Console.WriteLine("================================================================================");
@@ -143,6 +172,7 @@ Console.WriteLine("=============================================================
 Console.WriteLine();
 Console.ResetColor();
 
+// Registers a callback to print a message exactly when the app finishes starting
 app.Lifetime.ApplicationStarted.Register(() =>
 {
     Console.ForegroundColor = ConsoleColor.Green;
@@ -150,4 +180,6 @@ app.Lifetime.ApplicationStarted.Register(() =>
     Console.ResetColor();
 });
 
+// Runs the application and starts listening for HTTP requests
 app.Run();
+

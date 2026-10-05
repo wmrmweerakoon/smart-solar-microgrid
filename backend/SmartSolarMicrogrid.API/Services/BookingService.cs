@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -32,18 +38,21 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<BookingDto>> GetCurrentBookingsAsync()
         {
+            // Executes the GetCurrentBookingsAsync operation flow
             var slots = await _repository.GetCurrentBookingsAsync();
             return await EnrichBookingsAsync(slots);
         }
 
         public async Task<List<BookingDto>> GetPendingBookingsAsync()
         {
+            // Executes the GetPendingBookingsAsync operation flow
             var slots = await _repository.GetPendingBookingsAsync();
             return await EnrichBookingsAsync(slots);
         }
 
         public async Task<List<BookingDto>> GetBookingHistoryAsync()
         {
+            // Executes the GetBookingHistoryAsync operation flow
             var slots = await _repository.GetBookingHistoryAsync();
             return await EnrichBookingsAsync(slots);
         }
@@ -110,6 +119,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<BookingDto>> SearchBookingsAsync(BookingFilterRequest request)
         {
+            // Executes the SearchBookingsAsync operation flow
             var slots = await _repository.SearchBookingsAsync(request.Status, request.NodeId, request.Date, request.ProsumerId);
             var enriched = await EnrichBookingsAsync(slots);
 
@@ -134,6 +144,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> ConfirmBookingAsync(string id)
         {
+            // Executes the ConfirmBookingAsync operation flow
             var booking = await _repository.GetBookingByIdAsync(id);
             if (booking == null) return false;
 
@@ -144,6 +155,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CompleteBookingAsync(string id)
         {
+            // Executes the CompleteBookingAsync operation flow
             var booking = await _repository.GetBookingByIdAsync(id);
             if (booking == null) return false;
 
@@ -154,6 +166,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CancelBookingAsync(string id)
         {
+            // Executes the CancelBookingAsync operation flow
             var booking = await _repository.GetBookingByIdAsync(id);
             if (booking == null) return false;
 
@@ -167,6 +180,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         private async Task<List<BookingDto>> EnrichBookingsAsync(List<EnergySlot> slots)
         {
+            // Executes the GetCurrentBookingsCountAsync operation flow
             if (slots.Count == 0) return new List<BookingDto>();
 
             var slotIds = slots.Select(s => s.Id).ToList();
@@ -246,3 +260,4 @@ namespace SmartSolarMicrogrid.API.Services
         }
     }
 }
+

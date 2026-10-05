@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Models;
@@ -23,6 +29,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            // Executes the Login operation flow
             if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest(new { message = "Username and password are required." });
 
@@ -48,6 +55,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpPost("prosumer/register")]
         public async Task<IActionResult> RegisterProsumer([FromBody] RegisterProsumerDto dto)
         {
+            // Executes the RegisterProsumer operation flow
             try
             {
                 var result = await _authService.RegisterProsumerAsync(dto);
@@ -70,6 +78,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> GetUsers()
         {
+            // Executes the GetUsers operation flow
             var users = await _authService.GetAllUsersAsync();
             return Ok(users);
         }
@@ -82,6 +91,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
         {
+            // Executes the CreateUser operation flow
             try
             {
                 var newUser = await _authService.CreateUserAsync(request);
@@ -100,6 +110,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> UpdateUserStatus(string id, [FromBody] UpdateUserStatusRequest request)
         {
+            // Executes the UpdateUserStatus operation flow
             var success = await _authService.SetUserStatusAsync(id, request.IsActive);
             if (!success)
                 return NotFound(new { message = "User not found." });
@@ -113,3 +124,4 @@ namespace SmartSolarMicrogrid.API.Controllers
         public bool IsActive { get; set; }
     }
 }
+

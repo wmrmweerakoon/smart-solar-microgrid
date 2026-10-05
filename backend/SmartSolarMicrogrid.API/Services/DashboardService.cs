@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -114,3 +120,4 @@ namespace SmartSolarMicrogrid.API.Services
         }
     }
 }
+

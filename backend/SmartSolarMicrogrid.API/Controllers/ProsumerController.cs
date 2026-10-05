@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +31,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            // Executes the GetAll operation flow
             var prosumers = await _service.GetAllProsumersAsync();
             return Ok(prosumers);
         }
@@ -32,6 +39,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("{nic}")]
         public async Task<IActionResult> GetById(string nic)
         {
+            // Executes the GetById operation flow
             var prosumer = await _service.GetProsumerByIdAsync(nic);
             if (prosumer == null) return NotFound(new { message = $"Prosumer with NIC '{nic}' not found." });
             return Ok(prosumer);
@@ -40,6 +48,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("{nic}/details")]
         public async Task<IActionResult> GetDetails(string nic)
         {
+            // Executes the GetDetails operation flow
             var details = await _service.GetProsumerDetailsAsync(nic);
             if (details == null) return NotFound(new { message = $"Prosumer with NIC '{nic}' not found." });
             return Ok(details);
@@ -48,6 +57,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string? query, [FromQuery] string? status, [FromQuery] string? nodeId)
         {
+            // Executes the Search operation flow
             var prosumers = await _service.SearchProsumersAsync(query, status, nodeId);
             return Ok(prosumers);
         }
@@ -55,6 +65,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("status/{status}")]
         public async Task<IActionResult> GetByStatus(string status)
         {
+            // Executes the GetByStatus operation flow
             var prosumers = await _service.GetProsumersByStatusAsync(status);
             return Ok(prosumers);
         }
@@ -62,6 +73,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("node/{nodeId}")]
         public async Task<IActionResult> GetByNode(string nodeId)
         {
+            // Executes the GetByNode operation flow
             var prosumers = await _service.GetProsumersByNodeAsync(nodeId);
             return Ok(prosumers);
         }
@@ -70,6 +82,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Create([FromBody] CreateProsumerDto dto)
         {
+            // Executes the Create operation flow
             try
             {
                 var result = await _service.CreateProsumerAsync(dto);
@@ -89,6 +102,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator,Prosumer")]
         public async Task<IActionResult> Update(string nic, [FromBody] UpdateProsumerDto dto)
         {
+            // Executes the Update operation flow
             try
             {
                 var result = await _service.UpdateProsumerAsync(nic, dto);
@@ -113,6 +127,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> Activate(string nic)
         {
+            // Executes the Activate operation flow
             var username = User.FindFirst(ClaimTypes.Name)?.Value 
                         ?? User.Identity?.Name 
                         ?? "BackofficeAdmin";
@@ -130,6 +145,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator,Prosumer")]
         public async Task<IActionResult> Deactivate(string nic, [FromBody] DeactivateProsumerDto? dto)
         {
+            // Executes the Deactivate operation flow
             try
             {
                 var reason = dto?.Reason ?? "Administrative deactivation";
@@ -151,6 +167,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> Delete(string nic)
         {
+            // Executes the Delete operation flow
             try
             {
                 var result = await _service.DeleteProsumerAsync(nic);
@@ -164,3 +181,4 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
     }
 }
+

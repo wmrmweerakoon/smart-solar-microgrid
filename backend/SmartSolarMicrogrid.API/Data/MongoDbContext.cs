@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using MongoDB.Driver;
 using SmartSolarMicrogrid.API.Models;
 
@@ -26,3 +32,4 @@ namespace SmartSolarMicrogrid.API.Data
         public IMongoCollection<Reservation> Reservations => _database.GetCollection<Reservation>("Reservations");
     }
 }
+

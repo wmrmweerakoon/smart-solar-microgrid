@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -98,3 +104,4 @@ namespace SmartSolarMicrogrid.API.Models
         public double HoursUntilSlot { get; set; }
     }
 }
+

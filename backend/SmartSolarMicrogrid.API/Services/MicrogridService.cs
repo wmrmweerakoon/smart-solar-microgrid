@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -19,6 +25,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<MicrogridNodeDto>> GetAllNodesAsync()
         {
+            // Executes the GetAllNodesAsync operation flow
             var nodes = await _repository.GetAllAsync();
             return nodes.Select(MapToDto).ToList();
         }
@@ -31,12 +38,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<MicrogridNodeDto>> GetNodesByStatusAsync(string status)
         {
+            // Executes the GetNodesByStatusAsync operation flow
             var nodes = await _repository.GetByStatusAsync(status);
             return nodes.Select(MapToDto).ToList();
         }
 
         public async Task<MicrogridNodeDto> CreateNodeAsync(MicrogridNodeDto dto)
         {
+            // Executes the CreateNodeAsync operation flow
             if (string.IsNullOrWhiteSpace(dto.NodeName))
                 throw new InvalidOperationException("Node name is required.");
 
@@ -103,6 +112,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteNodeAsync(string id)
         {
+            // Executes the DeleteNodeAsync operation flow
             var node = await _repository.GetByIdAsync(id);
             if (node == null) return false;
 
@@ -115,6 +125,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static MicrogridNodeDto MapToDto(MicrogridNode node) => new MicrogridNodeDto
         {
+            // Executes the GetCountAsync operation flow
             Id = node.Id,
             NodeName = node.NodeName,
             Location = node.Location,
@@ -131,3 +142,4 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
+

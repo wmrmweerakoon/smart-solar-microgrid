@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Services;
 
@@ -21,6 +27,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
+            // Executes the GetStats operation flow
             var stats = await _dashboardService.GetDashboardStatsAsync();
             return Ok(stats);
         }
@@ -31,6 +38,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("monitoring")]
         public async Task<IActionResult> GetMonitoring()
         {
+            // Executes the GetMonitoring operation flow
             var stats = await _dashboardService.GetDashboardStatsAsync();
             return Ok(new
             {
@@ -46,3 +54,4 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
     }
 }
+

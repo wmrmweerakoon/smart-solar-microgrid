@@ -1,3 +1,9 @@
+﻿/* 
+ * ==============================================================================
+ * Smart Solar Microgrid Trading & Energy Management System
+ * System Module Documentation
+ * ==============================================================================
+ */
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -28,6 +34,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ReservationDto>> GetAllReservationsAsync()
         {
+            // Executes the GetAllReservationsAsync operation flow
             var reservations = await _repository.GetAllAsync();
             return reservations.Select(MapToDto).ToList();
         }
@@ -106,12 +113,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ReservationDto>> GetReservationsByStatusAsync(string status)
         {
+            // Executes the GetReservationsByStatusAsync operation flow
             var reservations = await _repository.GetByStatusAsync(status);
             return reservations.Select(MapToDto).ToList();
         }
 
         public async Task<ReservationDto> CreateReservationAsync(CreateReservationRequest request)
         {
+            // Executes the CreateReservationAsync operation flow
             if (string.IsNullOrWhiteSpace(request.EnergySlotId))
                 throw new InvalidOperationException("Energy Slot ID is required.");
 
@@ -222,6 +231,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> ConfirmReservationAsync(string id)
         {
+            // Executes the ConfirmReservationAsync operation flow
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -236,6 +246,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CancelReservationAsync(string id)
         {
+            // Executes the CancelReservationAsync operation flow
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -274,6 +285,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CompleteReservationAsync(string id)
         {
+            // Executes the CompleteReservationAsync operation flow
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -298,6 +310,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteReservationAsync(string id)
         {
+            // Executes the DeleteReservationAsync operation flow
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -322,6 +335,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static DateTime GetSlotStartDateTime(EnergySlot slot)
         {
+            // Executes the GetCountAsync operation flow
             if (TimeSpan.TryParse(slot.StartTime, out var timeSpan))
             {
                 return slot.SlotDate.Date.Add(timeSpan);
@@ -331,6 +345,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static ReservationDto MapToDto(Reservation r) => new ReservationDto
         {
+            // Executes the MapToDto operation flow
             Id = r.Id,
             EnergySlotId = r.EnergySlotId,
             BuyerProsumerId = r.BuyerProsumerId,
@@ -345,3 +360,4 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
+
