@@ -11,17 +11,19 @@ An end-to-end enterprise microgrid energy trading platform designed for decentra
 
 ---
 
-## 👥 Group Members & Individual Contributions (25% Each)
+## 👥 Group Members & Individual Contributions
 
-| Member No | Student Name & GitHub Username | Branch | Assigned Subsystem & Contribution Scope | Contribution |
-| :---: | :--- | :---: | :--- | :---: |
-| **Member 1** | **W.M. Ruvishan M. Weerakoon** (`wmrmweerakoon`) | `Ruvishan` | Mobile Architecture, Prosumer Lifecycle & Auth, IIS Hosting Automation (`setup-iis.ps1`) | **25%** |
-| **Member 2** | **Dilani Hewage** (`DilaniHewage`) | `Dilani` | Energy Slot Management, Reservation Workflow, 7-Day & 12h Notice Rules | **25%** |
-| **Member 3** | **Nethum Manditha** (`nethum2001m`) | `Nethum` | Operational Dashboard, Active/Pending Bookings, Multi-criteria Search | **25%** |
-| **Member 4** | **Vidusha Hettiarachchi** (`vidushaamanga`) | `Vidu` | Google Maps GIS Substation Locator, ZXing QR Cryptography & Finalization | **25%** |
+The project was developed collaboratively by a team of 4 members. Each member contributed equally (25% each) across the stack.
 
-* **GitHub Repository:** `https://github.com/wmrmweerakoon/smart-solar-microgrid`
-* **Project Demonstration Video (< 5 Mins):** `https://youtu.be/[Your-Video-ID]` *(or OneDrive link)*
+| Member | Web App Contributions | Mobile App Contributions |
+| :--- | :--- | :--- |
+| **Member 1: WMRM Weerakoon** | 1. Developed the microgrid nodes creation and update functionalities.<br>2. Managed node GPS location, capacity, and battery storage slots.<br>3. Handled operational schedules and node availability.<br>4. Implemented node deactivation rules. | 1. Created the prosumer profile and edit profile functionalities.<br>2. Implemented the account deactivation request feature.<br>3. Developed SQLite user persistence.<br>4. Managed local sessions and profile validation. |
+| **Member 2: HDK Ariyadasa** | 1. Built the prosumer management interface using NIC-based identification.<br>2. Implemented prosumer profile creation, updates, and viewing.<br>3. Developed account deactivation workflows.<br>4. Managed pending activation and overall account activation. | 1. Created the interface for viewing available energy slots.<br>2. Developed the reservation creation functionality.<br>3. Implemented reservation updates and cancellation features.<br>4. Built the booking summary, pending reservations view, and reservation validation. |
+| **Member 3: Nethum Manditha** | 1. Managed energy slots and slot availability.<br>2. Handled reservation creation, updates, and cancellations.<br>3. Enforced the seven-day reservation rule.<br>4. Implemented the twelve-hour update/cancellation rule and reservation lifecycle management. | 1. Developed the approved reservation QR code generation.<br>2. Implemented the QR display and grid operator mode.<br>3. Built the QR scanning and server verification workflow.<br>4. Handled transaction validation and energy-transfer finalization. |
+| **Member 4: VS Hettiarachchi** | 1. Developed the operational dashboard displaying pending and current bookings.<br>2. Created the booking history, search, and filtering features.<br>3. Implemented booking details, pending reservation counts, and approved future reservation counts.<br>4. Managed the overall operational monitoring module. | 1. Built the Grid Operator dashboards with active and pending counts.<br>2. Developed the booking history and pending bookings views.<br>3. Integrated booking search and Google Maps functionalities.<br>4. Implemented nearby microgrid nodes display and local reference data storage. |
+
+* **GitHub Repository:** [https://github.com/wmrmweerakoon/smart-solar-microgrid](https://github.com/wmrmweerakoon/smart-solar-microgrid)
+* **Project Demonstration Video (< 5 Mins):** [Watch Walkthrough Video](https://mysliit-my.sharepoint.com/:f:/g/personal/it23322080_my_sliit_lk/IgAoTU9xEscmRpxN9Wzaf6oBAfhrIqq2GcpsY0MEf6Ch9o0?e=v91LcZ)
 
 ---
 
