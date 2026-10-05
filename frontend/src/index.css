@@ -2724,15 +2724,6 @@ select.form-control option {
   background: linear-gradient(90deg, #06b6d4, #22d3ee, #0891b2, transparent);
 }
 
-.hero-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 24px;
-  position: relative;
-  z-index: 2;
-}
 
 .hero-title-section {
   max-width: 680px;
