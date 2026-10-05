@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -341,7 +341,7 @@ const Reservations = () => {
       label: 'Node',
       render: (row) => {
         const n = findNode(row.microgridNodeId);
-        return n ? n.nodeName : '—';
+        return n ? n.nodeName : 'â€”';
       },
     },
     {
@@ -587,7 +587,7 @@ const Reservations = () => {
                 const node = findNode(s.microgridNodeId);
                 return (
                   <option key={s.id} value={s.id}>
-                    {new Date(s.slotDate).toLocaleDateString()} ({s.startTime}–{s.endTime}) — {s.energyAmount} kWh @ ${s.pricePerUnit}/kWh — {seller?.name || s.prosumerId} [{node?.nodeName || 'Node'}]
+                    {new Date(s.slotDate).toLocaleDateString()} ({s.startTime}â€“{s.endTime}) â€” {s.energyAmount} kWh @ ${s.pricePerUnit}/kWh â€” {seller?.name || s.prosumerId} [{node?.nodeName || 'Node'}]
                   </option>
                 );
               })}

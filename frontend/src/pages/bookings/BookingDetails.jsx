@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -240,7 +240,7 @@ const BookingDetails = () => {
               <span className="form-label">Scheduled Date & Time</span>
               <p style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Calendar size={14} color="var(--text-secondary)" />
-                {new Date(booking.slotDate).toLocaleDateString()} ({booking.startTime} – {booking.endTime})
+                {new Date(booking.slotDate).toLocaleDateString()} ({booking.startTime} â€“ {booking.endTime})
               </p>
             </div>
           </div>

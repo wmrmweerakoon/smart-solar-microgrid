@@ -91,7 +91,7 @@ const Dashboard = () => {
           <h1 className="page-title">Operational Dashboard</h1>
           <p className="page-subtitle">
             Welcome back, <strong>{user?.fullName || user?.username}</strong>
-            {' • '}
+            {' â€¢ '}
             <span style={{ color: role === 'Backoffice' ? 'var(--primary-light)' : 'var(--accent-light)', fontWeight: 600 }}>
               {role === 'Backoffice' ? 'Backoffice Administrator' : 'Grid Operator'}
             </span>
@@ -145,10 +145,10 @@ const Dashboard = () => {
             {/* Marking Scheme Critical: Pending Reservations */}
             <div
               className="stat-card"
-              style={{ borderLeft: '4px solid var(--warning)', cursor: 'pointer' }}
+              style={{ borderLeft: '4px solid var(--primary)', cursor: 'pointer' }}
               onClick={() => navigate('/bookings/pending')}
             >
-              <div className="stat-icon warning">
+              <div className="stat-icon primary">
                 <Clock size={24} />
               </div>
               <div className="stat-info">
@@ -163,10 +163,10 @@ const Dashboard = () => {
             {/* Marking Scheme Critical: Approved Future Reservations */}
             <div
               className="stat-card"
-              style={{ borderLeft: '4px solid var(--accent)', cursor: 'pointer' }}
+              style={{ borderLeft: '4px solid var(--primary)', cursor: 'pointer' }}
               onClick={() => navigate('/reservations')}
             >
-              <div className="stat-icon accent">
+              <div className="stat-icon primary">
                 <CalendarCheck size={24} />
               </div>
               <div className="stat-info">
@@ -197,8 +197,8 @@ const Dashboard = () => {
             </div>
 
             {/* Energy Traded Volume */}
-            <div className="stat-card" style={{ borderLeft: '4px solid var(--success)' }}>
-              <div className="stat-icon success">
+            <div className="stat-card" style={{ borderLeft: '4px solid var(--primary)' }}>
+              <div className="stat-icon primary">
                 <TrendingUp size={24} />
               </div>
               <div className="stat-info">
@@ -218,7 +218,7 @@ const Dashboard = () => {
               style={{ cursor: 'pointer' }}
               onClick={() => navigate('/energy-slots')}
             >
-              <div className="stat-icon info">
+              <div className="stat-icon primary">
                 <Battery size={24} />
               </div>
               <div className="stat-info">
@@ -238,7 +238,7 @@ const Dashboard = () => {
               style={{ cursor: 'pointer' }}
               onClick={() => navigate('/microgrid')}
             >
-              <div className="stat-icon accent">
+              <div className="stat-icon primary">
                 <Zap size={24} />
               </div>
               <div className="stat-info">
@@ -400,7 +400,7 @@ const Dashboard = () => {
                       <tr key={b.id}>
                         <td>
                           <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-                            {b.id ? b.id.slice(-8) : '—'}
+                            {b.id ? b.id.slice(-8) : 'â€”'}
                           </span>
                         </td>
                         <td>

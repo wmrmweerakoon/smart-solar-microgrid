@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -295,7 +295,7 @@ const EnergySlots = () => {
       minWidth: '100px',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-          {row.id ? `#${row.id.slice(-8)}` : '—'}
+          {row.id ? `#${row.id.slice(-8)}` : 'â€”'}
         </span>
       ),
     },
@@ -321,7 +321,7 @@ const EnergySlots = () => {
       minWidth: '170px',
       render: (row) => {
         const n = findNode(row.microgridNodeId);
-        return n ? `${n.nodeName} (${n.location})` : '—';
+        return n ? `${n.nodeName} (${n.location})` : 'â€”';
       },
     },
     {
@@ -352,7 +352,7 @@ const EnergySlots = () => {
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'monospace' }}>
             <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
-            <span>{row.startTime} – {row.endTime}</span>
+            <span>{row.startTime} â€“ {row.endTime}</span>
           </div>
         </div>
       ),
@@ -537,7 +537,7 @@ const EnergySlots = () => {
               <option value="">Select a prosumer...</option>
               {prosumers.map((p) => (
                 <option key={p.nic || p.id} value={p.nic || p.id}>
-                  {p.name} ({p.nic || p.id}) — {p.solarCapacity} kW
+                  {p.name} ({p.nic || p.id}) â€” {p.solarCapacity} kW
                 </option>
               ))}
             </select>
