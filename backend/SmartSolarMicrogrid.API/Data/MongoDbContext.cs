@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: MongoDbContext.cs
+ * Purpose: Establishes and configures the connection to the MongoDB Atlas cluster.
  * ==============================================================================
  */
 using MongoDB.Driver;
@@ -32,4 +33,5 @@ namespace SmartSolarMicrogrid.API.Data
         public IMongoCollection<Reservation> Reservations => _database.GetCollection<Reservation>("Reservations");
     }
 }
+
 

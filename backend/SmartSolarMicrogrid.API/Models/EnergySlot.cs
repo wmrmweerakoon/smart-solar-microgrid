@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: EnergySlot.cs
+ * Purpose: Data model / Schema definition representing EnergySlot.
  * ==============================================================================
  */
 using MongoDB.Bson;
@@ -64,4 +65,5 @@ namespace SmartSolarMicrogrid.API.Models
         public DateTime UpdatedAt { get; set; }
     }
 }
+
 

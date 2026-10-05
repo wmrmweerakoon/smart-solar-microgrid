@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: ProsumerController.cs
+ * Purpose: Handles incoming HTTP requests and API routing for Prosumer operations.
  * ==============================================================================
  */
 using System.Security.Claims;
@@ -181,4 +182,5 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
     }
 }
+
 

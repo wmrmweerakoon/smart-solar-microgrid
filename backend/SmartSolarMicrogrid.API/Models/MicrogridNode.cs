@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: MicrogridNode.cs
+ * Purpose: Data model / Schema definition representing MicrogridNode.
  * ==============================================================================
  */
 using MongoDB.Bson;
@@ -78,4 +79,5 @@ namespace SmartSolarMicrogrid.API.Models
         public DateTime UpdatedAt { get; set; }
     }
 }
+
 

@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: AuthController.cs
+ * Purpose: Handles incoming HTTP requests and API routing for Auth operations.
  * ==============================================================================
  */
 using Microsoft.AspNetCore.Authorization;
@@ -124,4 +125,5 @@ namespace SmartSolarMicrogrid.API.Controllers
         public bool IsActive { get; set; }
     }
 }
+
 

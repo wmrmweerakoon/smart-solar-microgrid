@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: ExceptionMiddleware.cs
+ * Purpose: Global middleware interceptor to catch and format unhandled exceptions.
  * ==============================================================================
  */
 using System.Net;
@@ -85,4 +86,5 @@ namespace SmartSolarMicrogrid.API.Middleware
         }
     }
 }
+
 

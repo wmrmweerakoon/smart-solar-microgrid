@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: AuthService.cs
+ * Purpose: Encapsulates the core business logic and rules for Auth management.
  * ==============================================================================
  */
 using System.IdentityModel.Tokens.Jwt;
@@ -353,4 +354,5 @@ namespace SmartSolarMicrogrid.API.Services
         }
     }
 }
+
 

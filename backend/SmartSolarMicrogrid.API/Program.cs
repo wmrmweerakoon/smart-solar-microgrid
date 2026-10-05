@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: Program.cs
+ * Purpose: Application entry point, configures DI, Middleware, and API pipeline.
  * ==============================================================================
  */
 using System.Text;
@@ -182,4 +183,5 @@ app.Lifetime.ApplicationStarted.Register(() =>
 
 // Runs the application and starts listening for HTTP requests
 app.Run();
+
 

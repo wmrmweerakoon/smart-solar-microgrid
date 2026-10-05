@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: EnergySlotRepository.cs
+ * Purpose: Manages direct database interactions and queries for EnergySlot data.
  * ==============================================================================
  */
 using MongoDB.Driver;
@@ -82,4 +83,5 @@ namespace SmartSolarMicrogrid.API.Repositories
         }
     }
 }
+
 

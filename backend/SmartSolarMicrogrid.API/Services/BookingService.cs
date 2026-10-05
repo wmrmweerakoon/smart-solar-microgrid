@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: BookingService.cs
+ * Purpose: Encapsulates the core business logic and rules for Booking management.
  * ==============================================================================
  */
 using SmartSolarMicrogrid.API.Models;
@@ -260,4 +261,5 @@ namespace SmartSolarMicrogrid.API.Services
         }
     }
 }
+
 

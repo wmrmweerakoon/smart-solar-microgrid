@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: Booking.cs
+ * Purpose: Data model / Schema definition representing Booking.
  * ==============================================================================
  */
 namespace SmartSolarMicrogrid.API.Models
@@ -161,4 +162,5 @@ namespace SmartSolarMicrogrid.API.Models
         public List<BookingDto> RecentBookings { get; set; } = new();
     }
 }
+
 

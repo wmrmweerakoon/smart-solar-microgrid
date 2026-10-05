@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: BookingController.cs
+ * Purpose: Handles incoming HTTP requests and API routing for Booking operations.
  * ==============================================================================
  */
 using Microsoft.AspNetCore.Authorization;
@@ -131,4 +132,5 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
     }
 }
+
 

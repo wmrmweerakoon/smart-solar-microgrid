@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: DashboardService.cs
+ * Purpose: Encapsulates the core business logic and rules for Dashboard management.
  * ==============================================================================
  */
 using SmartSolarMicrogrid.API.Models;
@@ -120,4 +121,5 @@ namespace SmartSolarMicrogrid.API.Services
         }
     }
 }
+
 

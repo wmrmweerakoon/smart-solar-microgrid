@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: DashboardController.cs
+ * Purpose: Handles incoming HTTP requests and API routing for Dashboard operations.
  * ==============================================================================
  */
 using Microsoft.AspNetCore.Mvc;
@@ -54,4 +55,5 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
     }
 }
+
 

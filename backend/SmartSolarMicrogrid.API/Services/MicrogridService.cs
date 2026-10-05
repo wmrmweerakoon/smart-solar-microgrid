@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: MicrogridService.cs
+ * Purpose: Encapsulates the core business logic and rules for Microgrid management.
  * ==============================================================================
  */
 using SmartSolarMicrogrid.API.Models;
@@ -142,4 +143,5 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
+
 

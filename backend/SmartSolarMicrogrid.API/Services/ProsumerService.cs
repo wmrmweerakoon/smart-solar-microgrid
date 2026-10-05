@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: ProsumerService.cs
+ * Purpose: Encapsulates the core business logic and rules for Prosumer management.
  * ==============================================================================
  */
 using System.Text.RegularExpressions;
@@ -288,4 +289,5 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
+
 

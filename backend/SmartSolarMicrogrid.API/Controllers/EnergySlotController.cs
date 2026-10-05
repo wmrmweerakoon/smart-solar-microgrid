@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: EnergySlotController.cs
+ * Purpose: Handles incoming HTTP requests and API routing for EnergySlot operations.
  * ==============================================================================
  */
 using Microsoft.AspNetCore.Authorization;
@@ -94,4 +95,5 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
     }
 }
+
 

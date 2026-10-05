@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: ProsumerRepository.cs
+ * Purpose: Manages direct database interactions and queries for Prosumer data.
  * ==============================================================================
  */
 using MongoDB.Bson;
@@ -120,4 +121,5 @@ namespace SmartSolarMicrogrid.API.Repositories
         }
     }
 }
+
 

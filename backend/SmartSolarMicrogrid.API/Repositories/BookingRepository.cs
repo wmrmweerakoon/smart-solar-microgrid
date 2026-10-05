@@ -1,7 +1,8 @@
 ﻿/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
- * System Module Documentation
+ * File: BookingRepository.cs
+ * Purpose: Manages direct database interactions and queries for Booking data.
  * ==============================================================================
  */
 using MongoDB.Driver;
@@ -178,4 +179,5 @@ namespace SmartSolarMicrogrid.API.Repositories
         }
     }
 }
+
 
