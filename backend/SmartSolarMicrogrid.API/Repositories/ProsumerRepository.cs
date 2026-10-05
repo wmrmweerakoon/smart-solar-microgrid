@@ -1,3 +1,9 @@
+/*
+ * File: ProsumerRepository.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data access layer for interacting with the Prosumer MongoDB collection.
+ */
+
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SmartSolarMicrogrid.API.Data;
@@ -14,11 +20,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public ProsumerRepository(MongoDbContext context)
         {
+            // Initializes the repository with database context
             _prosumers = context.Prosumers;
         }
 
         public async Task<List<Prosumer>> GetAllAsync()
         {
+            // Retrieves all from the system
             return await _prosumers.Find(_ => true).SortByDescending(p => p.CreatedAt).ToListAsync();
         }
 
@@ -34,11 +42,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<Prosumer>> GetByStatusAsync(string status)
         {
+            // Retrieves by status from the system
             return await _prosumers.Find(p => p.Status == status).SortByDescending(p => p.CreatedAt).ToListAsync();
         }
 
         public async Task<List<Prosumer>> GetByMicrogridNodeIdAsync(string nodeId)
         {
+            // Retrieves by microgrid node id from the system
             return await _prosumers.Find(p => p.MicrogridNodeId == nodeId).ToListAsync();
         }
 
@@ -49,6 +59,7 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<Prosumer>> SearchAsync(string? query, string? status, string? nodeId)
         {
+            // Searches for  based on criteria
             var filterBuilder = Builders<Prosumer>.Filter;
             var filter = filterBuilder.Empty;
 
@@ -81,26 +92,31 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task CreateAsync(Prosumer prosumer)
         {
+            // Adds a new  to the system
             await _prosumers.InsertOneAsync(prosumer);
         }
 
         public async Task UpdateAsync(string nic, Prosumer prosumer)
         {
+            // Modifies the existing 
             await _prosumers.ReplaceOneAsync(p => p.Nic == nic, prosumer);
         }
 
         public async Task DeleteAsync(string nic)
         {
+            // Deletes the specified 
             await _prosumers.DeleteOneAsync(p => p.Nic == nic);
         }
 
         public async Task<long> GetCountAsync()
         {
+            // Retrieves count from the system
             return await _prosumers.CountDocumentsAsync(_ => true);
         }
 
         public async Task<long> GetCountByStatusAsync(string status)
         {
+            // Retrieves count by status from the system
             return await _prosumers.CountDocumentsAsync(p => p.Status == status);
         }
     }

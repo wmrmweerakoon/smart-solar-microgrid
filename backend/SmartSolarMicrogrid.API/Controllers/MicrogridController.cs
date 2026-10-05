@@ -1,3 +1,9 @@
+/*
+ * File: MicrogridController.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Handles HTTP requests and responses for Microgrid operations.
+ */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Models;
@@ -14,6 +20,7 @@ namespace SmartSolarMicrogrid.API.Controllers
 
         public MicrogridController(MicrogridService service)
         {
+            // Initializes the controller with required services
             _service = service;
         }
 
@@ -21,6 +28,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
+            // Retrieves all from the system
             var nodes = await _service.GetAllNodesAsync();
             return Ok(nodes);
         }
@@ -29,6 +37,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetById(string id)
         {
+            // Retrieves by id from the system
             var node = await _service.GetNodeByIdAsync(id);
             if (node == null) return NotFound(new { message = "Microgrid node not found." });
             return Ok(node);
@@ -37,6 +46,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("status/{status}")]
         public async Task<IActionResult> GetByStatus(string status)
         {
+            // Retrieves by status from the system
             var nodes = await _service.GetNodesByStatusAsync(status);
             return Ok(nodes);
         }
@@ -45,6 +55,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Create([FromBody] MicrogridNodeDto dto)
         {
+            // Adds a new  to the system
             try
             {
                 var result = await _service.CreateNodeAsync(dto);
@@ -60,6 +71,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Update(string id, [FromBody] MicrogridNodeDto dto)
         {
+            // Modifies the existing 
             try
             {
                 var result = await _service.UpdateNodeAsync(id, dto);
@@ -76,6 +88,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice")]
         public async Task<IActionResult> Delete(string id)
         {
+            // Deletes the specified 
             var success = await _service.DeleteNodeAsync(id);
             if (!success) return NotFound(new { message = "Node not found." });
             return NoContent();
@@ -85,6 +98,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Deactivate(string id)
         {
+            // Deactivates the specified 
             try
             {
                 var updatedNode = await _service.DeactivateNodeAsync(id);

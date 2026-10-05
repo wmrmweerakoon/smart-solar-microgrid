@@ -1,3 +1,9 @@
+/*
+ * File: MicrogridNode.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data model representing MicrogridNode entities within the system.
+ */
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 

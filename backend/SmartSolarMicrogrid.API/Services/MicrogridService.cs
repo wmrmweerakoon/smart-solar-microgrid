@@ -1,3 +1,9 @@
+/*
+ * File: MicrogridService.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Microgrid management.
+ */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -13,12 +19,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public MicrogridService(MicrogridRepository repository, ReservationRepository reservationRepository)
         {
+            // Initializes the service with required dependencies
             _repository = repository;
             _reservationRepository = reservationRepository;
         }
 
         public async Task<List<MicrogridNodeDto>> GetAllNodesAsync()
         {
+            // Retrieves all nodes from the system
             var nodes = await _repository.GetAllAsync();
             return nodes.Select(MapToDto).ToList();
         }
@@ -31,12 +39,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<MicrogridNodeDto>> GetNodesByStatusAsync(string status)
         {
+            // Retrieves nodes by status from the system
             var nodes = await _repository.GetByStatusAsync(status);
             return nodes.Select(MapToDto).ToList();
         }
 
         public async Task<MicrogridNodeDto> CreateNodeAsync(MicrogridNodeDto dto)
         {
+            // Adds a new node to the system
             if (string.IsNullOrWhiteSpace(dto.NodeName))
                 throw new InvalidOperationException("Node name is required.");
 
@@ -103,6 +113,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteNodeAsync(string id)
         {
+            // Deletes the specified node
             var node = await _repository.GetByIdAsync(id);
             if (node == null) return false;
 

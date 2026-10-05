@@ -1,3 +1,9 @@
+/*
+ * File: EnergySlot.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data model representing EnergySlot entities within the system.
+ */
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 

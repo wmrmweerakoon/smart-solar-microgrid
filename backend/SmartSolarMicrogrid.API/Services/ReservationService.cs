@@ -1,3 +1,9 @@
+/*
+ * File: ReservationService.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Reservation management.
+ */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -28,6 +34,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ReservationDto>> GetAllReservationsAsync()
         {
+            // Retrieves all reservations from the system
             var reservations = await _repository.GetAllAsync();
             return reservations.Select(MapToDto).ToList();
         }
@@ -106,12 +113,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ReservationDto>> GetReservationsByStatusAsync(string status)
         {
+            // Retrieves reservations by status from the system
             var reservations = await _repository.GetByStatusAsync(status);
             return reservations.Select(MapToDto).ToList();
         }
 
         public async Task<ReservationDto> CreateReservationAsync(CreateReservationRequest request)
         {
+            // Adds a new reservation to the system
             if (string.IsNullOrWhiteSpace(request.EnergySlotId))
                 throw new InvalidOperationException("Energy Slot ID is required.");
 
@@ -222,6 +231,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> ConfirmReservationAsync(string id)
         {
+            // Confirms the reservation
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -236,6 +246,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CancelReservationAsync(string id)
         {
+            // Cancels the reservation
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -274,6 +285,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CompleteReservationAsync(string id)
         {
+            // Marks the reservation as complete
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -298,6 +310,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteReservationAsync(string id)
         {
+            // Deletes the specified reservation
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 

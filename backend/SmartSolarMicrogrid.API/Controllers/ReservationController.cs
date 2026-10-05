@@ -1,3 +1,9 @@
+/*
+ * File: ReservationController.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Handles HTTP requests and responses for Reservation operations.
+ */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Models;
@@ -14,12 +20,14 @@ namespace SmartSolarMicrogrid.API.Controllers
 
         public ReservationController(ReservationService service)
         {
+            // Initializes the controller with required services
             _service = service;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            // Retrieves all from the system
             var reservations = await _service.GetAllReservationsAsync();
             return Ok(reservations);
         }
@@ -27,6 +35,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
+            // Retrieves by id from the system
             var reservation = await _service.GetReservationByIdAsync(id);
             if (reservation == null) return NotFound(new { message = "Reservation not found." });
             return Ok(reservation);
@@ -35,6 +44,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("{id}/details")]
         public async Task<IActionResult> GetDetails(string id)
         {
+            // Retrieves details from the system
             var details = await _service.GetReservationDetailsByIdAsync(id);
             if (details == null) return NotFound(new { message = "Reservation not found." });
             return Ok(details);
@@ -43,6 +53,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("status/{status}")]
         public async Task<IActionResult> GetByStatus(string status)
         {
+            // Retrieves by status from the system
             var reservations = await _service.GetReservationsByStatusAsync(status);
             return Ok(reservations);
         }
@@ -50,6 +61,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateReservationRequest request)
         {
+            // Adds a new  to the system
             try
             {
                 var result = await _service.CreateReservationAsync(request);
@@ -64,6 +76,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateReservationRequest request)
         {
+            // Modifies the existing 
             try
             {
                 var result = await _service.UpdateReservationAsync(id, request);
@@ -79,6 +92,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpPut("{id}/confirm")]
         public async Task<IActionResult> Confirm(string id)
         {
+            // Confirms the 
             try
             {
                 var result = await _service.ConfirmReservationAsync(id);
@@ -94,6 +108,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpPut("{id}/cancel")]
         public async Task<IActionResult> Cancel(string id)
         {
+            // Cancels the 
             try
             {
                 var result = await _service.CancelReservationAsync(id);
@@ -109,6 +124,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpPut("{id}/complete")]
         public async Task<IActionResult> Complete(string id)
         {
+            // Marks the  as complete
             try
             {
                 var result = await _service.CompleteReservationAsync(id);
@@ -124,6 +140,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
+            // Deletes the specified 
             var result = await _service.DeleteReservationAsync(id);
             if (!result) return NotFound(new { message = "Reservation not found." });
             return Ok(new { message = "Reservation deleted successfully." });

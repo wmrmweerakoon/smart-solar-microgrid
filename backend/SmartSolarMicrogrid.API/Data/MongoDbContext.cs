@@ -1,3 +1,9 @@
+/*
+ * File: MongoDbContext.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: MongoDB database context and collection configurations.
+ */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.API.Models;
 
@@ -12,6 +18,7 @@ namespace SmartSolarMicrogrid.API.Data
 
         public MongoDbContext(IConfiguration configuration)
         {
+            // Sets up the MongoDB database connection and collections
             var connectionString = configuration["MongoDbSettings:ConnectionString"];
             var databaseName = configuration["MongoDbSettings:DatabaseName"];
 

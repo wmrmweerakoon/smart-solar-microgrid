@@ -1,3 +1,9 @@
+/*
+ * File: Booking.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data model representing Booking entities within the system.
+ */
+
 namespace SmartSolarMicrogrid.API.Models
 {
     /// <summary>

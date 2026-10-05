@@ -1,3 +1,9 @@
+/*
+ * File: AuthService.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Auth management.
+ */
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -19,6 +25,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public AuthService(MongoDbContext context, IConfiguration configuration)
         {
+            // Initializes the service with required dependencies
             _context = context;
             _configuration = configuration;
         }
@@ -87,6 +94,7 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         public async Task<List<UserDto>> GetAllUsersAsync()
         {
+            // Retrieves all users from the system
             var users = await _context.Users.Find(_ => true).ToListAsync();
             return users.Select(u => new UserDto
             {
@@ -106,6 +114,7 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         public async Task<UserDto> CreateUserAsync(CreateUserRequest request)
         {
+            // Adds a new user to the system
             if (string.IsNullOrWhiteSpace(request.Username))
                 throw new InvalidOperationException("Username is required.");
 
@@ -155,6 +164,7 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         public async Task<bool> SetUserStatusAsync(string id, bool isActive)
         {
+            // Executes the SetUserStatus process
             var update = Builders<User>.Update
                 .Set(u => u.IsActive, isActive)
                 .Set(u => u.UpdatedAt, DateTime.UtcNow);
@@ -169,6 +179,7 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         public async Task SeedDefaultUsersAsync()
         {
+            // Seeds initial default users data into the database
             var adminUser = await _context.Users.Find(u => u.Username.ToLower() == "admin").FirstOrDefaultAsync();
             if (adminUser == null)
             {
@@ -223,6 +234,7 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         private string GenerateJwtToken(User user)
         {
+            // Executes the GenerateJwtToken process
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"]!;
             var issuer = jwtSettings["Issuer"]!;
@@ -258,6 +270,7 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         public async Task<ProsumerDto> RegisterProsumerAsync(RegisterProsumerDto dto)
         {
+            // Adds a new prosumer to the system
             if (string.IsNullOrWhiteSpace(dto.Nic))
                 throw new ArgumentException("NIC is required.");
 
@@ -309,6 +322,7 @@ namespace SmartSolarMicrogrid.API.Services
         /// </summary>
         private string GenerateJwtTokenForProsumer(Prosumer prosumer)
         {
+            // Executes the GenerateJwtTokenForProsumer process
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"]!;
             var issuer = jwtSettings["Issuer"]!;

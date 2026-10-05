@@ -1,3 +1,9 @@
+/*
+ * File: DashboardService.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Dashboard management.
+ */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 

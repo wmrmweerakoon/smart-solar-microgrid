@@ -1,3 +1,9 @@
+/*
+ * File: ExceptionMiddleware.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Custom middleware for intercepting HTTP requests.
+ */
+
 using System.Net;
 using System.Text.Json;
 
@@ -14,12 +20,14 @@ namespace SmartSolarMicrogrid.API.Middleware
 
         public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
         {
+            // Executes the ExceptionMiddleware process
             _next = next;
             _logger = logger;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
+            // Intercepts the HTTP request to handle global exceptions
             try
             {
                 await _next(context);

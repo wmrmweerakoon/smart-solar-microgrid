@@ -1,3 +1,9 @@
+/*
+ * File: ProsumerService.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Prosumer management.
+ */
+
 using System.Text.RegularExpressions;
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
@@ -30,6 +36,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ProsumerDto>> GetAllProsumersAsync()
         {
+            // Retrieves all prosumers from the system
             var prosumers = await _repository.GetAllAsync();
             return prosumers.Select(MapToDto).ToList();
         }
@@ -98,24 +105,28 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ProsumerDto>> GetProsumersByStatusAsync(string status)
         {
+            // Retrieves prosumers by status from the system
             var prosumers = await _repository.GetByStatusAsync(status);
             return prosumers.Select(MapToDto).ToList();
         }
 
         public async Task<List<ProsumerDto>> GetProsumersByNodeAsync(string nodeId)
         {
+            // Retrieves prosumers by node from the system
             var prosumers = await _repository.GetByMicrogridNodeIdAsync(nodeId);
             return prosumers.Select(MapToDto).ToList();
         }
 
         public async Task<List<ProsumerDto>> SearchProsumersAsync(string? query, string? status, string? nodeId)
         {
+            // Searches for prosumers based on criteria
             var prosumers = await _repository.SearchAsync(query, status, nodeId);
             return prosumers.Select(MapToDto).ToList();
         }
 
         public async Task<ProsumerDto> CreateProsumerAsync(CreateProsumerDto dto)
         {
+            // Adds a new prosumer to the system
             if (string.IsNullOrWhiteSpace(dto.Nic))
                 throw new ArgumentException("NIC is required as the primary identifier.");
 
@@ -200,6 +211,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> ActivateProsumerAsync(string nic, string activatedBy)
         {
+            // Activates the specified prosumer
             var prosumer = await _repository.GetByNicAsync(nic.Trim().ToUpperInvariant());
             if (prosumer == null) return false;
 
@@ -216,6 +228,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeactivateProsumerAsync(string nic, string reason)
         {
+            // Deactivates the specified prosumer
             var prosumer = await _repository.GetByNicAsync(nic.Trim().ToUpperInvariant());
             if (prosumer == null) return false;
 
@@ -237,6 +250,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteProsumerAsync(string nic)
         {
+            // Deletes the specified prosumer
             var cleanNic = nic.Trim().ToUpperInvariant();
             var prosumer = await _repository.GetByNicAsync(cleanNic);
             if (prosumer == null) return false;

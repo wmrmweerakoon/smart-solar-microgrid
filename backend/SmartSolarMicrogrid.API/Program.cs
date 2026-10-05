@@ -1,3 +1,9 @@
+/*
+ * File: Program.cs
+ * Module: SE4040 Enterprise Application Development
+ * Description: Entry point and service configuration for the API application.
+ */
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
