@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -408,11 +408,11 @@ const ReservationDetails = () => {
             <div style={{ background: 'rgba(255,255,255,0.02)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#60a5fa', fontWeight: 700 }}>Buyer (Purchaser)</div>
               <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.buyerName || 'Unknown Buyer'}</div>
-              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.buyerProsumerId || '—'}</div>
+              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.buyerProsumerId || 'â€”'}</div>
               {details.buyerEmail && (
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <span>{details.buyerEmail}</span>
-                  {details.buyerPhone && <span>• {details.buyerPhone}</span>}
+                  {details.buyerPhone && <span>â€¢ {details.buyerPhone}</span>}
                 </div>
               )}
             </div>
@@ -420,11 +420,11 @@ const ReservationDetails = () => {
             <div style={{ background: 'rgba(255,255,255,0.02)', padding: 14, borderRadius: 8, border: '1px solid var(--border)' }}>
               <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#34d399', fontWeight: 700 }}>Seller (Generator)</div>
               <div style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: 4 }}>{details.sellerName || 'Unknown Seller'}</div>
-              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.sellerProsumerId || '—'}</div>
+              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>NIC: {details.sellerProsumerId || 'â€”'}</div>
               {details.sellerEmail && (
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <span>{details.sellerEmail}</span>
-                  {details.sellerPhone && <span>• {details.sellerPhone}</span>}
+                  {details.sellerPhone && <span>â€¢ {details.sellerPhone}</span>}
                 </div>
               )}
             </div>
@@ -450,7 +450,7 @@ const ReservationDetails = () => {
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Transfer Window</span>
               <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Clock size={14} color="var(--text-muted)" /> {details.startTime || '—'} – {details.endTime || '—'}
+                <Clock size={14} color="var(--text-muted)" /> {details.startTime || 'â€”'} â€“ {details.endTime || 'â€”'}
               </p>
             </div>
             <div>
@@ -505,11 +505,11 @@ const ReservationDetails = () => {
           </div>
           <div>
             <span className="form-label">Energy Slot Reference</span>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.energySlotId || '—'}</p>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.energySlotId || 'â€”'}</p>
           </div>
           <div>
             <span className="form-label">Microgrid Node ID</span>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.microgridNodeId || '—'}</p>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{details.microgridNodeId || 'â€”'}</p>
           </div>
         </div>
         <div>

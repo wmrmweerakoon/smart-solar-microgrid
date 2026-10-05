@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Eye,
@@ -111,7 +111,7 @@ const BookingHistory = () => {
       label: 'Booking ID',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-          {row.id ? `#${row.id.slice(-8)}` : '—'}
+          {row.id ? `#${row.id.slice(-8)}` : 'â€”'}
         </span>
       ),
     },
@@ -180,7 +180,7 @@ const BookingHistory = () => {
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
             <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
-            <span>{row.startTime} – {row.endTime}</span>
+            <span>{row.startTime} â€“ {row.endTime}</span>
           </div>
         </div>
       ),

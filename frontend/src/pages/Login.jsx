@@ -1,4 +1,4 @@
-import { AlertTriangle, LogIn, Shield, Lock, ArrowLeft } from 'lucide-react';
+﻿import { AlertTriangle, LogIn, Shield, Lock, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
@@ -104,12 +104,10 @@ const Login = () => {
           </Button>
         </form>
 
-        <div className="login-footer">
-          <p>Demo Credentials:</p>
-          <div className="demo-credentials">
-            <span><strong style={{ color: 'var(--primary-light)' }}>Admin:</strong> admin / admin123</span>
-            <span><strong style={{ color: 'var(--accent-light)' }}>Operator:</strong> gridoperator / operator123</span>
-          </div>
+        <div className="login-footer" style={{ marginTop: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', lineHeight: '1.5' }}>
+          <p>
+            Please log in with your <strong style={{ color: 'var(--primary-light)' }}>Backoffice Administrator</strong> or <strong style={{ color: 'var(--accent-light)' }}>Grid Operator</strong> credentials to access the secure dashboard.
+          </p>
         </div>
       </div>
     </div>

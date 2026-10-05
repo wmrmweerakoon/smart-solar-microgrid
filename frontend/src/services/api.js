@@ -4,7 +4,7 @@ import { getToken, logout } from '../utils/auth';
 /**
  * Axios instance configured with base URL and JWT interceptor.
  */
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5299/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_URL,

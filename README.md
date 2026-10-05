@@ -11,6 +11,20 @@ An end-to-end enterprise microgrid energy trading platform designed for decentra
 
 ---
 
+## 👥 Group Members & Individual Contributions (25% Each)
+
+| Member No | Student Name & GitHub Username | Branch | Assigned Subsystem & Contribution Scope | Contribution |
+| :---: | :--- | :---: | :--- | :---: |
+| **Member 1** | **W.M. Ruvishan M. Weerakoon** (`wmrmweerakoon`) | `Ruvishan` | Mobile Architecture, Prosumer Lifecycle & Auth, IIS Hosting Automation (`setup-iis.ps1`) | **25%** |
+| **Member 2** | **Dilani Hewage** (`DilaniHewage`) | `Dilani` | Energy Slot Management, Reservation Workflow, 7-Day & 12h Notice Rules | **25%** |
+| **Member 3** | **Nethum Manditha** (`nethum2001m`) | `Nethum` | Operational Dashboard, Active/Pending Bookings, Multi-criteria Search | **25%** |
+| **Member 4** | **Vidusha Hettiarachchi** (`vidushaamanga`) | `Vidu` | Google Maps GIS Substation Locator, ZXing QR Cryptography & Finalization | **25%** |
+
+* **GitHub Repository:** `https://github.com/wmrmweerakoon/smart-solar-microgrid`
+* **Project Demonstration Video (< 5 Mins):** `https://youtu.be/[Your-Video-ID]` *(or OneDrive link)*
+
+---
+
 ## System Architecture & Tech Stack
 
 ```
