@@ -115,11 +115,13 @@ using (var scope = app.Services.CreateScope())
     await authService.SeedDefaultUsersAsync();
 }
 
-if (app.Environment.IsDevelopment())
+// ──────────────── Swagger UI (Always enabled for IIS hosting & assessment demo) ────────────────
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Solar Microgrid API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
