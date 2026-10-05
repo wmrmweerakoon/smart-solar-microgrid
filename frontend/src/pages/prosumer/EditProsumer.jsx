@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Save,
@@ -321,7 +321,7 @@ const EditProsumer = () => {
                 <option value="">Select a microgrid node...</option>
                 {nodes.map((node) => (
                   <option key={node.id} value={node.id}>
-                    {node.nodeName} ({node.location}) â€” Capacity: {node.capacity} kW
+                    {node.nodeName} ({node.location}) - Capacity: {node.capacity} kW
                   </option>
                 ))}
               </select>

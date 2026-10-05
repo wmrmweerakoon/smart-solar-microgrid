@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle,
@@ -140,13 +140,13 @@ const PendingBookings = () => {
       label: 'Booking ID',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-          {row.id ? `#${row.id.slice(-8)}` : 'â€”'}
+          {row.id ? `#${row.id.slice(-8)}` : '-'}
         </span>
       ),
     },
     {
       key: 'microgridNodeName',
-      label: 'Microgrid Node',
+      label: 'Node',
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.microgridNodeName || 'Assigned Node'}</div>
@@ -156,7 +156,7 @@ const PendingBookings = () => {
     },
     {
       key: 'buyer',
-      label: 'Claiming Buyer',
+      label: 'Buyer',
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.buyerName || 'Unassigned / Open'}</div>
@@ -168,7 +168,7 @@ const PendingBookings = () => {
     },
     {
       key: 'seller',
-      label: 'Source Seller',
+      label: 'Seller',
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.sellerName || 'Seller'}</div>
@@ -177,30 +177,26 @@ const PendingBookings = () => {
       ),
     },
     {
-      key: 'energy',
-      label: 'Energy Volume',
+      key: 'energyAndValue',
+      label: 'Energy & Value',
       render: (row) => (
         <div>
-          <strong style={{ color: 'var(--accent-light)' }}>{row.energyAmount} kWh</strong>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+            <strong style={{ color: 'var(--accent-light)', fontWeight: 700 }}>{row.energyAmount} kWh</strong>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>•</span>
+            <strong style={{ color: 'var(--primary-light)', fontWeight: 700 }}>
+              ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
+            </strong>
+          </div>
+          <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)' }}>
             ${row.pricePerUnit}/kWh
           </div>
         </div>
       ),
     },
     {
-      key: 'totalPrice',
-      label: 'Total Value',
-      render: (row) => (
-        <strong style={{ color: 'var(--primary-light)' }}>
-          ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
-        </strong>
-      ),
-    },
-    {
       key: 'slotDate',
       label: 'Schedule',
-      minWidth: '160px',
       render: (row) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, whiteSpace: 'nowrap' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.85rem' }}>
@@ -209,7 +205,7 @@ const PendingBookings = () => {
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
             <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
-            <span>{row.startTime} â€“ {row.endTime}</span>
+            <span>{row.startTime} - {row.endTime}</span>
           </div>
         </div>
       ),
@@ -221,7 +217,7 @@ const PendingBookings = () => {
     },
     {
       key: 'actions',
-      label: 'Operational Actions',
+      label: 'Actions',
       render: (row) => (
         <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           <Button
@@ -230,7 +226,7 @@ const PendingBookings = () => {
             onClick={() => navigate(`/bookings/${row.id}`)}
             title="View Details"
           >
-            <Eye size={14} className="icon-mr" /> Details
+            <Eye size={12} style={{ marginRight: 3 }} /> View
           </Button>
 
           <Button
@@ -240,7 +236,7 @@ const PendingBookings = () => {
             disabled={actionLoading === row.id}
             title="Approve booking"
           >
-            <CheckCircle size={14} className="icon-mr" /> Confirm
+            <CheckCircle size={12} style={{ marginRight: 3 }} /> Confirm
           </Button>
 
           <Button
@@ -250,7 +246,7 @@ const PendingBookings = () => {
             disabled={actionLoading === row.id}
             title="Reject booking"
           >
-            <XCircle size={14} className="icon-mr" /> Reject
+            <XCircle size={12} style={{ marginRight: 3 }} /> Reject
           </Button>
         </div>
       ),

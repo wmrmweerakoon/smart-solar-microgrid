@@ -234,7 +234,7 @@ const Dashboard = () => {
                   title="View registered prosumers directory"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-gold">
+                    <div className="kpi-icon-wrap">
                       <Users size={18} />
                     </div>
                     <span className={`kpi-badge ${stats.pendingProsumers > 0 ? 'urgent' : 'success'}`}>
@@ -264,7 +264,7 @@ const Dashboard = () => {
                   title="View microgrid substations fleet"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-purple">
+                    <div className="kpi-icon-wrap">
                       <Zap size={18} />
                     </div>
                     <span className="kpi-badge success">100% Online</span>
@@ -290,7 +290,7 @@ const Dashboard = () => {
                   title="View scheduled energy trading slots"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-cyan">
+                    <div className="kpi-icon-wrap">
                       <Battery size={18} />
                     </div>
                     <span className={`kpi-badge ${stats.availableSlots > 0 ? 'highlight' : 'standard'}`}>
@@ -318,7 +318,7 @@ const Dashboard = () => {
                   title="View peer-to-peer trading operations"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-blue">
+                    <div className="kpi-icon-wrap">
                       <ClipboardList size={18} />
                     </div>
                     <span className={`kpi-badge ${stats.currentBookings > 0 ? 'urgent' : 'standard'}`}>
@@ -348,7 +348,7 @@ const Dashboard = () => {
                   title="View forward reservation schedule"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-gold">
+                    <div className="kpi-icon-wrap">
                       <CalendarCheck size={18} />
                     </div>
                     <span className="kpi-badge highlight">
@@ -376,7 +376,7 @@ const Dashboard = () => {
                   title="View financial settlement ledger"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-emerald">
+                    <div className="kpi-icon-wrap">
                       <TrendingUp size={18} />
                     </div>
                     <span className="kpi-badge success">Settled</span>
@@ -406,7 +406,7 @@ const Dashboard = () => {
                   title="View available slots"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-cyan">
+                    <div className="kpi-icon-wrap">
                       <Battery size={18} />
                     </div>
                     <span className="kpi-badge highlight">Live Inventory</span>
@@ -432,7 +432,7 @@ const Dashboard = () => {
                   title="View active claimed transfers"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-gold">
+                    <div className="kpi-icon-wrap">
                       <ClipboardList size={18} />
                     </div>
                     <span className="kpi-badge urgent">In Progress</span>
@@ -458,7 +458,7 @@ const Dashboard = () => {
                   title="View forward scheduled reservations"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-emerald">
+                    <div className="kpi-icon-wrap">
                       <CalendarCheck size={18} />
                     </div>
                     <span className="kpi-badge success">Scheduled</span>
@@ -484,7 +484,7 @@ const Dashboard = () => {
                   title="View pending confirmation queue"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-gold">
+                    <div className="kpi-icon-wrap">
                       <Clock size={18} />
                     </div>
                     <span className="kpi-badge standard">Dispatch Queue</span>
@@ -510,7 +510,7 @@ const Dashboard = () => {
                   title="View online substation nodes"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-cyan">
+                    <div className="kpi-icon-wrap">
                       <Zap size={18} />
                     </div>
                     <span className="kpi-badge success">100% Online</span>
@@ -536,7 +536,7 @@ const Dashboard = () => {
                   title="View energy trading volume"
                 >
                   <div className="kpi-header">
-                    <div className="kpi-icon-wrap kpi-icon-emerald">
+                    <div className="kpi-icon-wrap">
                       <TrendingUp size={18} />
                     </div>
                     <span className="kpi-badge success">Total Volume</span>
@@ -687,7 +687,7 @@ const Dashboard = () => {
                 <div className="financial-matrix-grid">
                   <div className="matrix-tile">
                     <span className="matrix-tile-label">Settled Value</span>
-                    <span className="matrix-tile-val" style={{ color: '#34d399' }}>
+                    <span className="matrix-tile-val" style={{ color: '#38bdf8' }}>
                       ${stats.totalRevenueTraded?.toFixed(2)}
                     </span>
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>100% Cleared</span>
@@ -703,7 +703,7 @@ const Dashboard = () => {
 
                   <div className="matrix-tile">
                     <span className="matrix-tile-label">In-Flight Capital</span>
-                    <span className="matrix-tile-val" style={{ color: '#fbbf24' }}>
+                    <span className="matrix-tile-val" style={{ color: '#38bdf8' }}>
                       {stats.currentBookings}
                     </span>
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Active execution</span>
@@ -717,7 +717,7 @@ const Dashboard = () => {
                       <span className="status-badge status-completed">Completed</span>
                       <span style={{ fontSize: '0.88rem' }}>Settled & Verified Energy Transfers</span>
                     </div>
-                    <strong style={{ fontSize: '1rem', color: '#34d399' }}>{stats.completedBookings} trades</strong>
+                    <strong style={{ fontSize: '1rem', color: '#38bdf8' }}>{stats.completedBookings} trades</strong>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
@@ -725,7 +725,7 @@ const Dashboard = () => {
                       <span className="status-badge status-booked">Current</span>
                       <span style={{ fontSize: '0.88rem' }}>Claimed Energy Currently Dispatching</span>
                     </div>
-                    <strong style={{ fontSize: '1rem', color: '#22d3ee' }}>{stats.currentBookings} trades</strong>
+                    <strong style={{ fontSize: '1rem', color: '#38bdf8' }}>{stats.currentBookings} trades</strong>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
@@ -733,7 +733,7 @@ const Dashboard = () => {
                       <span className="status-badge status-pending">Pending</span>
                       <span style={{ fontSize: '0.88rem' }}>Awaiting Operator Confirmation</span>
                     </div>
-                    <strong style={{ fontSize: '1rem', color: '#fbbf24' }}>{stats.pendingBookings} trades</strong>
+                    <strong style={{ fontSize: '1rem', color: '#38bdf8' }}>{stats.pendingBookings} trades</strong>
                   </div>
                 </div>
 
@@ -913,7 +913,7 @@ const Dashboard = () => {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontWeight: 700, color: '#34d399', fontSize: '0.95rem' }}>
+                            <div style={{ fontWeight: 700, color: '#38bdf8', fontSize: '0.95rem' }}>
                               {slot.energyAmount} kWh
                             </div>
                             <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>

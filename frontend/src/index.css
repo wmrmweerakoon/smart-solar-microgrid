@@ -67,7 +67,7 @@
 
   /* Layout */
   --navbar-height: 64px;
-  --sidebar-width: 260px;
+  --sidebar-width: 240px;
 }
 
 /* ── Reset & Base ── */
@@ -138,8 +138,8 @@ img {
 }
 
 .page-container {
-  padding: 32px;
-  max-width: 1400px;
+  padding: 18px 16px;
+  max-width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.3s ease;
 }
@@ -432,31 +432,19 @@ img {
   justify-content: center;
   font-size: 1.4rem;
   flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.stat-icon.primary {
-  background: var(--primary-glow);
-  color: var(--primary-light);
-}
-
-.stat-icon.accent {
-  background: rgba(6, 182, 212, 0.15);
-  color: var(--accent-light);
-}
-
-.stat-icon.success {
-  background: var(--success-bg);
-  color: var(--success);
-}
-
-.stat-icon.info {
-  background: var(--info-bg);
-  color: var(--info);
-}
-
+.stat-icon.primary,
+.stat-icon.accent,
+.stat-icon.success,
+.stat-icon.info,
 .stat-icon.warning {
-  background: var(--warning-bg);
-  color: var(--warning);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .stat-info {
@@ -740,7 +728,6 @@ select.form-control option {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 660px;
 }
 
 .data-table thead {
@@ -748,23 +735,34 @@ select.form-control option {
 }
 
 .data-table th {
-  padding: 14px 20px;
+  padding: 10px 8px;
   text-align: left;
-  font-size: 0.75rem;
+  font-size: 0.71rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
   color: var(--text-muted);
   border-bottom: 1px solid var(--glass-border);
   white-space: nowrap;
 }
 
 .data-table td {
-  padding: 14px 20px;
-  font-size: 0.875rem;
+  padding: 8px 8px;
+  font-size: 0.81rem;
   color: var(--text-secondary);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   vertical-align: middle;
+}
+
+.data-table .btn-sm {
+  padding: 3px 6px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.data-table .btn-group {
+  gap: 3px;
+  flex-wrap: nowrap;
 }
 
 .data-table tbody tr {
@@ -3004,69 +3002,50 @@ select.form-control option {
   align-items: center;
   justify-content: center;
   font-size: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all var(--transition-fast);
 }
 
-.kpi-icon-gold {
-  background: rgba(245, 158, 11, 0.14);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.25);
+.highend-kpi-card:hover .kpi-icon-wrap {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
 }
 
-.kpi-icon-cyan {
-  background: rgba(6, 182, 212, 0.14);
-  color: #22d3ee;
-  border: 1px solid rgba(6, 182, 212, 0.25);
-}
-
-.kpi-icon-emerald {
-  background: rgba(16, 185, 129, 0.14);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-}
-
-.kpi-icon-purple {
-  background: rgba(139, 92, 246, 0.14);
-  color: #a78bfa;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-}
-
+/* Unified single-color icon palette across all dashboard KPI cards */
+.kpi-icon-gold,
+.kpi-icon-cyan,
+.kpi-icon-emerald,
+.kpi-icon-purple,
 .kpi-icon-blue {
-  background: rgba(59, 130, 246, 0.14);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .kpi-badge {
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 2.5px 8px;
   border-radius: 5px;
   letter-spacing: 0.4px;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.28);
 }
 
-.kpi-badge.urgent {
-  background: rgba(239, 68, 68, 0.18);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-}
-
-.kpi-badge.highlight {
-  background: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-}
-
-.kpi-badge.success {
-  background: rgba(16, 185, 129, 0.18);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.35);
-}
-
+/* Unified single accent color (Electric Cyan / Sky Blue) for all stat badge texts */
+.kpi-badge.urgent,
+.kpi-badge.highlight,
+.kpi-badge.success,
 .kpi-badge.standard {
-  background: rgba(255, 255, 255, 0.06);
-  color: #94a3b8;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.28);
 }
 
 .kpi-value-row {
