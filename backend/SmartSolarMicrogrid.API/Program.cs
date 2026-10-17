@@ -1,4 +1,4 @@
-﻿/* 
+/* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
  * File: Program.cs
@@ -156,6 +156,14 @@ app.UseAuthorization();
 
 // Maps incoming HTTP requests to their respective controller endpoints
 app.MapControllers();
+
+// Health check endpoint for mobile connection testing
+app.MapGet("/api/health", () => Results.Ok(new
+{
+    status = "healthy",
+    service = "Smart Solar Microgrid API",
+    timestamp = DateTime.UtcNow
+}));
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Backend Connected Confirmation Message â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Prints a friendly console message showing the server status and URLs
