@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 /* 
  * ==============================================================================
  * Smart Solar Microgrid Trading & Energy Management System
-=======
-/*
->>>>>>> f56a3b2f40b979ed576b5b59cee15e92dbd909f9
  * File: Program.cs
  * Module: SE4040 Enterprise Application Development
  * Description: Entry point and service configuration for the API application.
@@ -136,7 +132,6 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
-<<<<<<< HEAD
 
 // Maps incoming HTTP requests to their respective controller endpoints
 app.MapControllers();
@@ -148,9 +143,6 @@ app.MapGet("/api/health", () => Results.Ok(new
     service = "Smart Solar Microgrid API",
     timestamp = DateTime.UtcNow
 }));
-=======
-app.MapControllers();
->>>>>>> f56a3b2f40b979ed576b5b59cee15e92dbd909f9
 
 // ──────────────── Backend Connected Confirmation Message ────────────────
 Console.ForegroundColor = ConsoleColor.Green;

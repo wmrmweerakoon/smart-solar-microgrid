@@ -11,7 +11,10 @@ namespace SmartSolarMicrogrid.API.Models
 {
     public class NodeSchedule
     {
+        public string ScheduleType { get; set; } = "Weekly"; // "Weekly" or "DateRange"
         public string DayOfWeek { get; set; } = string.Empty;
+        public string? StartDate { get; set; }
+        public string? EndDate { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
     }

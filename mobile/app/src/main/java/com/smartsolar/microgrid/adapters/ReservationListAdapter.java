@@ -23,6 +23,7 @@ public class ReservationListAdapter extends RecyclerView.Adapter<ReservationList
     public interface OnReservationActionListener {
         void onEditClick(ReservationDto reservation);
         void onCancelClick(ReservationDto reservation);
+        void onQrClick(ReservationDto reservation);
     }
 
     private final List<ReservationDto> reservationList = new ArrayList<>();
@@ -66,6 +67,7 @@ public class ReservationListAdapter extends RecyclerView.Adapter<ReservationList
         private final TextView tvDateSchedule;
         private final Button btnEditReservation;
         private final Button btnCancelReservation;
+        private final Button btnViewQrToken;
 
         public ReservationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -76,6 +78,7 @@ public class ReservationListAdapter extends RecyclerView.Adapter<ReservationList
             tvDateSchedule = itemView.findViewById(R.id.tvDateSchedule);
             btnEditReservation = itemView.findViewById(R.id.btnEditReservation);
             btnCancelReservation = itemView.findViewById(R.id.btnCancelReservation);
+            btnViewQrToken = itemView.findViewById(R.id.btnViewQrToken);
         }
 
         public void bind(ReservationDto res, OnReservationActionListener listener) {
@@ -91,6 +94,14 @@ public class ReservationListAdapter extends RecyclerView.Adapter<ReservationList
             boolean isActionable = "Pending".equalsIgnoreCase(res.getStatus()) || "Confirmed".equalsIgnoreCase(res.getStatus());
             btnEditReservation.setVisibility(isActionable ? View.VISIBLE : View.GONE);
             btnCancelReservation.setVisibility(isActionable ? View.VISIBLE : View.GONE);
+
+            boolean canShowQr = !"Cancelled".equalsIgnoreCase(res.getStatus());
+            if (btnViewQrToken != null) {
+                btnViewQrToken.setVisibility(canShowQr ? View.VISIBLE : View.GONE);
+                btnViewQrToken.setOnClickListener(v -> {
+                    if (listener != null) listener.onQrClick(res);
+                });
+            }
 
             btnEditReservation.setOnClickListener(v -> {
                 if (listener != null) listener.onEditClick(res);

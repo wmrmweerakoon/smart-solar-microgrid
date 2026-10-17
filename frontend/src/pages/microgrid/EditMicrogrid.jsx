@@ -1,6 +1,6 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle, ArrowLeft, MapPin } from 'lucide-react';
+import { Plus, Trash2, PauseCircle, Save, AlertTriangle, CheckCircle, ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react';
 import { microgridService } from '../../services/api';
 import Button from '../../components/Button';
 import LocationPickerMap from '../../components/LocationPickerMap';
@@ -37,7 +37,15 @@ const EditMicrogrid = () => {
         status: n.status || 'Active',
         batteryStorageSlots: n.batteryStorageSlots ?? ''
       });
-      setSchedules(n.schedules || []);
+      setSchedules((n.schedules || []).map((s) => ({
+        ...s,
+        scheduleType: s.scheduleType || (s.startDate || s.endDate ? 'DateRange' : 'Weekly'),
+        dayOfWeek: s.dayOfWeek || 'Monday',
+        startDate: s.startDate || '',
+        endDate: s.endDate || '',
+        startTime: s.startTime || '08:00',
+        endTime: s.endTime || '18:00',
+      })));
     }).catch(() => setError('Failed to load node data.')).finally(() => setFetching(false));
   }, [id]);
 
@@ -61,7 +69,17 @@ const EditMicrogrid = () => {
   };
 
   const addSchedule = () => {
-    setSchedules([...schedules, { dayOfWeek: 'Monday', startTime: '08:00', endTime: '18:00' }]);
+    setSchedules([
+      ...schedules,
+      {
+        scheduleType: 'Weekly',
+        dayOfWeek: 'Monday',
+        startDate: '',
+        endDate: '',
+        startTime: '08:00',
+        endTime: '18:00',
+      }
+    ]);
   };
 
   const removeSchedule = (index) => {
@@ -93,6 +111,33 @@ const EditMicrogrid = () => {
     if (!formData.nodeName || !formData.location) {
       setError('Node name and location are required.');
       return;
+    }
+
+    // Validate operational schedules
+    for (let i = 0; i < schedules.length; i++) {
+      const s = schedules[i];
+      if (s.scheduleType === 'DateRange') {
+        if (!s.startDate || !s.endDate) {
+          setError(`Schedule #${i + 1}: Please select both Start Date and End Date for the date range.`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        if (s.startDate > s.endDate) {
+          setError(`Schedule #${i + 1}: End Date cannot be before Start Date.`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+      }
+      if (!s.startTime || !s.endTime) {
+        setError(`Schedule #${i + 1}: Please specify both Start Time and End Time.`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (s.startTime >= s.endTime) {
+        setError(`Schedule #${i + 1}: End Time (${s.endTime}) must be later than Start Time (${s.startTime}).`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     }
     setLoading(true);
     try {
@@ -277,61 +322,162 @@ const EditMicrogrid = () => {
           {/* Operational Schedules */}
           <div style={{ marginTop: 24, padding: 18, border: '1px solid var(--border)', borderRadius: 'var(--radius-md, 8px)', background: 'rgba(255, 255, 255, 0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>Operational Schedules</h3>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Calendar size={18} color="var(--primary)" /> Operational Schedules & Date Ranges
+                </h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  Configure weekly operating days or custom calendar date ranges for grid station availability.
+                </p>
+              </div>
               <Button type="button" variant="secondary" size="sm" onClick={addSchedule}>
                 <Plus size={16} className="icon-mr" /> Add Schedule
               </Button>
             </div>
+
             {schedules.length === 0 && (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
-                No schedules added yet. Default operational schedule will be 24/7.
-              </p>
-            )}
-            {schedules.map((schedule, i) => (
-              <div key={i} className="form-row" style={{ alignItems: 'flex-end', marginBottom: 14 }}>
-                <div className="form-group">
-                  <label className="form-label">Day</label>
-                  <select
-                    className="form-control"
-                    value={schedule.dayOfWeek}
-                    onChange={(e) => handleScheduleChange(i, 'dayOfWeek', e.target.value)}
-                  >
-                    <option value="Monday">Monday</option>
-                    <option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option>
-                    <option value="Thursday">Thursday</option>
-                    <option value="Friday">Friday</option>
-                    <option value="Saturday">Saturday</option>
-                    <option value="Sunday">Sunday</option>
-                    <option value="Everyday">Everyday</option>
-                    <option value="Weekdays">Weekdays</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Start Time</label>
-                  <input
-                    type="time"
-                    className="form-control"
-                    value={schedule.startTime}
-                    onChange={(e) => handleScheduleChange(i, 'startTime', e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">End Time</label>
-                  <input
-                    type="time"
-                    className="form-control"
-                    value={schedule.endTime}
-                    onChange={(e) => handleScheduleChange(i, 'endTime', e.target.value)}
-                  />
-                </div>
-                <div className="form-group" style={{ flex: '0 0 auto' }}>
-                  <Button type="button" variant="danger" size="sm" onClick={() => removeSchedule(i)} title="Remove schedule">
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
+              <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.01)', border: '1px dashed var(--border)', borderRadius: 6, textAlign: 'center' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
+                  No custom operational schedules added. By default, this node operates <strong>24/7</strong>.
+                </p>
               </div>
-            ))}
+            )}
+
+            {schedules.map((schedule, i) => {
+              const isDateRange = schedule.scheduleType === 'DateRange';
+              return (
+                <div
+                  key={i}
+                  style={{
+                    padding: 16,
+                    marginBottom: 14,
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)' }}>
+                        Schedule #{i + 1}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '2px 8px',
+                          borderRadius: 12,
+                          background: isDateRange ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                          color: isDateRange ? '#60a5fa' : '#34d399',
+                          fontWeight: 500
+                        }}
+                      >
+                        {isDateRange ? '📅 Custom Date Range' : '🔄 Weekly Recurring'}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      onClick={() => removeSchedule(i)}
+                      title="Remove schedule"
+                    >
+                      <Trash2 size={13} className="icon-mr" /> Remove
+                    </Button>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: isDateRange ? '1.2fr 1fr 1fr 0.9fr 0.9fr' : '1.3fr 1.5fr 1fr 1fr',
+                      gap: 12,
+                      alignItems: 'flex-end'
+                    }}
+                  >
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.8rem' }}>Schedule Type</label>
+                      <select
+                        className="form-select"
+                        value={schedule.scheduleType || 'Weekly'}
+                        onChange={(e) => handleScheduleChange(i, 'scheduleType', e.target.value)}
+                      >
+                        <option value="Weekly">Weekly (Day of Week)</option>
+                        <option value="DateRange">Date Range (From - To)</option>
+                      </select>
+                    </div>
+
+                    {isDateRange ? (
+                      <>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.8rem' }}>Start Date *</label>
+                          <input
+                            type="date"
+                            className="form-input"
+                            value={schedule.startDate || ''}
+                            onChange={(e) => handleScheduleChange(i, 'startDate', e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label className="form-label" style={{ fontSize: '0.8rem' }}>End Date *</label>
+                          <input
+                            type="date"
+                            className="form-input"
+                            value={schedule.endDate || ''}
+                            onChange={(e) => handleScheduleChange(i, 'endDate', e.target.value)}
+                            required
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label className="form-label" style={{ fontSize: '0.8rem' }}>Day of Week</label>
+                        <select
+                          className="form-select"
+                          value={schedule.dayOfWeek || 'Monday'}
+                          onChange={(e) => handleScheduleChange(i, 'dayOfWeek', e.target.value)}
+                        >
+                          <option value="Monday">Monday</option>
+                          <option value="Tuesday">Tuesday</option>
+                          <option value="Wednesday">Wednesday</option>
+                          <option value="Thursday">Thursday</option>
+                          <option value="Friday">Friday</option>
+                          <option value="Saturday">Saturday</option>
+                          <option value="Sunday">Sunday</option>
+                          <option value="Everyday">Everyday</option>
+                          <option value="Weekdays">Weekdays</option>
+                          <option value="Weekends">Weekends</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.8rem' }}>Start Time</label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={schedule.startTime || '08:00'}
+                        onChange={(e) => handleScheduleChange(i, 'startTime', e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.8rem' }}>End Time</label>
+                      <input
+                        type="time"
+                        className="form-input"
+                        value={schedule.endTime || '18:00'}
+                        onChange={(e) => handleScheduleChange(i, 'endTime', e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           <div className="btn-group" style={{ marginTop: 28, display: 'flex', gap: 12 }}>

@@ -11,6 +11,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.smartsolar.microgrid.R;
 import com.smartsolar.microgrid.adapters.ReservationListAdapter;
 import com.smartsolar.microgrid.api.ApiClient;
+import com.smartsolar.microgrid.api.models.ReservationDetailsDto;
 import com.smartsolar.microgrid.api.models.ReservationDto;
 import com.smartsolar.microgrid.database.SessionManager;
 import com.smartsolar.microgrid.utils.NetworkUtils;
@@ -134,5 +135,45 @@ public class MyReservationsActivity extends AppCompatActivity implements Reserva
         Intent intent = new Intent(this, CancelReservationActivity.class);
         intent.putExtra("EXTRA_RESERVATION_ID", reservation.getId());
         startActivity(intent);
+    }
+
+    @Override
+    public void onQrClick(ReservationDto reservation) {
+        progressBar.setVisibility(View.VISIBLE);
+        ApiClient.getService(this).getReservationDetails(reservation.getId()).enqueue(new Callback<ReservationDetailsDto>() {
+            @Override
+            public void onResponse(Call<ReservationDetailsDto> call, Response<ReservationDetailsDto> response) {
+                progressBar.setVisibility(View.GONE);
+                Intent intent = new Intent(MyReservationsActivity.this, QrGeneratorActivity.class);
+                intent.putExtra("EXTRA_RESERVATION_ID", reservation.getId());
+                intent.putExtra("EXTRA_BUYER_NIC", reservation.getBuyerProsumerId());
+                intent.putExtra("EXTRA_ENERGY_AMOUNT", reservation.getEnergyAmount());
+                intent.putExtra("EXTRA_TOTAL_PRICE", reservation.getTotalPrice());
+
+                if (response.isSuccessful() && response.body() != null) {
+                    ReservationDetailsDto d = response.body();
+                    intent.putExtra("EXTRA_SLOT_DATE", d.getSlotDate());
+                    intent.putExtra("EXTRA_START_TIME", d.getStartTime());
+                    intent.putExtra("EXTRA_END_TIME", d.getEndTime());
+                    intent.putExtra("EXTRA_NODE_ID", d.getMicrogridNodeId());
+                    intent.putExtra("EXTRA_NODE_NAME", d.getMicrogridNodeName());
+                } else {
+                    intent.putExtra("EXTRA_SLOT_DATE", reservation.getReservedAt());
+                }
+                startActivity(intent);
+            }
+
+            @Override
+            public void onFailure(Call<ReservationDetailsDto> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                Intent intent = new Intent(MyReservationsActivity.this, QrGeneratorActivity.class);
+                intent.putExtra("EXTRA_RESERVATION_ID", reservation.getId());
+                intent.putExtra("EXTRA_BUYER_NIC", reservation.getBuyerProsumerId());
+                intent.putExtra("EXTRA_ENERGY_AMOUNT", reservation.getEnergyAmount());
+                intent.putExtra("EXTRA_TOTAL_PRICE", reservation.getTotalPrice());
+                intent.putExtra("EXTRA_SLOT_DATE", reservation.getReservedAt());
+                startActivity(intent);
+            }
+        });
     }
 }
