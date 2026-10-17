@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -292,23 +292,21 @@ const EnergySlots = () => {
     {
       key: 'id',
       label: 'Slot ID',
-      minWidth: '100px',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-          {row.id ? `#${row.id.slice(-8)}` : 'â€”'}
+          {row.id ? `#${row.id.slice(-8)}` : '-'}
         </span>
       ),
     },
     {
       key: 'prosumerId',
-      label: 'Seller Prosumer',
-      minWidth: '150px',
+      label: 'Seller',
       render: (row) => {
         const p = findProsumer(row.prosumerId);
         return (
           <div>
             <div style={{ fontWeight: 600 }}>{p ? p.name : 'Unknown'}</div>
-            <div style={{ fontSize: '0.8rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
               {row.prosumerId}
             </div>
           </div>
@@ -317,17 +315,15 @@ const EnergySlots = () => {
     },
     {
       key: 'microgridNodeId',
-      label: 'Microgrid Node',
-      minWidth: '170px',
+      label: 'Node',
       render: (row) => {
         const n = findNode(row.microgridNodeId);
-        return n ? `${n.nodeName} (${n.location})` : 'â€”';
+        return n ? `${n.nodeName} (${n.location})` : '-';
       },
     },
     {
       key: 'energyAmount',
-      label: 'Capacity (kWh)',
-      minWidth: '130px',
+      label: 'Capacity',
       render: (row) => (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, color: 'var(--accent-light)', whiteSpace: 'nowrap' }}>
           <Zap size={14} /> {row.energyAmount} kWh
@@ -337,13 +333,11 @@ const EnergySlots = () => {
     {
       key: 'pricePerUnit',
       label: 'Price/kWh',
-      minWidth: '100px',
       render: (row) => <span style={{ fontWeight: 700, color: 'var(--primary-light)' }}>${row.pricePerUnit}</span>,
     },
     {
       key: 'slotDate',
-      label: 'Date & Time',
-      minWidth: '160px',
+      label: 'Schedule',
       render: (row) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, whiteSpace: 'nowrap' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.85rem' }}>
@@ -352,7 +346,7 @@ const EnergySlots = () => {
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: '0.8rem', fontFamily: 'monospace' }}>
             <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
-            <span>{row.startTime} â€“ {row.endTime}</span>
+            <span>{row.startTime} - {row.endTime}</span>
           </div>
         </div>
       ),
@@ -360,7 +354,6 @@ const EnergySlots = () => {
     {
       key: 'status',
       label: 'Status',
-      minWidth: '110px',
       render: (row) => (
         <span className={`status-badge ${getStatusClass(row.status)}`}>
           {row.status}
@@ -370,7 +363,6 @@ const EnergySlots = () => {
     {
       key: 'actions',
       label: 'Actions',
-      minWidth: '130px',
       render: (row) => (
         <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
           {row.status === 'Available' && (
@@ -537,7 +529,7 @@ const EnergySlots = () => {
               <option value="">Select a prosumer...</option>
               {prosumers.map((p) => (
                 <option key={p.nic || p.id} value={p.nic || p.id}>
-                  {p.name} ({p.nic || p.id}) â€” {p.solarCapacity} kW
+                  {p.name} ({p.nic || p.id}) - {p.solarCapacity} kW
                 </option>
               ))}
             </select>

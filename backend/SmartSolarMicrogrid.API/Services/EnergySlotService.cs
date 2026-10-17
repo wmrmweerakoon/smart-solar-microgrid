@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: EnergySlotService.cs
- * Purpose: Encapsulates the core business logic and rules for EnergySlot management.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for EnergySlot management.
  */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -19,12 +18,13 @@ namespace SmartSolarMicrogrid.API.Services
 
         public EnergySlotService(EnergySlotRepository repository)
         {
+            // Initializes the service with required dependencies
             _repository = repository;
         }
 
         public async Task<List<EnergySlotDto>> GetAllSlotsAsync()
         {
-            // Executes the GetAllSlotsAsync operation flow
+            // Retrieves all slots from the system
             var slots = await _repository.GetAllAsync();
             return slots.Select(MapToDto).ToList();
         }
@@ -37,28 +37,28 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<EnergySlotDto>> GetSlotsByStatusAsync(string status)
         {
-            // Executes the GetSlotsByStatusAsync operation flow
+            // Retrieves slots by status from the system
             var slots = await _repository.GetByStatusAsync(status);
             return slots.Select(MapToDto).ToList();
         }
 
         public async Task<List<EnergySlotDto>> GetSlotsByProsumerAsync(string prosumerId)
         {
-            // Executes the GetSlotsByProsumerAsync operation flow
+            // Retrieves slots by prosumer from the system
             var slots = await _repository.GetByProsumerIdAsync(prosumerId);
             return slots.Select(MapToDto).ToList();
         }
 
         public async Task<List<EnergySlotDto>> GetSlotsByNodeAsync(string nodeId)
         {
-            // Executes the GetSlotsByNodeAsync operation flow
+            // Retrieves slots by node from the system
             var slots = await _repository.GetByMicrogridNodeIdAsync(nodeId);
             return slots.Select(MapToDto).ToList();
         }
 
         public async Task<EnergySlotDto> CreateSlotAsync(EnergySlotDto dto)
         {
-            // Executes the CreateSlotAsync operation flow
+            // Adds a new slot to the system
             if (dto.EnergyAmount <= 0)
                 throw new InvalidOperationException("Energy amount must be greater than zero.");
 
@@ -104,7 +104,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteSlotAsync(string id)
         {
-            // Executes the DeleteSlotAsync operation flow
+            // Deletes the specified slot
             var slot = await _repository.GetByIdAsync(id);
             if (slot == null) return false;
 
@@ -117,7 +117,6 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static EnergySlotDto MapToDto(EnergySlot slot) => new EnergySlotDto
         {
-            // Executes the GetCountAsync operation flow
             Id = slot.Id,
             MicrogridNodeId = slot.MicrogridNodeId,
             ProsumerId = slot.ProsumerId,
@@ -132,5 +131,3 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
-
-

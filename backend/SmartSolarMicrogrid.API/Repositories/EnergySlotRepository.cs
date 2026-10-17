@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: EnergySlotRepository.cs
- * Purpose: Manages direct database interactions and queries for EnergySlot data.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data access layer for interacting with the EnergySlot MongoDB collection.
  */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.API.Data;
 using SmartSolarMicrogrid.API.Models;
@@ -20,12 +19,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public EnergySlotRepository(MongoDbContext context)
         {
+            // Initializes the repository with database context
             _slots = context.EnergySlots;
         }
 
         public async Task<List<EnergySlot>> GetAllAsync()
         {
-            // Executes the GetAllAsync operation flow
+            // Retrieves all from the system
             return await _slots.Find(_ => true).ToListAsync();
         }
 
@@ -36,52 +36,50 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<EnergySlot>> GetByStatusAsync(string status)
         {
-            // Executes the GetByStatusAsync operation flow
+            // Retrieves by status from the system
             return await _slots.Find(s => s.Status == status).ToListAsync();
         }
 
         public async Task<List<EnergySlot>> GetByProsumerIdAsync(string prosumerId)
         {
-            // Executes the GetByProsumerIdAsync operation flow
+            // Retrieves by prosumer id from the system
             return await _slots.Find(s => s.ProsumerId == prosumerId).ToListAsync();
         }
 
         public async Task<List<EnergySlot>> GetByMicrogridNodeIdAsync(string nodeId)
         {
-            // Executes the GetByMicrogridNodeIdAsync operation flow
+            // Retrieves by microgrid node id from the system
             return await _slots.Find(s => s.MicrogridNodeId == nodeId).ToListAsync();
         }
 
         public async Task CreateAsync(EnergySlot slot)
         {
-            // Executes the CreateAsync operation flow
+            // Adds a new  to the system
             await _slots.InsertOneAsync(slot);
         }
 
         public async Task UpdateAsync(string id, EnergySlot slot)
         {
-            // Executes the UpdateAsync operation flow
+            // Modifies the existing 
             await _slots.ReplaceOneAsync(s => s.Id == id, slot);
         }
 
         public async Task DeleteAsync(string id)
         {
-            // Executes the DeleteAsync operation flow
+            // Deletes the specified 
             await _slots.DeleteOneAsync(s => s.Id == id);
         }
 
         public async Task<long> GetCountAsync()
         {
-            // Executes the GetCountAsync operation flow
+            // Retrieves count from the system
             return await _slots.CountDocumentsAsync(_ => true);
         }
 
         public async Task<long> GetCountByStatusAsync(string status)
         {
-            // Executes the GetCountByStatusAsync operation flow
+            // Retrieves count by status from the system
             return await _slots.CountDocumentsAsync(s => s.Status == status);
         }
     }
 }
-
-

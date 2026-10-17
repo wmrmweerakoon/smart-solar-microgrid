@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Shield,
   UserPlus,
@@ -153,12 +153,12 @@ const UserManagement = () => {
     {
       key: 'fullName',
       label: 'Full Name',
-      render: (row) => row.fullName || 'â€”',
+      render: (row) => row.fullName || '-',
     },
     {
       key: 'email',
       label: 'Email',
-      render: (row) => row.email || 'â€”',
+      render: (row) => row.email || '-',
     },
     {
       key: 'role',
@@ -185,7 +185,7 @@ const UserManagement = () => {
       key: 'createdAt',
       label: 'Created Date',
       render: (row) =>
-        row.createdAt ? new Date(row.createdAt).toLocaleDateString() : 'â€”',
+        row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '-',
     },
     {
       key: 'actions',

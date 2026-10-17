@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: BookingRepository.cs
- * Purpose: Manages direct database interactions and queries for Booking data.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data access layer for interacting with the Booking MongoDB collection.
  */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.API.Data;
 using SmartSolarMicrogrid.API.Models;
@@ -22,13 +21,14 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public BookingRepository(MongoDbContext context)
         {
+            // Initializes the repository with database context
             _slots = context.EnergySlots;
             _reservations = context.Reservations;
         }
 
         public async Task<List<EnergySlot>> GetCurrentBookingsAsync()
         {
-            // Executes the GetCurrentBookingsAsync operation flow
+            // Retrieves current bookings from the system
             return await _slots.Find(s => s.Status == "Booked")
                                .SortByDescending(s => s.SlotDate)
                                .ToListAsync();
@@ -55,7 +55,7 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<EnergySlot>> GetBookingHistoryAsync()
         {
-            // Executes the GetBookingHistoryAsync operation flow
+            // Retrieves booking history from the system
             var filter = Builders<EnergySlot>.Filter.In(s => s.Status, new[] { "Completed", "Cancelled" });
             return await _slots.Find(filter)
                                .SortByDescending(s => s.SlotDate)
@@ -76,14 +76,14 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<Reservation>> GetReservationsForSlotsAsync(IEnumerable<string> slotIds)
         {
-            // Executes the GetReservationsForSlotsAsync operation flow
+            // Retrieves reservations for slots from the system
             var filter = Builders<Reservation>.Filter.In(r => r.EnergySlotId, slotIds);
             return await _reservations.Find(filter).ToListAsync();
         }
 
         public async Task UpdateBookingStatusAsync(string id, string status)
         {
-            // Executes the UpdateBookingStatusAsync operation flow
+            // Modifies the existing booking status
             var update = Builders<EnergySlot>.Update
                 .Set(s => s.Status, status)
                 .Set(s => s.UpdatedAt, DateTime.UtcNow);
@@ -92,7 +92,7 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task UpdateReservationStatusBySlotIdAsync(string slotId, string status)
         {
-            // Executes the UpdateReservationStatusBySlotIdAsync operation flow
+            // Modifies the existing reservation status by slot id
             var update = Builders<Reservation>.Update
                 .Set(r => r.Status, status)
                 .Set(r => r.UpdatedAt, DateTime.UtcNow);
@@ -101,13 +101,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<long> GetCurrentBookingsCountAsync()
         {
-            // Executes the GetCurrentBookingsCountAsync operation flow
+            // Retrieves current bookings count from the system
             return await _slots.CountDocumentsAsync(s => s.Status == "Booked");
         }
 
         public async Task<long> GetPendingBookingsCountAsync()
         {
-            // Executes the GetPendingBookingsCountAsync operation flow
+            // Retrieves pending bookings count from the system
             var pendingReservationsCount = await _reservations.CountDocumentsAsync(r => r.Status == "Pending");
             var pendingSlotsCount = await _slots.CountDocumentsAsync(s => s.Status == "Pending");
             return Math.Max(pendingReservationsCount, pendingSlotsCount);
@@ -115,13 +115,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<long> GetCompletedBookingsCountAsync()
         {
-            // Executes the GetCompletedBookingsCountAsync operation flow
+            // Retrieves completed bookings count from the system
             return await _slots.CountDocumentsAsync(s => s.Status == "Completed");
         }
 
         public async Task<List<EnergySlot>> SearchBookingsAsync(string? status, string? nodeId, DateTime? date, string? prosumerId)
         {
-            // Executes the SearchBookingsAsync operation flow
+            // Searches for bookings based on criteria
             var filters = new List<FilterDefinition<EnergySlot>>();
 
             // Status filter
@@ -179,5 +179,3 @@ namespace SmartSolarMicrogrid.API.Repositories
         }
     }
 }
-
-

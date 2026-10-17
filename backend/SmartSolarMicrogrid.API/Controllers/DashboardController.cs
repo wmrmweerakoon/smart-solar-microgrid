@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: DashboardController.cs
- * Purpose: Handles incoming HTTP requests and API routing for Dashboard operations.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Handles HTTP requests and responses for Dashboard operations.
  */
+
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Services;
 
@@ -18,6 +17,7 @@ namespace SmartSolarMicrogrid.API.Controllers
 
         public DashboardController(DashboardService dashboardService)
         {
+            // Initializes the controller with required services
             _dashboardService = dashboardService;
         }
 
@@ -28,7 +28,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()
         {
-            // Executes the GetStats operation flow
+            // Retrieves stats from the system
             var stats = await _dashboardService.GetDashboardStatsAsync();
             return Ok(stats);
         }
@@ -39,7 +39,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("monitoring")]
         public async Task<IActionResult> GetMonitoring()
         {
-            // Executes the GetMonitoring operation flow
+            // Retrieves monitoring from the system
             var stats = await _dashboardService.GetDashboardStatsAsync();
             return Ok(new
             {
@@ -55,5 +55,3 @@ namespace SmartSolarMicrogrid.API.Controllers
         }
     }
 }
-
-

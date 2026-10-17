@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: User.cs
- * Purpose: Data model / Schema definition representing User.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data model representing User entities within the system.
  */
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -81,5 +80,3 @@ namespace SmartSolarMicrogrid.API.Models
         public string Role { get; set; } = "GridOperator"; // "Backoffice" or "GridOperator"
     }
 }
-
-

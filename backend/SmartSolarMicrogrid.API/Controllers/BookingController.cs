@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: BookingController.cs
- * Purpose: Handles incoming HTTP requests and API routing for Booking operations.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Handles HTTP requests and responses for Booking operations.
  */
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartSolarMicrogrid.API.Models;
@@ -21,6 +20,7 @@ namespace SmartSolarMicrogrid.API.Controllers
 
         public BookingController(BookingService service)
         {
+            // Initializes the controller with required services
             _service = service;
         }
 
@@ -30,7 +30,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("current")]
         public async Task<IActionResult> GetCurrentBookings()
         {
-            // Executes the GetCurrentBookings operation flow
+            // Retrieves current bookings from the system
             var bookings = await _service.GetCurrentBookingsAsync();
             return Ok(bookings);
         }
@@ -41,7 +41,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("pending")]
         public async Task<IActionResult> GetPendingBookings()
         {
-            // Executes the GetPendingBookings operation flow
+            // Retrieves pending bookings from the system
             var bookings = await _service.GetPendingBookingsAsync();
             return Ok(bookings);
         }
@@ -52,7 +52,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("history")]
         public async Task<IActionResult> GetBookingHistory()
         {
-            // Executes the GetBookingHistory operation flow
+            // Retrieves booking history from the system
             var bookings = await _service.GetBookingHistoryAsync();
             return Ok(bookings);
         }
@@ -63,7 +63,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] BookingFilterRequest request)
         {
-            // Executes the Search operation flow
+            // Searches for  based on criteria
             var bookings = await _service.SearchBookingsAsync(request);
             return Ok(bookings);
         }
@@ -74,7 +74,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
-            // Executes the GetById operation flow
+            // Retrieves by id from the system
             var booking = await _service.GetBookingByIdAsync(id);
             if (booking == null) return NotFound(new { message = "Booking not found." });
             return Ok(booking);
@@ -86,7 +86,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [HttpGet("{id}/details")]
         public async Task<IActionResult> GetDetails(string id)
         {
-            // Executes the GetDetails operation flow
+            // Retrieves details from the system
             var details = await _service.GetBookingDetailsByIdAsync(id);
             if (details == null) return NotFound(new { message = "Booking details not found." });
             return Ok(details);
@@ -99,7 +99,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Confirm(string id)
         {
-            // Executes the Confirm operation flow
+            // Confirms the 
             var result = await _service.ConfirmBookingAsync(id);
             if (!result) return NotFound(new { message = "Booking not found." });
             return Ok(new { message = "Booking confirmed successfully." });
@@ -112,7 +112,7 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Complete(string id)
         {
-            // Executes the Complete operation flow
+            // Marks the  as complete
             var result = await _service.CompleteBookingAsync(id);
             if (!result) return NotFound(new { message = "Booking not found." });
             return Ok(new { message = "Booking marked as completed successfully." });
@@ -125,12 +125,10 @@ namespace SmartSolarMicrogrid.API.Controllers
         [Authorize(Roles = "Backoffice,GridOperator")]
         public async Task<IActionResult> Cancel(string id)
         {
-            // Executes the Cancel operation flow
+            // Cancels the 
             var result = await _service.CancelBookingAsync(id);
             if (!result) return NotFound(new { message = "Booking not found." });
             return Ok(new { message = "Booking cancelled successfully." });
         }
     }
 }
-
-

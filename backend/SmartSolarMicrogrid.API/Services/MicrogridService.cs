@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: MicrogridService.cs
- * Purpose: Encapsulates the core business logic and rules for Microgrid management.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Microgrid management.
  */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -20,13 +19,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public MicrogridService(MicrogridRepository repository, ReservationRepository reservationRepository)
         {
+            // Initializes the service with required dependencies
             _repository = repository;
             _reservationRepository = reservationRepository;
         }
 
         public async Task<List<MicrogridNodeDto>> GetAllNodesAsync()
         {
-            // Executes the GetAllNodesAsync operation flow
+            // Retrieves all nodes from the system
             var nodes = await _repository.GetAllAsync();
             return nodes.Select(MapToDto).ToList();
         }
@@ -39,14 +39,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<MicrogridNodeDto>> GetNodesByStatusAsync(string status)
         {
-            // Executes the GetNodesByStatusAsync operation flow
+            // Retrieves nodes by status from the system
             var nodes = await _repository.GetByStatusAsync(status);
             return nodes.Select(MapToDto).ToList();
         }
 
         public async Task<MicrogridNodeDto> CreateNodeAsync(MicrogridNodeDto dto)
         {
-            // Executes the CreateNodeAsync operation flow
+            // Adds a new node to the system
             if (string.IsNullOrWhiteSpace(dto.NodeName))
                 throw new InvalidOperationException("Node name is required.");
 
@@ -113,7 +113,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteNodeAsync(string id)
         {
-            // Executes the DeleteNodeAsync operation flow
+            // Deletes the specified node
             var node = await _repository.GetByIdAsync(id);
             if (node == null) return false;
 
@@ -126,7 +126,6 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static MicrogridNodeDto MapToDto(MicrogridNode node) => new MicrogridNodeDto
         {
-            // Executes the GetCountAsync operation flow
             Id = node.Id,
             NodeName = node.NodeName,
             Location = node.Location,
@@ -143,5 +142,3 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
-
-

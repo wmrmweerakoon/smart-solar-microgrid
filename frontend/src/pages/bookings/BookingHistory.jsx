@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Eye,
@@ -111,13 +111,13 @@ const BookingHistory = () => {
       label: 'Booking ID',
       render: (row) => (
         <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--primary-light)' }}>
-          {row.id ? `#${row.id.slice(-8)}` : 'â€”'}
+          {row.id ? `#${row.id.slice(-8)}` : '—'}
         </span>
       ),
     },
     {
       key: 'microgridNodeName',
-      label: 'Microgrid Node',
+      label: 'Node',
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.microgridNodeName || 'Assigned Node'}</div>
@@ -127,7 +127,7 @@ const BookingHistory = () => {
     },
     {
       key: 'buyer',
-      label: 'Buyer Prosumer',
+      label: 'Buyer',
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.buyerName || 'Unassigned / Open'}</div>
@@ -139,7 +139,7 @@ const BookingHistory = () => {
     },
     {
       key: 'seller',
-      label: 'Seller Prosumer',
+      label: 'Seller',
       render: (row) => (
         <div>
           <div style={{ fontWeight: 500 }}>{row.sellerName || 'Seller'}</div>
@@ -148,30 +148,26 @@ const BookingHistory = () => {
       ),
     },
     {
-      key: 'energy',
-      label: 'Energy Volume',
+      key: 'energyAndValue',
+      label: 'Energy & Value',
       render: (row) => (
         <div>
-          <strong style={{ color: 'var(--accent-light)' }}>{row.energyAmount} kWh</strong>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+            <strong style={{ color: 'var(--accent-light)', fontWeight: 700 }}>{row.energyAmount} kWh</strong>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>•</span>
+            <strong style={{ color: 'var(--primary-light)', fontWeight: 700 }}>
+              ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
+            </strong>
+          </div>
+          <div style={{ fontSize: '0.73rem', color: 'var(--text-secondary)' }}>
             ${row.pricePerUnit}/kWh
           </div>
         </div>
       ),
     },
     {
-      key: 'totalPrice',
-      label: 'Total Value',
-      render: (row) => (
-        <strong style={{ color: 'var(--primary-light)' }}>
-          ${row.totalPrice?.toFixed(2) ?? ((row.energyAmount || 0) * (row.pricePerUnit || 0)).toFixed(2)}
-        </strong>
-      ),
-    },
-    {
       key: 'slotDate',
       label: 'Schedule',
-      minWidth: '160px',
       render: (row) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, whiteSpace: 'nowrap' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.85rem' }}>
@@ -180,7 +176,7 @@ const BookingHistory = () => {
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
             <Clock size={13} color="var(--accent-light)" style={{ flexShrink: 0 }} />
-            <span>{row.startTime} â€“ {row.endTime}</span>
+            <span>{row.startTime} - {row.endTime}</span>
           </div>
         </div>
       ),

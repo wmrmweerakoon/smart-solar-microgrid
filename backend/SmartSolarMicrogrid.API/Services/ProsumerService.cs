@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: ProsumerService.cs
- * Purpose: Encapsulates the core business logic and rules for Prosumer management.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Prosumer management.
  */
+
 using System.Text.RegularExpressions;
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
@@ -37,7 +36,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ProsumerDto>> GetAllProsumersAsync()
         {
-            // Executes the GetAllProsumersAsync operation flow
+            // Retrieves all prosumers from the system
             var prosumers = await _repository.GetAllAsync();
             return prosumers.Select(MapToDto).ToList();
         }
@@ -106,28 +105,28 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ProsumerDto>> GetProsumersByStatusAsync(string status)
         {
-            // Executes the GetProsumersByStatusAsync operation flow
+            // Retrieves prosumers by status from the system
             var prosumers = await _repository.GetByStatusAsync(status);
             return prosumers.Select(MapToDto).ToList();
         }
 
         public async Task<List<ProsumerDto>> GetProsumersByNodeAsync(string nodeId)
         {
-            // Executes the GetProsumersByNodeAsync operation flow
+            // Retrieves prosumers by node from the system
             var prosumers = await _repository.GetByMicrogridNodeIdAsync(nodeId);
             return prosumers.Select(MapToDto).ToList();
         }
 
         public async Task<List<ProsumerDto>> SearchProsumersAsync(string? query, string? status, string? nodeId)
         {
-            // Executes the SearchProsumersAsync operation flow
+            // Searches for prosumers based on criteria
             var prosumers = await _repository.SearchAsync(query, status, nodeId);
             return prosumers.Select(MapToDto).ToList();
         }
 
         public async Task<ProsumerDto> CreateProsumerAsync(CreateProsumerDto dto)
         {
-            // Executes the CreateProsumerAsync operation flow
+            // Adds a new prosumer to the system
             if (string.IsNullOrWhiteSpace(dto.Nic))
                 throw new ArgumentException("NIC is required as the primary identifier.");
 
@@ -212,7 +211,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> ActivateProsumerAsync(string nic, string activatedBy)
         {
-            // Executes the ActivateProsumerAsync operation flow
+            // Activates the specified prosumer
             var prosumer = await _repository.GetByNicAsync(nic.Trim().ToUpperInvariant());
             if (prosumer == null) return false;
 
@@ -229,7 +228,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeactivateProsumerAsync(string nic, string reason)
         {
-            // Executes the DeactivateProsumerAsync operation flow
+            // Deactivates the specified prosumer
             var prosumer = await _repository.GetByNicAsync(nic.Trim().ToUpperInvariant());
             if (prosumer == null) return false;
 
@@ -251,7 +250,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteProsumerAsync(string nic)
         {
-            // Executes the DeleteProsumerAsync operation flow
+            // Deletes the specified prosumer
             var cleanNic = nic.Trim().ToUpperInvariant();
             var prosumer = await _repository.GetByNicAsync(cleanNic);
             if (prosumer == null) return false;
@@ -271,7 +270,6 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static ProsumerDto MapToDto(Prosumer prosumer) => new ProsumerDto
         {
-            // Executes the GetCountAsync operation flow
             Nic = prosumer.Nic,
             Name = prosumer.Name,
             Email = prosumer.Email,
@@ -289,5 +287,3 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
-
-

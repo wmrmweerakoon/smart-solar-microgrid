@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: MicrogridRepository.cs
- * Purpose: Manages direct database interactions and queries for Microgrid data.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data access layer for interacting with the Microgrid MongoDB collection.
  */
+
 using MongoDB.Driver;
 using SmartSolarMicrogrid.API.Data;
 using SmartSolarMicrogrid.API.Models;
@@ -20,12 +19,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public MicrogridRepository(MongoDbContext context)
         {
+            // Initializes the repository with database context
             _nodes = context.MicrogridNodes;
         }
 
         public async Task<List<MicrogridNode>> GetAllAsync()
         {
-            // Executes the GetAllAsync operation flow
+            // Retrieves all from the system
             return await _nodes.Find(_ => true).ToListAsync();
         }
 
@@ -36,40 +36,38 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<MicrogridNode>> GetByStatusAsync(string status)
         {
-            // Executes the GetByStatusAsync operation flow
+            // Retrieves by status from the system
             return await _nodes.Find(n => n.Status == status).ToListAsync();
         }
 
         public async Task CreateAsync(MicrogridNode node)
         {
-            // Executes the CreateAsync operation flow
+            // Adds a new  to the system
             await _nodes.InsertOneAsync(node);
         }
 
         public async Task UpdateAsync(string id, MicrogridNode node)
         {
-            // Executes the UpdateAsync operation flow
+            // Modifies the existing 
             await _nodes.ReplaceOneAsync(n => n.Id == id, node);
         }
 
         public async Task DeleteAsync(string id)
         {
-            // Executes the DeleteAsync operation flow
+            // Deletes the specified 
             await _nodes.DeleteOneAsync(n => n.Id == id);
         }
 
         public async Task<long> GetCountAsync()
         {
-            // Executes the GetCountAsync operation flow
+            // Retrieves count from the system
             return await _nodes.CountDocumentsAsync(_ => true);
         }
 
         public async Task<long> GetCountByStatusAsync(string status)
         {
-            // Executes the GetCountByStatusAsync operation flow
+            // Retrieves count by status from the system
             return await _nodes.CountDocumentsAsync(n => n.Status == status);
         }
     }
 }
-
-

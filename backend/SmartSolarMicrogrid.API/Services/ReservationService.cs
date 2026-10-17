@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: ReservationService.cs
- * Purpose: Encapsulates the core business logic and rules for Reservation management.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Reservation management.
  */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -35,7 +34,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ReservationDto>> GetAllReservationsAsync()
         {
-            // Executes the GetAllReservationsAsync operation flow
+            // Retrieves all reservations from the system
             var reservations = await _repository.GetAllAsync();
             return reservations.Select(MapToDto).ToList();
         }
@@ -114,14 +113,14 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<ReservationDto>> GetReservationsByStatusAsync(string status)
         {
-            // Executes the GetReservationsByStatusAsync operation flow
+            // Retrieves reservations by status from the system
             var reservations = await _repository.GetByStatusAsync(status);
             return reservations.Select(MapToDto).ToList();
         }
 
         public async Task<ReservationDto> CreateReservationAsync(CreateReservationRequest request)
         {
-            // Executes the CreateReservationAsync operation flow
+            // Adds a new reservation to the system
             if (string.IsNullOrWhiteSpace(request.EnergySlotId))
                 throw new InvalidOperationException("Energy Slot ID is required.");
 
@@ -232,7 +231,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> ConfirmReservationAsync(string id)
         {
-            // Executes the ConfirmReservationAsync operation flow
+            // Confirms the reservation
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -247,7 +246,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CancelReservationAsync(string id)
         {
-            // Executes the CancelReservationAsync operation flow
+            // Cancels the reservation
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -286,7 +285,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CompleteReservationAsync(string id)
         {
-            // Executes the CompleteReservationAsync operation flow
+            // Marks the reservation as complete
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -311,7 +310,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> DeleteReservationAsync(string id)
         {
-            // Executes the DeleteReservationAsync operation flow
+            // Deletes the specified reservation
             var reservation = await _repository.GetByIdAsync(id);
             if (reservation == null) return false;
 
@@ -336,7 +335,6 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static DateTime GetSlotStartDateTime(EnergySlot slot)
         {
-            // Executes the GetCountAsync operation flow
             if (TimeSpan.TryParse(slot.StartTime, out var timeSpan))
             {
                 return slot.SlotDate.Date.Add(timeSpan);
@@ -346,7 +344,6 @@ namespace SmartSolarMicrogrid.API.Services
 
         private static ReservationDto MapToDto(Reservation r) => new ReservationDto
         {
-            // Executes the MapToDto operation flow
             Id = r.Id,
             EnergySlotId = r.EnergySlotId,
             BuyerProsumerId = r.BuyerProsumerId,
@@ -361,5 +358,3 @@ namespace SmartSolarMicrogrid.API.Services
         };
     }
 }
-
-

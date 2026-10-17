@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: BookingService.cs
- * Purpose: Encapsulates the core business logic and rules for Booking management.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Booking management.
  */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -39,21 +38,21 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<BookingDto>> GetCurrentBookingsAsync()
         {
-            // Executes the GetCurrentBookingsAsync operation flow
+            // Retrieves current bookings from the system
             var slots = await _repository.GetCurrentBookingsAsync();
             return await EnrichBookingsAsync(slots);
         }
 
         public async Task<List<BookingDto>> GetPendingBookingsAsync()
         {
-            // Executes the GetPendingBookingsAsync operation flow
+            // Retrieves pending bookings from the system
             var slots = await _repository.GetPendingBookingsAsync();
             return await EnrichBookingsAsync(slots);
         }
 
         public async Task<List<BookingDto>> GetBookingHistoryAsync()
         {
-            // Executes the GetBookingHistoryAsync operation flow
+            // Retrieves booking history from the system
             var slots = await _repository.GetBookingHistoryAsync();
             return await EnrichBookingsAsync(slots);
         }
@@ -120,7 +119,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<List<BookingDto>> SearchBookingsAsync(BookingFilterRequest request)
         {
-            // Executes the SearchBookingsAsync operation flow
+            // Searches for bookings based on criteria
             var slots = await _repository.SearchBookingsAsync(request.Status, request.NodeId, request.Date, request.ProsumerId);
             var enriched = await EnrichBookingsAsync(slots);
 
@@ -145,7 +144,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> ConfirmBookingAsync(string id)
         {
-            // Executes the ConfirmBookingAsync operation flow
+            // Confirms the booking
             var booking = await _repository.GetBookingByIdAsync(id);
             if (booking == null) return false;
 
@@ -156,7 +155,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CompleteBookingAsync(string id)
         {
-            // Executes the CompleteBookingAsync operation flow
+            // Marks the booking as complete
             var booking = await _repository.GetBookingByIdAsync(id);
             if (booking == null) return false;
 
@@ -167,7 +166,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         public async Task<bool> CancelBookingAsync(string id)
         {
-            // Executes the CancelBookingAsync operation flow
+            // Cancels the booking
             var booking = await _repository.GetBookingByIdAsync(id);
             if (booking == null) return false;
 
@@ -181,7 +180,7 @@ namespace SmartSolarMicrogrid.API.Services
 
         private async Task<List<BookingDto>> EnrichBookingsAsync(List<EnergySlot> slots)
         {
-            // Executes the GetCurrentBookingsCountAsync operation flow
+            // Executes the EnrichBookings process
             if (slots.Count == 0) return new List<BookingDto>();
 
             var slotIds = slots.Select(s => s.Id).ToList();
@@ -261,5 +260,3 @@ namespace SmartSolarMicrogrid.API.Services
         }
     }
 }
-
-

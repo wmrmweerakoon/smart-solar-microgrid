@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: Prosumer.cs
- * Purpose: Data model / Schema definition representing Prosumer.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data model representing Prosumer entities within the system.
  */
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -149,5 +148,3 @@ namespace SmartSolarMicrogrid.API.Models
         public List<ReservationDto> RecentReservations { get; set; } = new List<ReservationDto>();
     }
 }
-
-

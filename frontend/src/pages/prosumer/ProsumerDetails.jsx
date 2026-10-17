@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -199,13 +199,13 @@ const ProsumerDetails = () => {
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Phone Number</span>
               <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Phone size={14} color="var(--text-secondary)" /> {prosumer.phone || 'â€”'}
+                <Phone size={14} color="var(--text-secondary)" /> {prosumer.phone || '-'}
               </p>
             </div>
             <div>
               <span className="form-label" style={{ fontSize: '0.75rem', marginBottom: 2 }}>Property Address</span>
               <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MapPin size={14} color="var(--text-secondary)" /> {prosumer.address || 'â€”'}
+                <MapPin size={14} color="var(--text-secondary)" /> {prosumer.address || '-'}
               </p>
             </div>
           </div>

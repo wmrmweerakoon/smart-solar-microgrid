@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: DashboardService.cs
- * Purpose: Encapsulates the core business logic and rules for Dashboard management.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Contains business logic and rules for Dashboard management.
  */
+
 using SmartSolarMicrogrid.API.Models;
 using SmartSolarMicrogrid.API.Repositories;
 
@@ -121,5 +120,3 @@ namespace SmartSolarMicrogrid.API.Services
         }
     }
 }
-
-

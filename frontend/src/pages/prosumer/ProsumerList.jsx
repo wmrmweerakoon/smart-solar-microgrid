@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -153,7 +153,7 @@ const ProsumerList = () => {
   };
 
   const getNodeName = (nodeId) => {
-    if (!nodeId) return 'â€”';
+    if (!nodeId) return '-';
     const found = nodes.find((n) => n.id === nodeId);
     return found ? `${found.nodeName} (${found.location})` : 'Assigned Node';
   };

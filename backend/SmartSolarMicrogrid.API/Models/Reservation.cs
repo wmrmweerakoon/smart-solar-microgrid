@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: Reservation.cs
- * Purpose: Data model / Schema definition representing Reservation.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data model representing Reservation entities within the system.
  */
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -105,5 +104,3 @@ namespace SmartSolarMicrogrid.API.Models
         public double HoursUntilSlot { get; set; }
     }
 }
-
-

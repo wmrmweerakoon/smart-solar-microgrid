@@ -1,10 +1,9 @@
-﻿/* 
- * ==============================================================================
- * Smart Solar Microgrid Trading & Energy Management System
+/*
  * File: ProsumerRepository.cs
- * Purpose: Manages direct database interactions and queries for Prosumer data.
- * ==============================================================================
+ * Module: SE4040 Enterprise Application Development
+ * Description: Data access layer for interacting with the Prosumer MongoDB collection.
  */
+
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SmartSolarMicrogrid.API.Data;
@@ -21,12 +20,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public ProsumerRepository(MongoDbContext context)
         {
+            // Initializes the repository with database context
             _prosumers = context.Prosumers;
         }
 
         public async Task<List<Prosumer>> GetAllAsync()
         {
-            // Executes the GetAllAsync operation flow
+            // Retrieves all from the system
             return await _prosumers.Find(_ => true).SortByDescending(p => p.CreatedAt).ToListAsync();
         }
 
@@ -42,13 +42,13 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<Prosumer>> GetByStatusAsync(string status)
         {
-            // Executes the GetByStatusAsync operation flow
+            // Retrieves by status from the system
             return await _prosumers.Find(p => p.Status == status).SortByDescending(p => p.CreatedAt).ToListAsync();
         }
 
         public async Task<List<Prosumer>> GetByMicrogridNodeIdAsync(string nodeId)
         {
-            // Executes the GetByMicrogridNodeIdAsync operation flow
+            // Retrieves by microgrid node id from the system
             return await _prosumers.Find(p => p.MicrogridNodeId == nodeId).ToListAsync();
         }
 
@@ -59,7 +59,7 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task<List<Prosumer>> SearchAsync(string? query, string? status, string? nodeId)
         {
-            // Executes the SearchAsync operation flow
+            // Searches for  based on criteria
             var filterBuilder = Builders<Prosumer>.Filter;
             var filter = filterBuilder.Empty;
 
@@ -92,34 +92,32 @@ namespace SmartSolarMicrogrid.API.Repositories
 
         public async Task CreateAsync(Prosumer prosumer)
         {
-            // Executes the CreateAsync operation flow
+            // Adds a new  to the system
             await _prosumers.InsertOneAsync(prosumer);
         }
 
         public async Task UpdateAsync(string nic, Prosumer prosumer)
         {
-            // Executes the UpdateAsync operation flow
+            // Modifies the existing 
             await _prosumers.ReplaceOneAsync(p => p.Nic == nic, prosumer);
         }
 
         public async Task DeleteAsync(string nic)
         {
-            // Executes the DeleteAsync operation flow
+            // Deletes the specified 
             await _prosumers.DeleteOneAsync(p => p.Nic == nic);
         }
 
         public async Task<long> GetCountAsync()
         {
-            // Executes the GetCountAsync operation flow
+            // Retrieves count from the system
             return await _prosumers.CountDocumentsAsync(_ => true);
         }
 
         public async Task<long> GetCountByStatusAsync(string status)
         {
-            // Executes the GetCountByStatusAsync operation flow
+            // Retrieves count by status from the system
             return await _prosumers.CountDocumentsAsync(p => p.Status == status);
         }
     }
 }
-
-
